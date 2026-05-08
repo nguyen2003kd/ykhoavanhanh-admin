@@ -1,0 +1,14 @@
+export type { Patient, PatientFamily, PatientFamilyMember } from "@/app/(dashboard)/patients/types";
+export type { Appointment, AppointmentSlot } from "@/app/(dashboard)/appointments/types";
+export type { Doctor, DoctorSchedule } from "@/app/(dashboard)/doctors/types";
+export type { Specialty } from "./specialty";
+export type { AdminUser, AdminRole } from "./user";
+export type { MedicalRecord, TestResult, ImagingResult, InvoiceItem, Attachment } from "./medical-record";
+export type { MemberProfile, FamilyGroup, FamilyMember, PointTransaction, Gift, GiftRedemption, Voucher, MembershipTier } from "./membership";
+export type { Article, NewsItem, VideoItem, ContentCategory, ArticleStatus } from "./content";
+export type { DoctorReview } from "./review";
+export type { AdminNotification, NotificationChannel, NotificationType } from "./notification";
+export type { Payment, PaymentStatus, PaymentMethod } from "./payment";
+export type { Promotion } from "./promotion";
+export type { DashboardKpi, AppointmentStat, DoctorPerformance, RevenueData } from "./report";
+export type { PaginatedResponse, PaginationParams, FilterParams, SortParams, ApiResponse, AuthTokenResponse, LoginPayload } from "./api";

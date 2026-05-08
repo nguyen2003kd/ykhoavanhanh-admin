@@ -1,0 +1,88 @@
+import { Appointment } from "@/app/(dashboard)/appointments/types";
+
+export const mockAppointments: Appointment[] = [
+  {
+    id: "a001", code: "LH-2024-001", patientId: "p001", patientName: "Nguyễn Thị Lan", patientPhone: "0901234567",
+    doctorId: "d001", doctorName: "BS. Trần Văn An", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-10", appointmentTime: "08:00", status: "confirmed",
+    note: "Bệnh nhân có tiền sử cao huyết áp, cần đo huyết áp trước khám", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-05T10:00:00Z", updatedAt: "2024-07-06T08:00:00Z",
+  },
+  {
+    id: "a002", code: "LH-2024-002", patientId: "p002", patientName: "Trần Văn Minh", patientPhone: "0912345678",
+    doctorId: "d002", doctorName: "BS. Lê Thị Bích", specialtyId: "sp002", specialtyName: "Tim mạch",
+    appointmentDate: "2024-07-10", appointmentTime: "09:00", status: "pending",
+    isForSelf: true, reminderSent: false,
+    createdAt: "2024-07-06T14:00:00Z", updatedAt: "2024-07-06T14:00:00Z",
+  },
+  {
+    id: "a003", code: "LH-2024-003", patientId: "p003", patientName: "Lê Thị Hoa", patientPhone: "0923456789",
+    doctorId: "d003", doctorName: "BS. Nguyễn Minh Tuấn", specialtyId: "sp003", specialtyName: "Sản phụ khoa",
+    appointmentDate: "2024-07-09", appointmentTime: "10:00", status: "completed",
+    note: "Khám thai lần 2, tuần 20", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-04T09:00:00Z", updatedAt: "2024-07-09T11:00:00Z",
+  },
+  {
+    id: "a004", code: "LH-2024-004", patientId: "p004", patientName: "Phạm Đức Hoàng", patientPhone: "0934567890",
+    doctorId: "d001", doctorName: "BS. Trần Văn An", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-08", appointmentTime: "14:00", status: "cancelled",
+    note: "Bệnh nhân bận việc đột xuất", isForSelf: false, reminderSent: false,
+    createdAt: "2024-07-03T11:00:00Z", updatedAt: "2024-07-07T16:00:00Z",
+  },
+  {
+    id: "a005", code: "LH-2024-005", patientId: "p005", patientName: "Võ Thị Mai", patientPhone: "0945678901",
+    doctorId: "d001", doctorName: "BS. Trần Văn An", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-11", appointmentTime: "08:30", status: "confirmed",
+    note: "Tái khám sau điều trị thiếu máu", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-07T08:00:00Z", updatedAt: "2024-07-07T10:00:00Z",
+  },
+  {
+    id: "a006", code: "LH-2024-006", patientId: "p006", patientName: "Nguyễn Quốc Bảo", patientPhone: "0956789012",
+    doctorId: "d004", doctorName: "BS. Phạm Thành Long", specialtyId: "sp004", specialtyName: "Nhi khoa",
+    appointmentDate: "2024-07-11", appointmentTime: "09:30", status: "confirmed",
+    note: "Trẻ bị sốt, ho 3 ngày", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-08T07:30:00Z", updatedAt: "2024-07-08T09:00:00Z",
+  },
+  {
+    id: "a007", code: "LH-2024-007", patientId: "p007", patientName: "Hoàng Thị Thanh", patientPhone: "0967890123",
+    doctorId: "d001", doctorName: "BS. Trần Văn An", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-12", appointmentTime: "10:00", status: "pending",
+    note: "Tái khám theo dõi đái tháo đường", isForSelf: true, reminderSent: false,
+    createdAt: "2024-07-08T10:00:00Z", updatedAt: "2024-07-08T10:00:00Z",
+  },
+  {
+    id: "a008", code: "LH-2024-008", patientId: "p008", patientName: "Đặng Minh Khoa", patientPhone: "0978901234",
+    doctorId: "d006", doctorName: "BS. Đặng Xuân Hòa", specialtyId: "sp006", specialtyName: "Xương khớp",
+    appointmentDate: "2024-07-09", appointmentTime: "14:30", status: "completed",
+    note: "Phục hồi chức năng sau phẫu thuật thoát vị", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-04T14:00:00Z", updatedAt: "2024-07-09T16:00:00Z",
+  },
+  {
+    id: "a009", code: "LH-2024-009", patientId: "p009", patientName: "Trịnh Thị Yến", patientPhone: "0989012345",
+    doctorId: "d001", doctorName: "BS. Trần Văn An", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-13", appointmentTime: "08:00", status: "pending",
+    note: "Theo dõi Lupus ban đỏ hệ thống", isForSelf: true, reminderSent: false,
+    createdAt: "2024-07-09T09:00:00Z", updatedAt: "2024-07-09T09:00:00Z",
+  },
+  {
+    id: "a010", code: "LH-2024-010", patientId: "p010", patientName: "Bùi Thanh Tùng", patientPhone: "0990123456",
+    doctorId: "d007", doctorName: "BS. Vũ Quốc Anh", specialtyId: "sp001", specialtyName: "Nội khoa",
+    appointmentDate: "2024-07-07", appointmentTime: "10:30", status: "no_show",
+    isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-03T10:00:00Z", updatedAt: "2024-07-07T12:00:00Z",
+  },
+  {
+    id: "a011", code: "LH-2024-011", patientId: "p011", patientName: "Mai Thị Xuân", patientPhone: "0911223344",
+    doctorId: "d006", doctorName: "BS. Đặng Xuân Hòa", specialtyId: "sp006", specialtyName: "Xương khớp",
+    appointmentDate: "2024-07-14", appointmentTime: "09:00", status: "confirmed",
+    note: "Đau khớp gối nặng hơn, cần tái đánh giá", isForSelf: true, reminderSent: true,
+    createdAt: "2024-07-09T11:00:00Z", updatedAt: "2024-07-09T14:00:00Z",
+  },
+  {
+    id: "a012", code: "LH-2024-012", patientId: "p012", patientName: "Lý Văn Hùng", patientPhone: "0922334455",
+    doctorId: "d002", doctorName: "BS. Lê Thị Bích", specialtyId: "sp002", specialtyName: "Tim mạch",
+    appointmentDate: "2024-07-14", appointmentTime: "10:00", status: "confirmed",
+    note: "Khám sức khỏe tổng quát, kiểm tra tim mạch", isForSelf: true, reminderSent: false,
+    createdAt: "2024-07-10T08:00:00Z", updatedAt: "2024-07-10T08:00:00Z",
+  },
+];
