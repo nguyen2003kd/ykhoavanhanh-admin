@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FiMenu, FiLogOut, FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiLogOut, FiMenu } from "react-icons/fi";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { clearAuthSession, getCurrentUserSession, hasAuthSession } from "@/lib/auth-session";
 import { authService } from "@/services/auth";
-import { AdminUser, AdminRole } from "@/types/user";
+import { AdminRole, AdminUser } from "@/types/user";
 
 const roleLabels: Record<AdminRole, string> = {
   super_admin: "Quản trị viên",
@@ -21,9 +21,13 @@ const moduleTitleMap: Record<string, string> = {
   "/": "Bảng điều khiển",
   "/patients": "Quản lý bệnh nhân",
   "/medical-records": "Hồ sơ sức khỏe",
-  "/appointments": "Quản lý lịch hẹn",
+  "/specialties": "Quản lý chuyên khoa",
+  "/exam-areas": "Khu vực khám bệnh",
+  "/clinics": "Quản lý phòng khám",
   "/doctors": "Quản lý bác sĩ",
-  "/specialties": "Chuyên khoa",
+  "/exam-services": "Quản lý dịch vụ khám",
+  "/appointments": "Quản lý lịch khám",
+  "/operations": "Công cụ vận hành khám bệnh",
   "/membership": "Membership",
   "/membership/points": "Quản lý điểm",
   "/membership/gifts": "Quà tặng",
@@ -51,7 +55,7 @@ interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
-export function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
+export function Header({ onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
@@ -59,8 +63,10 @@ export function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setIsUserMenuOpen(false);
+    const handler = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -68,58 +74,65 @@ export function Header({ isSidebarOpen, onToggleSidebar }: HeaderProps) {
 
   useEffect(() => {
     const cached = getCurrentUserSession();
-    if (cached) { setCurrentUser(cached); return; }
+    if (cached) {
+      setCurrentUser(cached);
+      return;
+    }
     if (!hasAuthSession()) return;
-    authService.getMyInfo().then((u) => { if (u) setCurrentUser(u); }).catch(() => {});
+    authService.getMyInfo().then((user) => {
+      if (user) setCurrentUser(user);
+    }).catch(() => {});
   }, []);
 
   const handleLogout = async () => {
-    try { await authService.logout(); } catch { }
+    try {
+      await authService.logout();
+    } catch {}
     clearAuthSession();
     router.replace("/auth/login");
   };
 
-  const pageTitle = getPageTitle(pathname);
-
   return (
-    <header className="flex-shrink-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-10">
+    <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 z-10">
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
           aria-label="Toggle sidebar"
         >
-          <FiMenu className="w-5 h-5" />
+          <FiMenu className="h-5 w-5" />
         </button>
-        <h1 className="text-base font-semibold text-gray-800">{pageTitle}</h1>
+        <h1 className="text-base font-semibold text-gray-800">{getPageTitle(pathname)}</h1>
       </div>
 
       <div className="flex items-center gap-2">
         {currentUser && (
           <div ref={userMenuRef} className="relative">
             <button
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 transition-colors hover:bg-gray-50"
             >
               <Avatar name={currentUser.fullName} size="sm" />
-              <div className="hidden sm:flex flex-col items-start">
+              <div className="hidden items-start sm:flex sm:flex-col">
                 <span className="text-sm font-medium text-gray-700">{currentUser.fullName}</span>
                 <span className="text-xs text-gray-500">{roleLabels[currentUser.role]}</span>
               </div>
-              <FiChevronDown className="w-4 h-4 text-gray-500" />
+              <FiChevronDown className="h-4 w-4 text-gray-500" />
             </button>
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[160px]">
-                <div className="px-3 py-2 border-b border-gray-100">
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                <div className="border-b border-gray-100 px-3 py-2">
                   <p className="text-sm font-semibold text-gray-900">{currentUser.fullName}</p>
-                  <p className="text-xs text-gray-500 mb-1">{currentUser.email}</p>
-                  <Badge variant="info" className="text-xs">{roleLabels[currentUser.role]}</Badge>
+                  <p className="mb-1 text-xs text-gray-500">{currentUser.email}</p>
+                  <Badge variant="info" className="text-xs">
+                    {roleLabels[currentUser.role]}
+                  </Badge>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
                 >
-                  <FiLogOut className="w-4 h-4" />
+                  <FiLogOut className="h-4 w-4" />
                   Đăng xuất
                 </button>
               </div>
