@@ -1,10 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   safelist: [
     'bg-primary-500', 'bg-primary-600',
@@ -23,8 +24,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // shadcn/ui semantic tokens — map tới CSS variables
+        background:  "hsl(var(--background))",
+        foreground:  "hsl(var(--foreground))",
+        card: {
+          DEFAULT:    "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        popover: {
+          DEFAULT:    "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        muted: {
+          DEFAULT:    "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        destructive: {
+          DEFAULT:    "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        border: "hsl(var(--border))",
+        input:  "hsl(var(--input))",
+        ring:   "hsl(var(--ring))",
         // Primary: Deep Medical Blue — #0B5CAD (nguồn chatgpt.md Q3)
         primary: {
+          DEFAULT:    "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
           50:  "#EEF4FB",
           100: "#D5E5F6",
           200: "#ACCBEE",
@@ -39,6 +64,8 @@ const config: Config = {
         },
         // Secondary: Healthcare Teal — #00A6A6 (nguồn chatgpt.md Q3)
         secondary: {
+          DEFAULT:    "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
           50:  "#E0F7F7",
           100: "#B3ECEC",
           200: "#80DFDF",
@@ -52,6 +79,8 @@ const config: Config = {
         },
         // Accent: Soft Gold — #F5B942 (membership, voucher, điểm)
         accent: {
+          DEFAULT:    "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
           300: "#FAD88A",
           400: "#F8CC65",
           500: "#F5B942", // ACCENT main
@@ -65,6 +94,11 @@ const config: Config = {
         "text-slate": "#627D98",
         // Border
         "border-blue": "#D9E6F2",
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui"],
