@@ -37,7 +37,7 @@ export function LoadingSpinner({ text }: { text?: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-12">
       <Spinner size="md" />
-      {text && <p className="text-sm text-gray-600">{text}</p>}
+      {text && <p className="text-sm text-muted-foreground">{text}</p>}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { NavRail } from "@/components/layout/NavRail";
+import { AppSidebar } from "@/components/layout/AppSidebar";
 import { LoadingPage } from "@/components/ui/Spinner";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { hasAuthSession } from "@/lib/auth-session";
@@ -58,23 +58,26 @@ export default function DashboardLayout({
       </div>
 
       {/* ── Desktop layout (lg+) ── */}
-      <div className="hidden lg:flex min-h-dvh flex-col bg-gray-50/50">
-        {/* Sticky top header — 72px */}
-        <AppHeader />
+      <div className="hidden lg:flex min-h-dvh bg-background">
+        {/* Left sidebar */}
+        <AppSidebar />
 
-        {/* Sticky horizontal navigation rail — 56px primary + optional sub-nav */}
-        <NavRail />
+        {/* Right content area */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Sticky top header — 72px */}
+          <AppHeader />
 
-        {/* Main content area */}
-        <main
-          id="main-content"
-          className="flex-1"
-          tabIndex={-1}
-        >
-          <div className="mx-auto max-w-[1600px] px-6 py-7 xl:px-8">
-            {children}
-          </div>
-        </main>
+          {/* Main content area */}
+          <main
+            id="main-content"
+            className="flex-1"
+            tabIndex={-1}
+          >
+            <div className="mx-auto max-w-[1600px] px-6 py-7 xl:px-8">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </ToastProvider>
   );

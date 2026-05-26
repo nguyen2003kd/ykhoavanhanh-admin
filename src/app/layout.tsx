@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo/vh-icon.svg",
     apple: "/logo/vh-icon.svg",
+    shortcut: "/logo/logo-mobile.png",
   },
 };
 

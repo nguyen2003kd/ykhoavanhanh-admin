@@ -32,18 +32,18 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {label}
           </label>
         )}
         <ShadcnInput
           ref={ref}
           aria-invalid={!!error}
-          className={cn(error && "border-red-500 focus-visible:ring-red-500/50", className)}
+          className={cn(error && "border-destructive focus-visible:ring-destructive/50", className)}
           {...props}
         />
-        {hint && !error && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {hint && !error && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+        {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
       </div>
     );
   },

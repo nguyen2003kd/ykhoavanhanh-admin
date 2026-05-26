@@ -94,11 +94,46 @@ const config: Config = {
         "text-slate": "#627D98",
         // Border
         "border-blue": "#D9E6F2",
+        "border-focus": "#0B5CAD",
+        // Primary aliases from mobile
+        "primary-light": "#EAF3FC",
+        "primary-dark": "#083B6F",
+        // Secondary aliases from mobile
+        "secondary-light": "#E6F7F7",
+        // Accent aliases from mobile
+        "accent-light": "#FFF7E6",
+        // Semantic colors from mobile
+        success: {
+          DEFAULT: "#2BB673",
+          light: "#EAFBF3",
+        },
+        warning: {
+          DEFAULT: "#F59E0B",
+          light: "#FFF7E6",
+        },
+        error: {
+          DEFAULT: "#E5484D",
+          light: "#FFDAD6",
+        },
+        info: "#1D8FE3",
+        // Surface
+        surface: {
+          DEFAULT: "#FFFFFF",
+          secondary: "#F2F3FB",
+        },
+        // Text extra
+        "text-disabled": "#9FB3C8",
+        "text-inverse": "#FFFFFF",
+        // Overlay
+        overlay: "rgba(0, 0, 0, 0.5)",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "14px",
+        "2xl": "20px",
+        full: "9999px",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui"],

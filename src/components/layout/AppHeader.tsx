@@ -121,7 +121,7 @@ function LiveClock() {
     return () => clearInterval(id);
   }, []);
   return (
-    <div className="flex items-center gap-1.5 text-gray-400" aria-live="off">
+    <div className="flex items-center gap-1.5 text-muted-foreground" aria-live="off">
       <Clock className="size-3.5 shrink-0" />
       <span className="tabular-nums text-xs font-medium">
         {time.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
@@ -140,20 +140,20 @@ function GlobalSearch() {
         "relative flex h-10 w-full items-center gap-2.5 rounded-xl border px-4 transition-all duration-200",
         focused
           ? "border-primary-400 bg-white shadow-sm ring-3 ring-primary-400/15"
-          : "border-gray-200 bg-gray-50/80 hover:border-gray-300 hover:bg-white",
+          : "border-border bg-muted/50 hover:border-border hover:bg-white",
       )}
     >
-      <Search className="size-4 shrink-0 text-gray-400" />
+      <Search className="size-4 shrink-0 text-muted-foreground" />
       <input
         type="text"
         placeholder="Tìm kiếm bệnh nhân, lịch khám, hồ sơ…"
-        className="h-full flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
+        className="h-full flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         aria-label="Tìm kiếm toàn cục"
       />
       <div className="hidden shrink-0 items-center gap-1 sm:flex">
-        <kbd className="inline-flex h-5 items-center rounded border border-gray-200 bg-white px-1.5 text-[10px] font-medium text-gray-400 shadow-[0_1px_0_0_#e5e7eb]">
+        <kbd className="inline-flex h-5 items-center rounded border border-border bg-white px-1.5 text-[10px] font-medium text-muted-foreground shadow-[0_1px_0_0_#e5e7eb]">
           /
         </kbd>
       </div>
@@ -171,7 +171,7 @@ function NotificationBell() {
     >
       <Bell className="size-[18px]" />
       <span
-        className="absolute right-2 top-2 flex size-2 items-center justify-center rounded-full bg-red-500 ring-2 ring-white"
+        className="absolute right-2 top-2 flex size-2 items-center justify-center rounded-full bg-error ring-2 ring-white"
         aria-hidden
       />
     </button>
@@ -184,7 +184,7 @@ function EmergencyButton() {
   return (
     <button
       aria-label="Cấp cứu khẩn cấp"
-      className="flex h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 transition-all duration-150 hover:border-red-300 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+      className="flex h-10 items-center gap-2 rounded-xl border border-error/20 bg-error-light px-4 text-sm font-semibold text-error transition-all duration-150 hover:border-error/30 hover:bg-error/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/40"
     >
       <ShieldAlert className="size-4" />
       <span className="hidden xl:block">Khẩn cấp</span>
@@ -314,7 +314,7 @@ function UserMenu({ user }: { user: AdminUser }) {
             <button
               role="menuitem"
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
+              className="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-error transition-colors hover:bg-error-light"
             >
               <LogOut className="size-4" />
               Đăng xuất

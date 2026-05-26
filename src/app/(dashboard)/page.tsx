@@ -25,7 +25,7 @@ const kpiCards = [
     change: "+5%",
     changeType: "up" as const,
     icon: FiCalendar,
-    color: "bg-blue-500",
+    color: "bg-primary-500",
   },
   {
     title: "Đánh giá trung bình",
@@ -33,7 +33,7 @@ const kpiCards = [
     change: "+0.2",
     changeType: "up" as const,
     icon: FiStar,
-    color: "bg-amber-500",
+    color: "bg-accent-500",
   },
   {
     title: "Tỷ lệ xác nhận",
@@ -41,7 +41,7 @@ const kpiCards = [
     change: "+1.3%",
     changeType: "up" as const,
     icon: FiTrendingUp,
-    color: "bg-green-500",
+    color: "bg-success",
   },
   {
     title: "Thành viên tích cực",
@@ -49,7 +49,7 @@ const kpiCards = [
     change: "+8%",
     changeType: "up" as const,
     icon: FiAward,
-    color: "bg-purple-500",
+    color: "bg-accent-600",
   },
   {
     title: "Lịch hẹn tháng này",
@@ -57,7 +57,7 @@ const kpiCards = [
     change: "+18%",
     changeType: "up" as const,
     icon: FiActivity,
-    color: "bg-teal-500",
+    color: "bg-secondary-500",
   },
 ];
 
@@ -65,8 +65,8 @@ export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bảng điều khiển</h1>
-        <p className="mt-1 text-gray-500 text-sm">
+        <h1 className="text-2xl font-bold text-foreground">Bảng điều khiển</h1>
+        <p className="mt-1 text-muted-foreground text-sm">
           Tổng quan hoạt động hệ thống Y Khoa Vạn Hạnh
         </p>
       </div>
@@ -81,9 +81,9 @@ export default function DashboardPage() {
                 <Icon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                <p className="text-xs text-green-600 font-medium">{card.change} so với tháng trước</p>
+                <p className="text-sm text-muted-foreground">{card.title}</p>
+                <p className="text-2xl font-bold text-foreground">{card.value}</p>
+                <p className="text-xs text-success font-medium">{card.change} so với tháng trước</p>
               </div>
             </Card>
           );
@@ -92,18 +92,18 @@ export default function DashboardPage() {
 
       {/* Recent appointments placeholder */}
       <Card className="p-5">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Lịch hẹn gần đây</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Lịch hẹn gần đây</h2>
         <div className="space-y-3">
           {[
-            { patient: "Nguyễn Văn An", doctor: "BS. Trần Thị Bình", time: "08:00", status: "Đã xác nhận", statusColor: "bg-green-100 text-green-700" },
-            { patient: "Lê Thị Cúc", doctor: "BS. Phạm Văn Dũng", time: "09:30", status: "Chờ xác nhận", statusColor: "bg-yellow-100 text-yellow-700" },
-            { patient: "Hoàng Minh Đức", doctor: "BS. Nguyễn Thị Em", time: "10:00", status: "Đã khám", statusColor: "bg-blue-100 text-blue-700" },
-            { patient: "Võ Thị Phương", doctor: "BS. Lê Văn Giang", time: "11:00", status: "Đã hủy", statusColor: "bg-red-100 text-red-700" },
+            { patient: "Nguyễn Văn An", doctor: "BS. Trần Thị Bình", time: "08:00", status: "Đã xác nhận", statusColor: "bg-success-light text-success" },
+            { patient: "Lê Thị Cúc", doctor: "BS. Phạm Văn Dũng", time: "09:30", status: "Chờ xác nhận", statusColor: "bg-warning-light text-warning" },
+            { patient: "Hoàng Minh Đức", doctor: "BS. Nguyễn Thị Em", time: "10:00", status: "Đã khám", statusColor: "bg-primary-100 text-primary-600" },
+            { patient: "Võ Thị Phương", doctor: "BS. Lê Văn Giang", time: "11:00", status: "Đã hủy", statusColor: "bg-error-light text-error" },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+            <div key={idx} className="flex items-center justify-between py-2 border-b border-border last:border-0">
               <div>
-                <p className="font-medium text-gray-900 text-sm">{item.patient}</p>
-                <p className="text-xs text-gray-500">{item.doctor} — {item.time}</p>
+                <p className="font-medium text-foreground text-sm">{item.patient}</p>
+                <p className="text-xs text-muted-foreground">{item.doctor} — {item.time}</p>
               </div>
               <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${item.statusColor}`}>
                 {item.status}
