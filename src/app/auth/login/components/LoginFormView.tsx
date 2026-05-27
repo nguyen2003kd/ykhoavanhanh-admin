@@ -26,7 +26,7 @@ export function LoginFormView() {
           <Input
             label="Email"
             name="email"
-            type="email"
+            type="text"
             autoComplete="email"
             required
             placeholder="admin@gmail.com"
