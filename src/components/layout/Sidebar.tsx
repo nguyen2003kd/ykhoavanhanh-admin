@@ -25,8 +25,8 @@ import {
   FiUser,
   FiUsers,
 } from "react-icons/fi";
-import { clearAuthSession } from "@/lib/auth-session";
-import { authService } from "@/services/auth";
+import { authService } from "@/api/authApi";
+import { logout } from "@/store/authStore";
 
 interface NavChild {
   name: string;
@@ -145,7 +145,7 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
     try {
       await authService.logout();
     } catch {}
-    clearAuthSession();
+    logout();
     router.replace("/auth/login");
   };
 

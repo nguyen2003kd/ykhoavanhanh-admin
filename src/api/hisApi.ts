@@ -1,43 +1,22 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPost, apiDelete } from "@/lib/axios";
-import { queryKeys, ApiResponse } from "@/types/api-response";
+/**
+ * HIS API - Hospital Information System
+ */
 
-// Types
-interface Doctor {
+import { apiGet } from "@/lib/axios";
+import { createApi } from "./createApi";
+
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+export interface Doctor {
   id: string;
   name?: string;
   full_name?: string;
   specialty?: string;
   room?: string;
   avatar?: string;
-  // Add other doctor fields as needed
 }
 
-interface DoctorsResponse extends ApiResponse<Doctor[]> {}
-
-// Doctor Service
-export const doctorService = {
-  // Get all doctors from HIS
-  getDoctors: async (): Promise<Doctor[]> => {
-    const response = await apiGet<Doctor[]>("/doctors");
-    if (response.data.status === "success" && response.data.responseData) {
-      return response.data.responseData;
-    }
-    throw new Error(response.data.message || "Không thể lấy danh sách bác sĩ");
-  },
-};
-
-// TanStack Query Hooks
-export function useDoctors() {
-  return useQuery({
-    queryKey: queryKeys.doctors.list(),
-    queryFn: () => doctorService.getDoctors(),
-    staleTime: 1000 * 60 * 10, // 10 minutes - HIS data rarely changes
-  });
-}
-
-// Room Types
-interface Room {
+export interface Room {
   id: string;
   name?: string;
   code?: string;
@@ -45,30 +24,7 @@ interface Room {
   floor?: string;
 }
 
-interface RoomsResponse extends ApiResponse<Room[]> {}
-
-// Room Service
-export const roomService = {
-  getRooms: async (): Promise<Room[]> => {
-    const response = await apiGet<Room[]>("/rooms");
-    if (response.data.status === "success" && response.data.responseData) {
-      return response.data.responseData;
-    }
-    throw new Error(response.data.message || "Không thể lấy danh sách phòng");
-  },
-};
-
-// TanStack Query Hooks
-export function useRooms() {
-  return useQuery({
-    queryKey: queryKeys.rooms.list(),
-    queryFn: () => roomService.getRooms(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
-  });
-}
-
-// Service Types (HIS Services)
-interface HisService {
+export interface HisService {
   id: string;
   name?: string;
   code?: string;
@@ -76,24 +32,40 @@ interface HisService {
   description?: string;
 }
 
-interface ServicesResponse extends ApiResponse<HisService[]> {}
+// ─── API Factories ──────────────────────────────────────────────────────────
 
-// Service Service
-export const hisService = {
-  getServices: async (): Promise<HisService[]> => {
-    const response = await apiGet<HisService[]>("/his-services");
-    if (response.data.status === "success" && response.data.responseData) {
-      return response.data.responseData;
-    }
-    throw new Error(response.data.message || "Không thể lấy danh sách dịch vụ");
-  },
-};
+export const doctorApi = createApi<Doctor>("doctors");
+export const roomApi = createApi<Room>("rooms");
 
-// TanStack Query Hooks
+// Custom HIS Service (non-paginated)
+async function fetchHisServices(): Promise<HisService[]> {
+  const res = await apiGet<HisService[]>("/his-services");
+  if (res.data.status === "success" && res.data.responseData) {
+    return res.data.responseData;
+  }
+  throw new Error(res.data.message || "Không thể lấy danh sách dịch vụ");
+}
+
+import { useQuery } from "@tanstack/react-query";
+
 export function useHisServices() {
   return useQuery({
-    queryKey: queryKeys.services.list(),
-    queryFn: () => hisService.getServices(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    queryKey: ["his-services", "list"] as const,
+    queryFn: fetchHisServices,
+    staleTime: 1000 * 60 * 10,
   });
 }
+
+// ─── Convenience Exports ──────────────────────────────────────────────────
+
+export const useDoctors = doctorApi.hooks.useList;
+export const useDoctor = doctorApi.hooks.useDetail;
+export const useCreateDoctor = doctorApi.hooks.useCreate;
+export const useUpdateDoctor = doctorApi.hooks.useUpdate;
+export const useDeleteDoctor = doctorApi.hooks.useDelete;
+
+export const useRooms = roomApi.hooks.useList;
+export const useRoom = roomApi.hooks.useDetail;
+export const useCreateRoom = roomApi.hooks.useCreate;
+export const useUpdateRoom = roomApi.hooks.useUpdate;
+export const useDeleteRoom = roomApi.hooks.useDelete;

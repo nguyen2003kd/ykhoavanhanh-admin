@@ -66,7 +66,7 @@ export function usePagination(defaultPage = 1, defaultLimit = 10) {
  * Optimistic update hook
  * Provides instant UI feedback before server response
  */
-export function useOptimisticUpdate<T extends { id: string | number }>() {
+export function useOptimisticUpdate() {
   const queryClient = useQueryClient();
   const toast = useToast();
 

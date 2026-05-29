@@ -8,7 +8,14 @@ export interface ApiResponse<T> {
   violations?: Array<{ message: string }>;
   timeStamp: string;
 }
-
+export interface ErrorResponse {
+  status: "fail";
+  message: string;
+  message_en?: string;
+  violations?: Array<{ message: string }>;
+  responseData: null;
+  timeStamp: string;
+}
 export interface AuthTokenResponse {
   accessToken: string;
   refreshToken: string;
@@ -21,7 +28,7 @@ export interface RefreshTokenResponse {
 }
 
 export interface LoginPayload {
-  phone: string;
+  email: string;
   password: string;
 }
 
@@ -50,7 +57,18 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface usePut{
 
+    full_name: string,
+    phone: string,
+    avatar: string,
+    created_at: string,
+    created_by: string,
+    updated_at: string,
+    updated_by: string
+
+}
+export interface usePutResponse{}
 export interface PaginatedResponse<T> {
   count?: number;
   rows?: T[];
@@ -66,14 +84,7 @@ export interface PaginationParams {
   filters?: string;
 }
 
-export interface ErrorResponse {
-  status: "fail";
-  message: string;
-  message_en?: string;
-  violations?: Array<{ message: string }>;
-  responseData: null;
-  timeStamp: string;
-}
+
 
 // Query Key factories for TanStack Query
 export const queryKeys = {

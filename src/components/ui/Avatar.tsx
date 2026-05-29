@@ -67,7 +67,14 @@ interface AvatarProps {
 }
 
 function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+  if (!name?.trim()) return "?"
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((n) => n[0] ?? "")
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "?"
 }
 
 const sizeMap: Record<string, "sm" | "default" | "lg"> = {

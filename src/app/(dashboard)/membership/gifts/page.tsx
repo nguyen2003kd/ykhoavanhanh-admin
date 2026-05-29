@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { mockGifts } from "@/mock-data/membership";
-import { formatCurrency } from "@/lib/utils";
 import { Plus } from "lucide-react";
 
 export default function GiftsPage() {

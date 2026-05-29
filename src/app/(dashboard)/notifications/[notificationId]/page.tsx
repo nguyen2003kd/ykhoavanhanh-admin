@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { mockNotifications } from "@/mock-data/notifications";
 import { AdminNotification } from "@/types/notification";
 import { formatDateTime } from "@/lib/utils";
-import { ArrowLeft, Bell, Users, Send, CheckCircle, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Users, Send, CheckCircle, Clock, FileText } from "lucide-react";
 
 const typeLabels: Record<AdminNotification["type"], string> = {
   appointment: "Lịch hẹn",

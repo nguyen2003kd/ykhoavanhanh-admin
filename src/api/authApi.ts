@@ -1,18 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * Auth API - Authentication & Authorization
+ */
+
 import { apiGet, apiPost, apiDelete } from "@/lib/axios";
 import { useAuthStore } from "@/store/authStore";
 import { queryKeys } from "@/types/api-response";
-import type { 
-  LoginPayload, 
-  RegisterPayload, 
-  ZaloLoginPayload, 
-  AuthTokenResponse, 
-  User,
-  ApiResponse 
-} from "@/types/api-response";
+import type { LoginPayload, AuthTokenResponse, User, ApiResponse } from "@/types/api-response";
 import type { AdminUser, AdminRole } from "@/types/user";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-// Map API User to AdminUser
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function mapApiUserToAdminUser(apiUser: User): AdminUser {
   return {
     id: apiUser.id,
@@ -27,137 +25,108 @@ function mapApiUserToAdminUser(apiUser: User): AdminUser {
   };
 }
 
-// API Response type helpers
-interface LoginResponse extends ApiResponse<AuthTokenResponse & { user?: User }> {}
-interface UserResponse extends ApiResponse<User> {}
-
-// Auth Service
-export const authService = {
-  // Login with phone + password
-  login: async (payload: LoginPayload): Promise<AuthTokenResponse> => {
-    const response = await apiPost<AuthTokenResponse>("/auth/login", payload);
-    if (response.data.status === "success" && response.data.responseData) {
-      // Save tokens to store
-      useAuthStore.getState().setAuth(response.data.responseData);
-      return response.data.responseData;
-    }
-    throw new Error(response.data.message || "Đăng nhập thất bại");
-  },
-
-  // Register new account
-  register: async (payload: RegisterPayload): Promise<User> => {
-    const response = await apiPost<User>("/auth/register", payload);
-    if (response.data.status === "success" && response.data.responseData) {
-      return response.data.responseData;
-    }
-    throw new Error(response.data.message || "Đăng ký thất bại");
-  },
-
-  // Login with Zalo
-  loginWithZalo: async (payload: ZaloLoginPayload): Promise<AuthTokenResponse> => {
-    const response = await apiPost<AuthTokenResponse & { user?: User }>("/auth/zalo", payload);
-    if (response.data.status === "success" && response.data.responseData) {
-      const { responseData } = response.data;
-      const adminUser = responseData.user ? mapApiUserToAdminUser(responseData.user) : undefined;
-      useAuthStore.getState().setAuth(responseData, adminUser);
-      return responseData;
-    }
-    throw new Error(response.data.message || "Đăng nhập Zalo thất bại");
-  },
-
-  // Logout
-  logout: async (): Promise<void> => {
-    try {
-      await apiDelete("/auth/logout");
-    } finally {
-      useAuthStore.getState().logout();
-    }
-  },
-
-  // Get current user info
-  getMyInfo: async (): Promise<AdminUser> => {
-    const response = await apiGet<User>("/users/getMyInfo");
-    if (response.data.status === "success" && response.data.responseData) {
-      const adminUser = mapApiUserToAdminUser(response.data.responseData);
-      useAuthStore.getState().setUser(adminUser);
-      return adminUser;
-    }
-    throw new Error(response.data.message || "Không thể lấy thông tin người dùng");
-  },
-
-  // Forgot password - send OTP
-  forgotPassword: async (email: string): Promise<void> => {
-    const response = await apiPost("/auth/forgotPassword", { email });
-    if (response.data.status === "fail") {
-      throw new Error(response.data.message || "Gửi yêu cầu thất bại");
-    }
-  },
-
-  // Verify OTP
-  verifyOTP: async (email: string, otp: string): Promise<void> => {
-    const response = await apiPost("/auth/verifyOTP", { email, otp });
-    if (response.data.status === "fail") {
-      throw new Error(response.data.message || "Xác thực OTP thất bại");
-    }
-  },
-
-  // Resend OTP
-  resendOTP: async (email: string): Promise<void> => {
-    const response = await apiPost("/auth/resendOTP", { email });
-    if (response.data.status === "fail") {
-      throw new Error(response.data.message || "Gửi lại OTP thất bại");
-    }
-  },
-};
-
-// TanStack Query Hooks for Auth
-export function useLogin() {
-  return useMutation({
-    mutationFn: (payload: LoginPayload) => authService.login(payload),
-  });
+function unwrap<T>(res: { data: ApiResponse<T> }): T {
+  if (res.data.status === "success" && res.data.responseData) {
+    return res.data.responseData;
+  }
+  throw new Error(res.data.message || "Lỗi không xác định");
 }
 
-export function useRegister() {
+// ─── Service Functions ─────────────────────────────────────────────────────────
+
+async function login(payload: LoginPayload): Promise<AuthTokenResponse> {
+  const res = await apiPost<AuthTokenResponse>("/auth/admin-login", payload);
+  const data = unwrap(res);
+  useAuthStore.getState().setAuth(data);
+  return data;
+}
+
+async function logout(): Promise<void> {
+  try {
+    await apiDelete("/auth/logout");
+  } catch {
+    // ignore 401 on logout
+  } finally {
+    useAuthStore.getState().resetStore();
+  }
+}
+
+async function getMyInfo(): Promise<AdminUser> {
+  const res = await apiGet<User>("/users/getMyInfo");
+  const user = unwrap(res);
+  const adminUser = mapApiUserToAdminUser(user);
+  useAuthStore.getState().setUser(adminUser);
+  return adminUser;
+}
+
+async function forgotPassword(email: string): Promise<void> {
+  const res = await apiPost("/auth/forgotPassword", { email });
+  if (res.data.status === "fail") {
+    throw new Error(res.data.message || "Gửi yêu cầu thất bại");
+  }
+}
+
+async function verifyOTP({ email, otp }: { email: string; otp: string }): Promise<void> {
+  const res = await apiPost("/auth/verifyOTP", { email, otp });
+  if (res.data.status === "fail") {
+    throw new Error(res.data.message || "Xác thực OTP thất bại");
+  }
+}
+
+async function resendOTP(email: string): Promise<void> {
+  const res = await apiPost("/auth/resendOTP", { email });
+  if (res.data.status === "fail") {
+    throw new Error(res.data.message || "Gửi lại OTP thất bại");
+  }
+}
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
+
+export function useLogin(options?: { onSuccess?: (data: AuthTokenResponse) => void; onError?: (error: Error) => void }) {
   return useMutation({
-    mutationFn: (payload: RegisterPayload) => authService.register(payload),
+    mutationFn: login,
+    onSuccess: (data) => options?.onSuccess?.(data),
+    onError: (error) => options?.onError?.(error),
   });
 }
 
 export function useLogout() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => authService.logout(),
-    onSuccess: () => {
-      queryClient.clear();
-    },
-  });
+  return useMutation({ mutationFn: logout });
 }
 
-export function useCurrentUser() {
+export function useGetMyInfo(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.auth.me(),
-    queryFn: () => authService.getMyInfo(),
-    enabled: useAuthStore.getState().isAuthenticated,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryFn: getMyInfo,
+    staleTime: 1000 * 60 * 5,
     retry: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useForgotPassword() {
+export function useForgotPassword(options?: { onSuccess?: () => void; onError?: (error: Error) => void }) {
   return useMutation({
-    mutationFn: (email: string) => authService.forgotPassword(email),
+    mutationFn: forgotPassword,
+    onSuccess: () => options?.onSuccess?.(),
+    onError: (error) => options?.onError?.(error),
   });
 }
 
-export function useVerifyOTP() {
+export function useVerifyOTP(options?: { onSuccess?: () => void; onError?: (error: Error) => void }) {
   return useMutation({
-    mutationFn: ({ email, otp }: { email: string; otp: string }) =>
-      authService.verifyOTP(email, otp),
+    mutationFn: verifyOTP,
+    onSuccess: () => options?.onSuccess?.(),
+    onError: (error) => options?.onError?.(error),
   });
 }
 
-export function useResendOTP() {
+export function useResendOTP(options?: { onSuccess?: () => void; onError?: (error: Error) => void }) {
   return useMutation({
-    mutationFn: (email: string) => authService.resendOTP(email),
+    mutationFn: resendOTP,
+    onSuccess: () => options?.onSuccess?.(),
+    onError: (error) => options?.onError?.(error),
   });
 }
+
+// Re-export service for direct usage
+export const authService = { login, logout, getMyInfo, forgotPassword, verifyOTP, resendOTP };

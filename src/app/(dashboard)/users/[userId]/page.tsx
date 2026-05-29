@@ -2,12 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
-import { mockUsers } from "@/mock-data/users";
-import { AdminRole } from "@/types/user";
+import { useUserById } from "@/api/userApi";
+import type { AdminRole } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 
 const roleLabels: Record<AdminRole, string> = {
@@ -18,19 +18,34 @@ const roleLabels: Record<AdminRole, string> = {
   doctor: "Bác sĩ",
 };
 
+function mapRole(isAdmin?: boolean): AdminRole {
+  return isAdmin ? "super_admin" : "cskh";
+}
+
 export default function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
   const router = useRouter();
-  const user = mockUsers.find((u) => u.id === userId);
+  const { data: user, isLoading, error } = useUserById(userId);
 
-  if (!user) {
+  if (isLoading) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-500">Không tìm thấy người dùng.</p>
-        <Button variant="outline" className="mt-4" onClick={() => router.back()}>Quay lại</Button>
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
   }
+
+  if (error || !user) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-500 mb-4">{error?.message || "Không tìm thấy người dùng."}</p>
+        <Button variant="outline" onClick={() => router.back()}>Quay lại</Button>
+      </div>
+    );
+  }
+
+  const role = mapRole(user.is_admin);
+  const roleLabel = roleLabels[role] || "Người dùng";
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -47,17 +62,52 @@ export default function UserDetailPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4 mb-6">
-            <Avatar src={user.avatar} name={user.fullName} size="lg" />
+            <Avatar
+              src={user.avatar || user.zalo_avatar || undefined}
+              name={user.full_name || user.phone || "?"}
+              size="lg"
+            />
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{user.fullName}</h2>
-              <Badge variant="info" className="mt-1">{roleLabels[user.role]}</Badge>
+              <h2 className="text-xl font-bold text-gray-900">
+                {user.full_name || user.phone || "Chưa có tên"}
+              </h2>
+              <Badge variant="info" className="mt-1">{roleLabel}</Badge>
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-gray-500">Email:</span> <span className="font-medium ml-2">{user.email}</span></div>
-            <div><span className="text-gray-500">Điện thoại:</span> <span className="font-medium ml-2">{user.phone || "—"}</span></div>
-            <div><span className="text-gray-500">Trạng thái:</span> <Badge variant={user.isActive ? "success" : "default"} className="ml-2">{user.isActive ? "Hoạt động" : "Tạm khóa"}</Badge></div>
-            <div><span className="text-gray-500">Ngày tạo:</span> <span className="font-medium ml-2">{formatDate(user.createdAt)}</span></div>
+            <div>
+              <span className="text-gray-500">Email:</span>
+              <span className="font-medium ml-2">{user.email || "—"}</span>
+            </div>
+            <div>
+              <span className="text-gray-500">Điện thoại:</span>
+              <span className="font-medium ml-2">{user.phone || "—"}</span>
+            </div>
+            <div>
+              <span className="text-gray-500">Trạng thái:</span>
+              <Badge variant={user.is_active ? "success" : "default"} className="ml-2">
+                {user.is_active ? "Hoạt động" : "Tạm khóa"}
+              </Badge>
+            </div>
+            <div>
+              <span className="text-gray-500">Ngày tạo:</span>
+              <span className="font-medium ml-2">
+                {user.created_at ? formatDate(user.created_at) : "—"}
+              </span>
+            </div>
+            {user.zalo_id && (
+              <div>
+                <span className="text-gray-500">Zalo ID:</span>
+                <span className="font-medium ml-2">{user.zalo_id}</span>
+              </div>
+            )}
+            {user.address && (
+              <div className="col-span-2">
+                <span className="text-gray-500">Địa chỉ:</span>
+                <span className="font-medium ml-2">{user.address}</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

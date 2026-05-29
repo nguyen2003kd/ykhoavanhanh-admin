@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { mockPromotions } from "@/mock-data/promotions";
 import { Promotion } from "@/types/promotion";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ArrowLeft, Tag, Users, Calendar, BarChart2, Power, Trash2 } from "lucide-react";
+import { ArrowLeft, Tag, Calendar, Power, Trash2 } from "lucide-react";
 
 const typeLabels: Record<Promotion["type"], string> = {
   discount: "Giảm giá %",

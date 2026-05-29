@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, type ReactNode } from "react";
+import { ApiError } from "@/lib/axios";
 
 interface QueryProviderProps {
   children: ReactNode;
@@ -20,14 +21,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
             gcTime: 1000 * 60 * 10,
             // Don't refetch on window focus if data is fresh
             refetchOnWindowFocus: false,
-            // Retry failed requests 3 times
+            // Không retry nếu là lỗi 4xx (client error)
             retry: (failureCount, error) => {
-              // Don't retry on 4xx errors
-              if (typeof error === "object" && error !== null && "response" in error) {
-                const response = (error as { response?: { status?: number } }).response;
-                if (response?.status && response.status >= 400 && response.status < 500) {
-                  return false;
-                }
+              if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+                return false;
               }
               return failureCount < 3;
             },

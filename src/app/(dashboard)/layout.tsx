@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { LoadingPage } from "@/components/ui/Spinner";
 import { ToastProvider } from "@/components/ui/ToastProvider";
-import { useIsAuthenticated, useAuthLoading } from "@/store/authStore";
+import { useIsSignedIn, useAuthLoading } from "@/store/authStore";
 
 export default function DashboardLayout({
   children,
@@ -14,20 +14,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const isAuthenticated = useIsAuthenticated();
+  const isSignedIn = useIsSignedIn();
   const isLoading = useAuthLoading();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     // Wait for auth store to be hydrated from localStorage
     if (!isLoading) {
-      if (!isAuthenticated) {
+      if (!isSignedIn) {
         router.replace("/auth/login");
         return;
       }
       setIsCheckingAuth(false);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isSignedIn, isLoading, router]);
 
   if (isCheckingAuth || isLoading) {
     return <LoadingPage />;

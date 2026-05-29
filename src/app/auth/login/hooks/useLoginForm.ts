@@ -43,7 +43,7 @@ export function useLoginForm() {
 
       // Real API login - use phone as identifier
       const res = await loginMutation.mutateAsync({
-        phone: form.email, 
+        email: form.email, 
         password: form.password,
       });
       setAuth({

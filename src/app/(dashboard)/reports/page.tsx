@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { mockKpis, mockAppointmentStats, mockRevenueData } from "@/mock-data/dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 
 export default function ReportsPage() {
-  const [period, setPeriod] = useState<"week" | "month" | "year">("month");
 
   return (
     <div className="space-y-6">

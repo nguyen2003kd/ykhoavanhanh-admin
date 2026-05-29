@@ -1,99 +1,134 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios";
-import { useAuthStore, isTokenExpired, getAccessToken } from "@/store/authStore";
-import { ApiResponse, RefreshTokenResponse } from "@/types/api-response";
+import axios, {
+  type AxiosInstance,
+  type AxiosError,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from "axios";
+import { useAuthStore, getAccessToken, logout } from "@/store/authStore";
+import type { ApiResponse, RefreshTokenResponse } from "@/types/api-response";
 
-// Create axios instance
-const createAxiosInstance = (): AxiosInstance => {
-  const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1",
-    timeout: 30000,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-  return api;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1.0`
+  : "http://localhost:3000/api/v1";
+
+// ─── Auth routes to skip token handling ────────────────────────────────────
+
+const PUBLIC_AUTH_ROUTES = ["/auth/login", "/auth/genNewAccessToken", "/auth/register"];
+
+const isPublicRoute = (url?: string): boolean => {
+  if (!url) return false;
+  return PUBLIC_AUTH_ROUTES.some((route) => url.includes(route));
 };
 
-export const api: AxiosInstance = createAxiosInstance();
+// ─── Custom Error ─────────────────────────────────────────────────────────────
 
-// Track ongoing refresh requests to prevent duplicate refresh calls
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+// ─── Axios Instance ───────────────────────────────────────────────────────────
+
+export const api: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30_000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ─── Refresh Queue ─────────────────────────────────────────────────────────────
+
+type RefreshSubscriber = {
+  resolve: (token: string) => void;
+  reject: (error: Error) => void;
+};
+
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: RefreshSubscriber[] = [];
 
-// Subscribe to token refresh
-const subscribeTokenRefresh = (callback: (token: string) => void) => {
-  refreshSubscribers.push(callback);
+const subscribeTokenRefresh = (
+  resolve: (token: string) => void,
+  reject: (error: Error) => void
+) => {
+  refreshSubscribers.push({ resolve, reject });
 };
 
-// Notify all subscribers with new token
 const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((callback) => callback(token));
+  refreshSubscribers.forEach((sub) => sub.resolve(token));
   refreshSubscribers = [];
-};
-
-// Reset refresh state
-const resetRefreshState = () => {
   isRefreshing = false;
-  refreshSubscribers = [];
 };
 
-// Request interceptor - Add auth token
+const onRefreshFailed = (error: Error) => {
+  refreshSubscribers.forEach((sub) => sub.reject(error));
+  refreshSubscribers = [];
+  isRefreshing = false;
+};
+
+// ─── Guards ───────────────────────────────────────────────────────────────────
+
+let isLoggingOut = false;
+
+const handleLogout = () => {
+  if (isLoggingOut) return;
+
+  isLoggingOut = true;
+  logout();
+
+  if (typeof window !== "undefined") {
+    window.location.href = "/auth/login";
+  }
+
+  // Reset guard after navigation (for SPA router compatibility)
+  setTimeout(() => {
+    isLoggingOut = false;
+  }, 1000);
+};
+
+// ─── Refresh Token ────────────────────────────────────────────────────────────
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = useAuthStore.getState().refreshToken;
+
+  if (!refreshToken) return null;
+
+  try {
+    const response = await axios.post<ApiResponse<RefreshTokenResponse>>(
+      `${API_BASE_URL}/auth/genNewAccessToken`,
+      { refreshToken }
+    );
+
+    if (response.data.status === "success" && response.data.responseData) {
+      const { accessToken, expiresIn } = response.data.responseData;
+      useAuthStore.getState().updateAccessToken({ accessToken, expiresIn });
+      return accessToken;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("[axios] Token refresh failed:", error);
+    return null;
+  }
+}
+
+// ─── Request Interceptor ──────────────────────────────────────────────────────
+
 api.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    const {  tokenExpiresAt } = useAuthStore.getState();
+  (config: InternalAxiosRequestConfig) => {
+    // Skip token for public auth routes
+    if (isPublicRoute(config.url)) return config;
 
-    // Skip auth for public endpoints
-    const publicEndpoints = ["/auth/login", "/auth/register", "/auth/forgotPassword", "/auth/verifyOTP"];
-    const isPublic = publicEndpoints.some((ep) => config.url?.includes(ep));
-
-    if (isPublic) {
-      return config;
-    }
-
-    // Get current token
-    let accessToken = getAccessToken();
-
-    // If token is expired or about to expire, try to refresh first
-    if (accessToken && isTokenExpired()) {
-      if (!isRefreshing) {
-        isRefreshing = true;
-        try {
-          const newToken = await refreshAccessToken();
-          if (newToken) {
-            onRefreshed(newToken);
-          } else {
-            // Refresh failed, logout
-            useAuthStore.getState().logout();
-            if (typeof window !== "undefined") {
-              window.location.href = "/auth/login";
-            }
-          }
-          resetRefreshState();
-        } catch (error) {
-          resetRefreshState();
-          useAuthStore.getState().logout();
-          if (typeof window !== "undefined") {
-            window.location.href = "/auth/login";
-          }
-          return Promise.reject(error);
-        }
-      } else {
-        // Wait for refresh to complete
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token: string) => {
-            if (config.headers) {
-              config.headers.Authorization = `Bearer ${token}`;
-            }
-            resolve(config);
-          });
-        });
-      }
-    }
-
-    // Add token to headers
-    if (accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    const token = getAccessToken();
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -101,108 +136,98 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle errors
+// ─── Response Interceptor ─────────────────────────────────────────────────────
+
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as RetryableConfig;
 
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // Queue the request while refreshing
-        return new Promise((resolve) => {
-          subscribeTokenRefresh(async (token: string) => {
+    // Skip auth routes - don't handle 401 for login/register
+    if (isPublicRoute(originalRequest.url)) {
+      if (error.response?.data) {
+        const { message, message_en } = error.response.data;
+        const errorMessage =
+          message || message_en || error.response.statusText || "Đã xảy ra lỗi";
+        return Promise.reject(new ApiError(errorMessage, error.response.status));
+      }
+      return Promise.reject(error);
+    }
+
+    // Only handle 401
+    if (error.response?.status !== 401) {
+      if (error.response?.data) {
+        const { message, message_en } = error.response.data;
+        const errorMessage =
+          message || message_en || error.response.statusText || "Đã xảy ra lỗi";
+        return Promise.reject(new ApiError(errorMessage, error.response.status));
+      }
+
+      if (!error.response) {
+        return Promise.reject(new ApiError("Không thể kết nối đến server", 0));
+      }
+
+      return Promise.reject(error);
+    }
+
+    // Already retried - prevent infinite loop
+    if (originalRequest._retry) {
+      handleLogout();
+      return Promise.reject(new Error("Session expired. Please login again."));
+    }
+
+    // Already refreshing - queue this request
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        subscribeTokenRefresh(
+          (token: string) => {
+            originalRequest._retry = true;
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
-            try {
-              const response = await api(originalRequest);
-              resolve(response);
-            } catch (err) {
-              resolve(Promise.reject(err));
-            }
-          });
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          onRefreshed(newToken);
-          resetRefreshState();
-
-          // Retry original request
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            resolve(api(originalRequest));
+          },
+          (err: Error) => {
+            reject(err);
           }
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        resetRefreshState();
-        useAuthStore.getState().logout();
-        if (typeof window !== "undefined") {
-          window.location.href = "/auth/login";
-        }
-        return Promise.reject(refreshError);
+        );
+      });
+    }
+
+    // Start refresh
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const newToken = await refreshAccessToken();
+
+      if (!newToken) {
+        throw new Error("Token refresh failed");
       }
+
+      onRefreshed(newToken);
+
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      }
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      onRefreshFailed(
+        refreshError instanceof Error
+          ? refreshError
+          : new Error(String(refreshError))
+      );
+      handleLogout();
+      return Promise.reject(refreshError);
     }
-
-    // Handle other errors
-    if (error.response?.data) {
-      const errorData = error.response.data;
-      const errorMessage =
-        errorData.message ||
-        errorData.message_en ||
-        error.response.statusText ||
-        "Đã xảy ra lỗi";
-
-      return Promise.reject(new Error(errorMessage));
-    }
-
-    // Network error
-    if (!error.response) {
-      return Promise.reject(new Error("Không thể kết nối đến server"));
-    }
-
-    return Promise.reject(error);
   }
 );
 
-// Refresh access token
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = useAuthStore.getState().refreshToken;
+// ─── Typed API Helpers ────────────────────────────────────────────────────────
 
-  if (!refreshToken) {
-    return null;
-  }
-
-  try {
-    const response = await axios.post<ApiResponse<RefreshTokenResponse>>(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1"}/auth/genNewAccessToken`,
-      { refreshToken }
-    );
-
-    if (response.data.status === "success" && response.data.responseData) {
-      const { accessToken, expiresIn } = response.data.responseData;
-
-      // Update store with new token
-      useAuthStore.getState().updateAccessToken({ accessToken, expiresIn });
-
-      return accessToken;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Token refresh failed:", error);
-    return null;
-  }
-}
-
-// API helper functions
 export const apiGet = <T>(url: string, config?: AxiosRequestConfig) =>
   api.get<ApiResponse<T>>(url, config);
 
@@ -218,14 +243,12 @@ export const apiPatch = <T>(url: string, data?: unknown, config?: AxiosRequestCo
 export const apiDelete = <T>(url: string, config?: AxiosRequestConfig) =>
   api.delete<ApiResponse<T>>(url, config);
 
-// Utility function to extract response data
+/**
+ * Extract data from ApiResponse wrapper.
+ * Returns null if status is not "success".
+ */
 export const getResponseData = <T>(response: { data: ApiResponse<T> }): T | null => {
-  if (response.data.status === "success") {
-    return response.data.responseData;
-  }
-  return null;
+  return response.data.status === "success" ? response.data.responseData : null;
 };
-
-import type { AxiosRequestConfig } from "axios";
 
 export default api;

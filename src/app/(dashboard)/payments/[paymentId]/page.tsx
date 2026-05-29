@@ -9,7 +9,7 @@ import { mockPayments } from "@/mock-data/payments";
 import { Payment } from "@/types/payment";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import {
-  CreditCard, User, FileText, Calendar, Receipt, ArrowLeft,
+  User, FileText, Calendar, Receipt, ArrowLeft,
   CheckCircle, Clock, XCircle, RefreshCw, Banknote
 } from "lucide-react";
 

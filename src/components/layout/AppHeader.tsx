@@ -11,18 +11,12 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
-import { Badge } from "@/components/ui/Badge";
-import {
-  clearAuthSession,
-  getCurrentUserSession,
-  hasAuthSession,
-} from "@/lib/auth-session";
-import { authService } from "@/services/auth";
+import { authService } from "@/api/authApi";
+import { useCurrentUser } from "@/store/authStore";
 import { AdminRole, AdminUser } from "@/types/user";
 import {
   Bell,
@@ -209,7 +203,6 @@ function UserMenu({ user }: { user: AdminUser }) {
 
   const handleLogout = async () => {
     try { await authService.logout(); } catch {}
-    clearAuthSession();
     router.replace("/auth/login");
   };
 
@@ -343,7 +336,7 @@ function Breadcrumb({ section, title }: { section: string | null; title: string 
 
 export function AppHeader() {
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const currentUser = useCurrentUser();
   const [scrolled, setScrolled] = useState(false);
 
   // shadow on scroll
@@ -351,13 +344,6 @@ export function AppHeader() {
     const onScroll = () => setScrolled(window.scrollY > 4);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const cached = getCurrentUserSession();
-    if (cached) { setCurrentUser(cached); return; }
-    if (!hasAuthSession()) return;
-    authService.getMyInfo().then((u) => { if (u) setCurrentUser(u); }).catch(() => {});
   }, []);
 
   const { title, section } = getPageInfo(pathname);

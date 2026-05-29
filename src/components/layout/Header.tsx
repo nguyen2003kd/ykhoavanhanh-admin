@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { FiChevronDown, FiLogOut, FiMenu } from "react-icons/fi";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { clearAuthSession, getCurrentUserSession, hasAuthSession } from "@/lib/auth-session";
-import { authService } from "@/services/auth";
+import { authService } from "@/api/authApi";
+import { useAuthStore, logout } from "@/store/authStore";
 import { AdminRole, AdminUser } from "@/types/user";
 
 const roleLabels: Record<AdminRole, string> = {
@@ -73,12 +73,12 @@ export function Header({ onToggleSidebar }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    const cached = getCurrentUserSession();
+    const cached = useAuthStore.getState().user;
     if (cached) {
       setCurrentUser(cached);
       return;
     }
-    if (!hasAuthSession()) return;
+    if (!useAuthStore.getState().isSignedIn) return;
     authService.getMyInfo().then((user) => {
       if (user) setCurrentUser(user);
     }).catch(() => {});
@@ -88,7 +88,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
     try {
       await authService.logout();
     } catch {}
-    clearAuthSession();
+    logout();
     router.replace("/auth/login");
   };
 

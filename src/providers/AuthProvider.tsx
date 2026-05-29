@@ -2,10 +2,9 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { QueryProvider } from "@/providers";
-import { useAuthStore, useIsAuthenticated, useAuthLoading } from "@/store/authStore";
-import { useCurrentUser as useFetchCurrentUser } from "@/api/authApi";
+import { useIsSignedIn, useAuthLoading } from "@/store/authStore";
+import { useGetMyInfo as useFetchCurrentUser } from "@/api/authApi";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -13,23 +12,20 @@ interface AuthLayoutProps {
 
 function AuthInitializer({ children }: AuthLayoutProps) {
   const router = useRouter();
-  const isAuthenticated = useIsAuthenticated();
+  const isSignedIn = useIsSignedIn();
   const isLoading = useAuthLoading();
-  const queryClient = useQueryClient();
-
-  // Fetch current user when authenticated
-  const { data: user, isLoading: isLoadingUser } = useFetchCurrentUser();
+  // Fetch current user khi đã authenticated (dùng enabled option)
+  const { isLoading: isLoadingUser } = useFetchCurrentUser(
+    { enabled: isSignedIn }
+  );
 
   useEffect(() => {
-    // If we have tokens but no user data, skip - userService will handle it
-    // If we're not authenticated and not loading, redirect to login
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isSignedIn) {
       router.push("/auth/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isSignedIn, isLoading, router]);
 
-  // Show loading while checking auth
-  if (isLoading || (isAuthenticated && isLoadingUser)) {
+  if (isLoading || (isSignedIn && isLoadingUser)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -51,15 +47,15 @@ export function AuthenticatedLayout({ children }: AuthLayoutProps) {
 // Public layout wrapper (for login, register pages)
 export function PublicLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const isAuthenticated = useIsAuthenticated();
+  const isSignedIn = useIsSignedIn();
   const isLoading = useAuthLoading();
 
   useEffect(() => {
     // If already authenticated, redirect to dashboard
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isSignedIn) {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isSignedIn, isLoading, router]);
 
   return (
     <QueryProvider>
