@@ -1,20 +1,13 @@
-import { z } from 'zod'
+const BUFFER_KEY = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_KEY_BUFFER : ''
+const SECRET_KEY = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_KEY_SECRET : ''
 
-const envConfigSchema = z.object({
-  BUFFER_KEY: z.string().min(1),
-  SECRET_KEY: z.string().min(1)
-})
-
-// Process env is for nextjs, import meta for vite
-const envConfigParser = envConfigSchema.safeParse({ 
-  BUFFER_KEY: typeof process != 'undefined' ? process.env.NEXT_PUBLIC_KEY_BUFFER : '',
-  SECRET_KEY: typeof process != 'undefined' ? process.env.NEXT_PUBLIC_KEY_SECRET : ''
-})
-
-if (!envConfigParser.success) {
-  console.error(envConfigParser.error.issues)
+if (!BUFFER_KEY || !SECRET_KEY) {
+  console.error('Missing env vars: NEXT_PUBLIC_KEY_BUFFER and/or NEXT_PUBLIC_KEY_SECRET')
   throw new Error('Invalid .env variable values')
 }
 
-export const envConfig = envConfigParser.data
+export const envConfig = {
+  BUFFER_KEY,
+  SECRET_KEY
+}
 export default envConfig
