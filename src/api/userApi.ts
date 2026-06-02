@@ -4,7 +4,7 @@
 
 import type { PaginatedResult } from "./createApi";
 import type { PaginationParams } from "@/types/api-response";
-import { apiGet, apiDelete } from "@/lib/axios";
+import { apiGet, apiDelete, apiPut } from "@/lib/axios";
 import type { User } from "@/types/api-response";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -27,6 +27,7 @@ export interface ApiUser {
   address?: string | null;
   birthday?: string | null;
   email?: string | null;
+  role?: string | null;
 }
 
 // ─── Mapper ───────────────────────────────────────────────────────────────
@@ -70,6 +71,14 @@ async function removeUser(id: string): Promise<void> {
   }
 }
 
+async function updateUser(id: string, payload: Partial<ApiUser>): Promise<ApiUser> {
+  const res = await apiPut<ApiUser>(`/users/${id}`, payload);
+  if (res.data.status === "fail") {
+    throw new Error(res.data.message || "Cập nhật người dùng thất bại");
+  }
+  return res.data.responseData as ApiUser;
+}
+
 // ─── Hooks ───────────────────────────────────────────────────────────────
 
 export function useUsersList(params?: PaginationParams) {
@@ -96,6 +105,23 @@ export function useDeleteUser(options?: { onSuccess?: () => void; onError?: (err
     mutationFn: removeUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      options?.onSuccess?.();
+    },
+    onError: (error) => options?.onError?.(error),
+  });
+}
+
+export function useUpdateUser(options?: {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<ApiUser> }) =>
+      updateUser(id, payload),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users", "detail", id] });
       options?.onSuccess?.();
     },
     onError: (error) => options?.onError?.(error),

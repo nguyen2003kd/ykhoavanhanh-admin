@@ -98,7 +98,8 @@ export function useGetMyInfo(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.auth.me(),
     queryFn: getMyInfo,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    gcTime: 1000 * 60 * 5,
     retry: false,
     enabled: options?.enabled ?? true,
   });

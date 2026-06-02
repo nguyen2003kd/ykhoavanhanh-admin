@@ -337,6 +337,7 @@ function Breadcrumb({ section, title }: { section: string | null; title: string 
 export function AppHeader() {
   const pathname = usePathname();
   const currentUser = useCurrentUser();
+  console.log("currentUser", currentUser);
   const [scrolled, setScrolled] = useState(false);
 
   // shadow on scroll
@@ -361,7 +362,7 @@ export function AppHeader() {
         {/* ── LEFT: Branding + page context ── */}
         <div className="flex shrink-0 items-center gap-5">
           {/* Hospital logo */}
-          <Link
+          {/* <Link
             href="/"
             aria-label="Y Khoa Vạn Hạnh — Trang chủ"
             className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
@@ -384,7 +385,7 @@ export function AppHeader() {
                 Hospital System
               </p>
             </div>
-          </Link>
+          </Link> */}
 
           {/* vertical divider */}
           <div className="hidden h-8 w-px bg-gray-100 xl:block" aria-hidden />

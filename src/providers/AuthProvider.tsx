@@ -14,10 +14,10 @@ function AuthInitializer({ children }: AuthLayoutProps) {
   const router = useRouter();
   const isSignedIn = useIsSignedIn();
   const isLoading = useAuthLoading();
-  // Fetch current user khi đã authenticated (dùng enabled option)
-  const { isLoading: isLoadingUser } = useFetchCurrentUser(
-    { enabled: isSignedIn }
-  );
+
+  // Fetch user info khi đã signed in — luôn chạy (enabled không cần isSignedIn vì
+  // getMyInfo sẽ tự fail 401 nếu chưa authenticated, và interceptor sẽ redirect)
+  useFetchCurrentUser();
 
   useEffect(() => {
     if (!isLoading && !isSignedIn) {
@@ -25,7 +25,7 @@ function AuthInitializer({ children }: AuthLayoutProps) {
     }
   }, [isSignedIn, isLoading, router]);
 
-  if (isLoading || (isSignedIn && isLoadingUser)) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

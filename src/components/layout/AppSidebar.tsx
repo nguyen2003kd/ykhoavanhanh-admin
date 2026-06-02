@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ import {
   CreditCard,
   Home,
   LayoutGrid,
+  MessageSquare,
   Settings,
   Star,
   Stethoscope,
@@ -80,8 +82,9 @@ const NAV_GROUPS: NavGroup[] = [
   { id: "promotions",    label: "Khuyến mãi",  icon: Tag,         href: "/promotions" },
   { id: "payments",      label: "Thanh toán",  icon: CreditCard,  href: "/payments" },
   { id: "reviews",       label: "Đánh giá",    icon: Star,        href: "/reviews" },
-  { id: "notifications", label: "Thông báo",   icon: Bell,        href: "/notifications" },
-  { id: "reports",       label: "Báo cáo",     icon: BarChart2,   href: "/reports" },
+  { id: "notifications", label: "Thông báo",   icon: Bell,          href: "/notifications" },
+  { id: "chats",        label: "CSKH",          icon: MessageSquare,  href: "/chats" },
+  { id: "reports",      label: "Báo cáo",      icon: BarChart2,     href: "/reports" },
   { id: "users",         label: "Người dùng",  icon: LayoutGrid,  href: "/users" },
   { id: "settings",      label: "Cài đặt",     icon: Settings,    href: "/settings" },
 ];
@@ -135,12 +138,34 @@ export function AppSidebar() {
         collapsed ? "w-16" : "w-64"
       )}
     >
-      {/* Collapse toggle */}
-      <div className="flex items-center justify-end px-2 py-3">
+      {/* Header: logo + collapse toggle */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+        {/* Logo + text wrapped so toggle can stay outside */}
+        <div
+          className={cn(
+            "flex items-center gap-3 min-w-0",
+            collapsed ? "justify-center" : "flex-1 min-w-0"
+          )}
+        >
+          <div className={`${collapsed ? "hidden" : "h-12 w-12"} relative shrink-0 overflow-hidden rounded-lg`}>
+            <Image
+              src="/assets/images/logo.png"
+              alt="Van Hanh Hospital"
+              fill
+              className="object-contain"
+            />
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-bold text-primary-700 leading-tight truncate">Van Hanh</span>
+              <span className="text-xs text-muted-foreground leading-tight truncate">Hospital</span>
+            </div>
+          )}
+        </div>
         <button
           onClick={() => setCollapsed((p) => !p)}
           aria-label={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
-          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           {collapsed ? (
             <ChevronRight className="size-4" />

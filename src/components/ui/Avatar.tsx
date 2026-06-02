@@ -61,7 +61,7 @@ export { AvatarRoot, AvatarImage, AvatarFallback }
 
 interface AvatarProps {
   name: string
-  src?: string
+  src?: string | null
   size?: "sm" | "md" | "lg"
   className?: string
 }
@@ -86,7 +86,7 @@ const sizeMap: Record<string, "sm" | "default" | "lg"> = {
 export function Avatar({ name, src, size = "md", className }: AvatarProps) {
   return (
     <AvatarRoot size={sizeMap[size]} className={className}>
-      {src && <AvatarImage src={src} alt={name} />}
+      {src ? <AvatarImage src={src} alt={name} /> : null}
       <AvatarFallback className="bg-primary-600 text-white font-semibold">
         {getInitials(name)}
       </AvatarFallback>

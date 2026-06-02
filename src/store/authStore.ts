@@ -140,7 +140,9 @@ export const useCurrentUser = () => useAuthStore((state) => state.user)
 export const useIsSignedIn = () => useAuthStore((state) => state.isSignedIn)
 export const useAuthLoading = () => useAuthStore((state) => state.isLoading)
 
-// Utility functions (for use outside components)
+// Re-export from authApi and hooks
+export { useGetMyInfo } from "@/api/authApi";
+export { useCurrentUserWithSync } from "@/hooks/useCurrentUser";
 export const getAccessToken = () => useAuthStore.getState().accessToken
 
 export const isTokenExpired = () => {

@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { LoadingPage } from "@/components/ui/Spinner";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { useIsSignedIn, useAuthLoading } from "@/store/authStore";
+import { useGetMyInfo } from "@/api/authApi";
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,9 @@ export default function DashboardLayout({
   const isSignedIn = useIsSignedIn();
   const isLoading = useAuthLoading();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Luôn gọi API lấy thông tin user khi đã signed in
+  useGetMyInfo();
 
   useEffect(() => {
     // Wait for auth store to be hydrated from localStorage
