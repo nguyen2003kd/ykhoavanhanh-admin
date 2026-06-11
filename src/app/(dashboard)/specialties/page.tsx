@@ -2,8 +2,10 @@
 
 import { FieldSection, HospitalCrudPage, TextareaField, ToggleField } from "@/components/hospital-admin/HospitalCrudPage";
 import { Input } from "@/components/ui/Input";
-import { useHospitalAdminStore } from "@/hooks/useHospitalAdminStore";
+import { specialtiesHooks } from "@/api/specialtiesApi";
 import { AdminSpecialty } from "@/types/hospital-admin";
+import { toast } from "@/components/ui/Toast";
+import { useState } from "react";
 
 type SpecialtyForm = {
   name: string;
@@ -38,10 +40,28 @@ function mapItemToForm(item: AdminSpecialty): SpecialtyForm {
 }
 
 export default function SpecialtiesPage() {
-  const specialties = useHospitalAdminStore((state) => state.specialties);
-  const addSpecialty = useHospitalAdminStore((state) => state.addSpecialty);
-  const updateSpecialty = useHospitalAdminStore((state) => state.updateSpecialty);
-  const deleteSpecialty = useHospitalAdminStore((state) => state.deleteSpecialty);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data, isLoading, error } = specialtiesHooks.useList({
+    page: currentPage,
+    pageSize,
+    sortField: "created_at",
+    sortOrder: "DESC",
+  });
+
+  const createMutation = specialtiesHooks.useCreate({
+    onSuccess: () => toast.success("Tạo chuyên khoa thành công"),
+    onError: (err) => toast.error(err.message || "Tạo chuyên khoa thất bại"),
+  });
+  const updateMutation = specialtiesHooks.useUpdate({
+    onSuccess: () => toast.success("Cập nhật chuyên khoa thành công"),
+    onError: (err) => toast.error(err.message || "Cập nhật chuyên khoa thất bại"),
+  });
+  const deleteMutation = specialtiesHooks.useDelete({
+    onSuccess: () => toast.success("Xóa chuyên khoa thành công"),
+    onError: (err) => toast.error(err.message || "Xóa chuyên khoa thất bại"),
+  });
 
   return (
     <HospitalCrudPage
@@ -49,12 +69,19 @@ export default function SpecialtiesPage() {
       description="Quản lý danh mục chuyên khoa dùng để mở lịch khám, gắn phòng hướng dẫn và đồng bộ ID nội bộ sang hệ thống khám bệnh."
       itemName="chuyên khoa"
       compact
-      items={specialties}
+      items={data?.rows ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}
-      onCreate={addSpecialty}
-      onUpdate={updateSpecialty}
-      onDelete={deleteSpecialty}
+      onCreate={(form) => createMutation.mutate(form as Partial<AdminSpecialty>)}
+      onUpdate={(id, form) => updateMutation.mutate({ id, data: form as Partial<AdminSpecialty> })}
+      onDelete={(id) => deleteMutation.mutate(id)}
+      pagination={{
+        currentPage,
+        totalCount: data?.count ?? 0,
+        onPageChange: setCurrentPage,
+        pageSize,
+        onPageSizeChange: setPageSize,
+      }}
       getSearchText={(item) =>
         [item.id, item.name, item.internal_id, item.booking_group, item.guide_room].join(" ")
       }

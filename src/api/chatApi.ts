@@ -24,8 +24,8 @@ import {
 
 // ─── Mock Flag ────────────────────────────────────────────────────────────────
 
-/** Đổi false khi backend có API thật */
-const IS_MOCK = true;
+/** Set false when backend has real API */
+const IS_MOCK = false;
 
 // ─── Delay helper (simulate network) ─────────────────────────────────────────
 
@@ -88,7 +88,7 @@ async function fetchConversationById(id: string): Promise<Conversation> {
     return conv;
   }
 
-  const res = await apiGet<Conversation>(`/chats/conversations/${id}}`);
+  const res = await apiGet<Conversation>(`/chats/conversations/${id}`);
   if (res.data.status === "success" && res.data.responseData) {
     return res.data.responseData;
   }

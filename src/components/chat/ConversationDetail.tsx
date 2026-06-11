@@ -12,6 +12,7 @@ import {
   useAddInternalNote,
 } from "@/api/chatApi";
 import { useUsersList } from "@/api/userApi";
+import { useToastStore } from "@/store/toastStore";
 import { cn } from "@/lib/utils";
 import type { ConversationStatus, MessageType } from "@/types/chat";
 import { Avatar } from "@/components/ui/Avatar";
@@ -20,27 +21,29 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-import { useToastStore } from "@/store/toastStore";
 import {
   Send,
   Paperclip,
   CheckCheck,
-  Clock,
-  UserPlus,
   RefreshCcw,
+  UserPlus,
   StickyNote,
   Activity,
   Image as ImageIcon,
   FileText,
+  ChevronDown,
+  MessageSquare,
+  Smartphone,
+  X,
 } from "lucide-react";
 
-// ─── Inline Components ──────────────────────────────────────────────────────────
+// ─── Inline Skeleton ────────────────────────────────────────────────────────────
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("animate-pulse rounded-md bg-muted", className)} {...props} />;
 }
 
-// ─── Status Config ─────────────────────────────────────────────────────────────
+// ─── Status Config ──────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<
   ConversationStatus,
@@ -51,7 +54,15 @@ const STATUS_CONFIG: Record<
   closed: { label: "Đã đóng", variant: "default" },
 };
 
-// ─── Log Icon ──────────────────────────────────────────────────────────────────
+// ─── Status Dropdown Options ───────────────────────────────────────────────────
+
+const STATUS_OPTIONS = [
+  { value: "new", label: "Mới" },
+  { value: "in_progress", label: "Đang xử lý" },
+  { value: "closed", label: "Đã đóng" },
+];
+
+// ─── Log Icon ────────────────────────────────────────────────────────────────
 
 function LogIcon({ action }: { action: string }) {
   const map: Record<string, React.ReactNode> = {
@@ -65,7 +76,7 @@ function LogIcon({ action }: { action: string }) {
   return map[action] ?? <Activity className="size-3 text-muted-foreground" />;
 }
 
-// ─── Time Formatter ──────────────────────────────────────────────────────────────
+// ─── Time Formatter ────────────────────────────────────────────────────────────
 
 function formatTime(dateStr: string): string {
   const date = new Date(dateStr);
@@ -77,7 +88,120 @@ function formatTime(dateStr: string): string {
   });
 }
 
-// ─── Message Bubble ─────────────────────────────────────────────────────────────
+function formatTimeShort(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// ─── Quick Replies ─────────────────────────────────────────────────────────────
+
+const QUICK_REPLIES = [
+  "Dạ vâng, em đã ghi nhận và sẽ phản hồi trong giây lát ạ.",
+  "Dạ, để em kiểm tra và phản hồi lại anh/chị trong ít phút.",
+  "Cảm ơn anh/chị đã phản hồi. Em sẽ chuyển thông tin tới bộ phận liên quan.",
+  "Dạ, thông tin của anh/chị đã được ghi nhận. Em liên hệ lại trong 15 phút ạ.",
+  "Xin lỗi vì sự bất tiện này. Em sẽ báo cáo để xử lý sớm nhất ạ.",
+];
+
+function QuickReplyPicker({ onSelect }: { onSelect: (text: string) => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
+          open
+            ? "bg-primary-50 border-primary-200 text-primary-700"
+            : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <MessageSquare className="size-3.5" />
+        <span>Quick Replies</span>
+        <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute bottom-full left-0 mb-2 z-20 w-80 bg-white rounded-xl border border-border shadow-lg overflow-hidden">
+            <div className="px-3 py-2 border-b border-border">
+              <p className="text-xs font-semibold text-foreground">Chọn mẫu trả lời nhanh</p>
+            </div>
+            <div className="max-h-60 overflow-y-auto py-1">
+              {QUICK_REPLIES.map((reply, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    onSelect(reply);
+                    setOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-muted/60 transition-colors"
+                >
+                  {reply}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Quick Action Bar ─────────────────────────────────────────────────────────
+
+interface QuickActionBarProps {
+  conversationId: string;
+  onQuickReply: (text: string) => void;
+}
+
+function QuickActionBar({ onQuickReply }: QuickActionBarProps) {
+  const [showAttach, setShowAttach] = useState(false);
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 border-t border-border bg-muted/20">
+      <QuickReplyPicker onSelect={onQuickReply} />
+
+      <button
+        type="button"
+        onClick={() => setShowAttach((s) => !s)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-150 border border-transparent hover:border-border"
+        title="Đính kèm"
+      >
+        <Paperclip className="size-3.5" />
+        <span>Đính kèm</span>
+      </button>
+
+      <div className="h-4 w-px bg-border mx-1" />
+
+      <button
+        type="button"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-150 border border-transparent hover:border-border"
+        title="Ghi chú nội bộ"
+      >
+        <StickyNote className="size-3.5" />
+        <span>Ghi chú nội bộ</span>
+      </button>
+
+      {showAttach && (
+        <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Chức năng đính kèm đang phát triển</span>
+          <button onClick={() => setShowAttach(false)}>
+            <X className="size-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Message Bubble ────────────────────────────────────────────────────────────
 
 interface MessageBubbleProps {
   message: {
@@ -90,9 +214,12 @@ interface MessageBubbleProps {
     created_at: string;
     sender?: { full_name?: string | null; avatar?: string | null };
   };
+  isNote?: boolean;
+  noteActor?: { full_name?: string | null };
+  noteTime?: string;
 }
 
-function MessageBubble({ message }: MessageBubbleProps) {
+function MessageBubble({ message, isNote, noteActor, noteTime }: MessageBubbleProps) {
   const isUser = message.sender_type === "user";
   const isSystem = message.sender_type === "system";
 
@@ -100,8 +227,35 @@ function MessageBubble({ message }: MessageBubbleProps) {
     return (
       <div className="flex justify-center my-3">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-xs text-muted-foreground">
-          <Clock className="size-3" />
+          <Activity className="size-3" />
           <span>{message.content}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Internal note — highlighted yellow box
+  if (isNote) {
+    return (
+      <div className="flex gap-2.5 my-3 mx-4">
+        <Avatar
+          name={noteActor?.full_name ?? "CSKH"}
+          src={message.sender?.avatar}
+          size="sm"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-medium text-orange-700 flex items-center gap-1">
+              <MessageSquare className="size-3" />
+              Nội bộ
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {noteActor?.full_name ?? "CSKH"} · {noteTime}
+            </span>
+          </div>
+          <div className="rounded-xl rounded-tl-sm border border-orange-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed">
+            <p className="whitespace-pre-wrap break-words text-amber-900">{message.content}</p>
+          </div>
         </div>
       </div>
     );
@@ -158,7 +312,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
         )}
 
         <span className="text-[10px] text-muted-foreground/70 px-1">
-          {formatTime(message.created_at)}
+          {formatTimeShort(message.created_at)}
         </span>
       </div>
     </div>
@@ -167,10 +321,25 @@ function MessageBubble({ message }: MessageBubbleProps) {
 
 // ─── Reply Box ────────────────────────────────────────────────────────────────
 
-function ReplyBox({ conversationId }: { conversationId: string }) {
+interface ReplyBoxProps {
+  conversationId: string;
+  externalText?: string;
+  onExternalTextConsumed?: () => void;
+}
+
+function ReplyBox({ conversationId, externalText, onExternalTextConsumed }: ReplyBoxProps) {
   const [text, setText] = useState("");
   const sendMessage = useSendMessage();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Accept text from Quick Reply
+  useEffect(() => {
+    if (externalText) {
+      setText((prev) => (prev ? `${prev}\n${externalText}` : externalText));
+      onExternalTextConsumed?.();
+      textareaRef.current?.focus();
+    }
+  }, [externalText, onExternalTextConsumed]);
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -191,10 +360,6 @@ function ReplyBox({ conversationId }: { conversationId: string }) {
       handleSend();
     }
   };
-
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
 
   return (
     <div className="border-t border-border bg-white px-4 py-3">
@@ -236,7 +401,7 @@ function ReplyBox({ conversationId }: { conversationId: string }) {
   );
 }
 
-// ─── Internal Notes ───────────────────────────────────────────────────────────
+// ─── Internal Notes ────────────────────────────────────────────────────────────
 
 interface NoteItem {
   id: string;
@@ -333,7 +498,7 @@ function InternalNotesTab({ conversationId }: { conversationId: string }) {
   );
 }
 
-// ─── Logs Tab ─────────────────────────────────────────────────────────────────
+// ─── Logs Tab ────────────────────────────────────────────────────────────────
 
 function LogsTab({ conversationId }: { conversationId: string }) {
   const { data: logs, isLoading } = useConversationLogs(conversationId);
@@ -387,7 +552,16 @@ function LogsTab({ conversationId }: { conversationId: string }) {
 // ─── Detail Header ───────────────────────────────────────────────────────────
 
 interface DetailHeaderProps {
-  conversation: ReturnType<typeof useConversation>["data"];
+  conversation: {
+    id: string;
+    user?: { full_name?: string | null; phone?: string | null; avatar?: string | null };
+    patient?: { full_name?: string | null; phone?: string | null };
+    patient_id?: string | null;
+    assigned_to?: { full_name?: string | null; avatar?: string | null } | null;
+    assigned_to_id?: string | null;
+    status: ConversationStatus;
+    title?: string;
+  } | null;
   isLoading: boolean;
   onStatusChange: (status: ConversationStatus) => void;
   onAssign: (userId: string) => void;
@@ -415,10 +589,18 @@ function DetailHeader({ conversation, isLoading, onStatusChange, onAssign }: Det
             size="sm"
           />
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">
-              {conversation?.user?.full_name ?? "Người dùng"}
-            </p>
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold truncate">
+                {conversation?.user?.full_name ?? "Người dùng"}
+              </p>
+              {conversation?.user?.phone && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                  <Smartphone className="size-3" />
+                  {conversation.user.phone}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               {statusConfig && (
                 <Badge variant={statusConfig.variant}>
                   {statusConfig.label}
@@ -433,12 +615,24 @@ function DetailHeader({ conversation, isLoading, onStatusChange, onAssign }: Det
       )}
 
       <div className="flex items-center gap-2 shrink-0">
+        {/* Status dropdown */}
         <Select
-          value={conversation?.assigned_to_id ?? undefined}
-          onValueChange={(val) => val !== "unassigned" && onAssign(val)}
+          value={conversation?.status ?? "new"}
+          onChange={(e) => {
+            const val = e.target.value as ConversationStatus;
+            if (val !== conversation?.status) onStatusChange(val);
+          }}
+          options={STATUS_OPTIONS}
+          className="h-8 text-xs min-w-[130px]"
+        />
+
+        {/* Assign */}
+        <Select
+          value={conversation?.assigned_to_id ?? ""}
+          onChange={(e) => e.target.value && onAssign(e.target.value)}
           placeholder="Gán cho..."
           options={[
-            { value: "unassigned", label: "Chưa gán" },
+            { value: "", label: "Chưa gán" },
             ...(users?.rows ?? []).map((u) => ({
               value: u.id,
               label: u.full_name ?? u.id,
@@ -455,7 +649,7 @@ function DetailHeader({ conversation, isLoading, onStatusChange, onAssign }: Det
             className="h-8 text-xs gap-1"
           >
             <CheckCheck className="size-3.5" />
-            Đóng cuộc chat
+            Đóng
           </Button>
         ) : (
           <Button
@@ -475,7 +669,13 @@ function DetailHeader({ conversation, isLoading, onStatusChange, onAssign }: Det
 
 // ─── Messages Tab ─────────────────────────────────────────────────────────────
 
-function MessagesTab({ conversationId }: { conversationId: string }) {
+interface MessagesTabProps {
+  conversationId: string;
+  quickReplyText: string;
+  onQuickReplyConsumed: () => void;
+}
+
+function MessagesTab({ conversationId, quickReplyText, onQuickReplyConsumed }: MessagesTabProps) {
   const { data: messages, isLoading } = useMessages(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -483,18 +683,14 @@ function MessagesTab({ conversationId }: { conversationId: string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {(!messages || messages.length === 0) ? (
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Spinner />
+          </div>
+        ) : (!messages || messages.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-3">
               <Send className="size-5 text-muted-foreground" />
@@ -510,7 +706,11 @@ function MessagesTab({ conversationId }: { conversationId: string }) {
         <div ref={messagesEndRef} />
       </div>
 
-      <ReplyBox conversationId={conversationId} />
+      <ReplyBox
+        conversationId={conversationId}
+        externalText={quickReplyText}
+        onExternalTextConsumed={onQuickReplyConsumed}
+      />
     </div>
   );
 }
@@ -524,13 +724,14 @@ export function ConversationDetail() {
   const assign = useAssignConversation();
   const toast = useToastStore();
 
+  const [quickReplyText, setQuickReplyText] = useState<string | undefined>();
+
   const handleStatusChange = (status: ConversationStatus) => {
     if (!selectedConversationId) return;
     updateStatus.mutate(
       { conversationId: selectedConversationId, payload: { status } },
       {
-        onSuccess: () =>
-          toast.success(STATUS_CONFIG[status].label + " cuộc chat"),
+        onSuccess: () => toast.success(STATUS_CONFIG[status].label + " cuộc chat"),
         onError: (err) => toast.error("Lỗi", err.message),
       }
     );
@@ -552,7 +753,7 @@ export function ConversationDetail() {
       <div className="flex flex-1 items-center justify-center bg-muted/10">
         <div className="text-center">
           <div className="size-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Send className="size-7 text-muted-foreground" />
+            <MessageSquare className="size-7 text-muted-foreground" />
           </div>
           <p className="text-base font-semibold text-foreground">
             Chọn một cuộc hội thoại
@@ -568,18 +769,25 @@ export function ConversationDetail() {
   return (
     <div className="flex flex-col h-full bg-background border-l border-border">
       <DetailHeader
-        conversation={conversation}
+        conversation={conversation ?? null}
         isLoading={isLoading}
         onStatusChange={handleStatusChange}
         onAssign={handleAssign}
       />
 
+      {/* Quick action bar */}
+      {activeDetailTab === "messages" && (
+        <QuickActionBar
+          conversationId={selectedConversationId}
+          onQuickReply={(text) => setQuickReplyText(text)}
+        />
+      )}
+
+      {/* Tabs */}
       <div className="shrink-0 border-b border-border">
         <Tabs
           activeKey={activeDetailTab}
-          onChange={(key) =>
-            setActiveDetailTab(key as "messages" | "notes" | "logs")
-          }
+          onChange={(key) => setActiveDetailTab(key as "messages" | "notes" | "logs")}
           tabs={[
             { key: "messages", label: "Tin nhắn" },
             { key: "notes", label: "Ghi chú nội bộ" },
@@ -589,9 +797,14 @@ export function ConversationDetail() {
         />
       </div>
 
+      {/* Tab content */}
       <div className="flex-1 flex flex-col min-h-0">
         {activeDetailTab === "messages" && (
-          <MessagesTab conversationId={selectedConversationId} />
+          <MessagesTab
+            conversationId={selectedConversationId}
+            quickReplyText={quickReplyText ?? ""}
+            onQuickReplyConsumed={() => setQuickReplyText(undefined)}
+          />
         )}
         {activeDetailTab === "notes" && (
           <InternalNotesTab conversationId={selectedConversationId} />

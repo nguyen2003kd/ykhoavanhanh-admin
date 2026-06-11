@@ -14,6 +14,13 @@ interface ListPageLayoutProps<T> {
   isLoading?: boolean;
   loadingText?: string;
   errorNode?: React.ReactNode;
+  externalPagination?: {
+    currentPage: number;
+    totalCount: number;
+    onPageChange: (page: number) => void;
+    pageSize: number;
+    onPageSizeChange: (size: number) => void;
+  };
 }
 
 export function ListPageLayout<T>({
@@ -25,11 +32,17 @@ export function ListPageLayout<T>({
   isLoading,
   loadingText = "Đang tải dữ liệu...",
   errorNode,
+  externalPagination,
 }: ListPageLayoutProps<T>) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [internalPage, setInternalPage] = useState(1);
+  const [internalPageSize, setInternalPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  useEffect(() => { setCurrentPage(1); }, [resetPageKey]);
+  const currentPage = externalPagination?.currentPage ?? internalPage;
+  const setCurrentPage = externalPagination?.onPageChange ?? setInternalPage;
+  const pageSize = externalPagination?.pageSize ?? internalPageSize;
+  const setPageSize = externalPagination?.onPageSizeChange ?? setInternalPageSize;
+
+  useEffect(() => { (externalPagination?.onPageChange ?? setInternalPage)(1); }, [resetPageKey, externalPagination]);
 
   const pagedItems = useMemo(
     () => items.slice((currentPage - 1) * pageSize, currentPage * pageSize),
@@ -61,7 +74,7 @@ export function ListPageLayout<T>({
         <TablePagination
           currentPage={currentPage}
           pageSize={pageSize}
-          totalCount={items.length}
+          totalCount={externalPagination?.totalCount ?? items.length}
           onPageChange={setCurrentPage}
           onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1); }}
         />

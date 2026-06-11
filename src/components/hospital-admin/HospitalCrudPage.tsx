@@ -41,6 +41,13 @@ type HospitalCrudPageProps<TItem extends { id: string }, TForm> = {
   summary?: React.ReactNode;
   compact?: boolean;
   showActions?: boolean;
+  pagination?: {
+    currentPage: number;
+    totalCount: number;
+    onPageChange: (page: number) => void;
+    pageSize: number;
+    onPageSizeChange: (size: number) => void;
+  };
 };
 
 export function HospitalCrudPage<TItem extends { id: string }, TForm>({
@@ -61,6 +68,7 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
   summary,
   compact = false,
   showActions = true,
+  pagination,
 }: HospitalCrudPageProps<TItem, TForm>) {
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -150,6 +158,7 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
           <ListPageLayout
             items={filteredItems}
             resetPageKey={search}
+            externalPagination={pagination ? { ...pagination } : undefined}
             renderTable={(pagedItems) => (
               <div className="overflow-hidden rounded-[22px] border border-gray-200 bg-white">
                 <Table>

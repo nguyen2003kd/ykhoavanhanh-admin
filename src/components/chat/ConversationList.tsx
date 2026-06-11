@@ -6,9 +6,8 @@ import { useConversations } from "@/api/chatApi";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types/chat";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Avatar } from "@/components/ui/Avatar";
-import { Search, User } from "lucide-react";
+import { Search, User, Smartphone } from "lucide-react";
 
 // ─── Inline Skeleton ────────────────────────────────────────────────────────────
 
@@ -16,7 +15,7 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("animate-pulse rounded-md bg-muted", className)} {...props} />;
 }
 
-// ─── Status Badge ───────────────────────────────────────────────────────────────
+// ─── Status Config ──────────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<ConversationStatus, string> = {
   new: "Mới",
@@ -30,7 +29,24 @@ const STATUS_STYLES: Record<ConversationStatus, string> = {
   closed: "bg-gray-50 text-gray-500 border-gray-200",
 };
 
-// ─── Conversation Item ──────────────────────────────────────────────────────────
+const STATUS_DOT_COLORS: Record<ConversationStatus, string> = {
+  new: "bg-blue-500",
+  in_progress: "bg-amber-500",
+  closed: "bg-gray-400",
+};
+
+// ─── Tab Filter ────────────────────────────────────────────────────────────────
+
+type FilterTab = "all" | ConversationStatus;
+
+const FILTER_TABS: { key: FilterTab; label: string }[] = [
+  { key: "all", label: "Tất cả" },
+  { key: "new", label: "Mới" },
+  { key: "in_progress", label: "Đang xử lý" },
+  { key: "closed", label: "Đã đóng" },
+];
+
+// ─── Conversation Item ─────────────────────────────────────────────────────────
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -39,12 +55,11 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, isActive, onClick }: ConversationItemProps) {
-
   return (
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left px-3 py-3 rounded-lg transition-all duration-150 group",
+        "w-full text-left px-3 py-3 rounded-lg transition-all duration-150",
         "hover:bg-muted/60",
         isActive
           ? "bg-primary-50 border border-primary-200"
@@ -71,11 +86,9 @@ function ConversationItem({ conversation, isActive, onClick }: ConversationItemP
           <div className="flex items-center justify-between gap-2">
             <span
               className={cn(
-                "text-sm font-medium truncate",
-                isActive ? "text-primary-900" : "text-foreground",
-                conversation.unread_count && conversation.unread_count > 0
-                  ? "font-semibold"
-                  : "font-normal"
+                "text-sm truncate",
+                isActive ? "text-primary-900 font-semibold" : "text-foreground font-medium",
+                conversation.unread_count && conversation.unread_count > 0 ? "font-semibold" : "font-normal"
               )}
             >
               {conversation.user?.full_name ?? "Người dùng"}
@@ -91,21 +104,32 @@ function ConversationItem({ conversation, isActive, onClick }: ConversationItemP
             {conversation.title || conversation.last_message || "Không có nội dung"}
           </p>
 
-          <div className="flex items-center gap-2 mt-1.5">
-            <span
-              className={cn(
-                "text-[10px] px-1.5 py-0 h-4 font-medium border rounded-4xl inline-flex items-center justify-center",
-                STATUS_STYLES[conversation.status]
-              )}
-            >
-              {STATUS_LABELS[conversation.status]}
-            </span>
-            {conversation.patient_id && (
-              <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                <User className="size-2.5" />
-                BN
+          <div className="flex items-center justify-between gap-2 mt-1.5">
+            {/* Status badge with color dot */}
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn("inline-flex h-1.5 w-1.5 rounded-full shrink-0", STATUS_DOT_COLORS[conversation.status])}
+              />
+              <span
+                className={cn(
+                  "text-[10px] px-1.5 py-0 h-4 font-medium border rounded-4xl inline-flex items-center justify-center",
+                  STATUS_STYLES[conversation.status]
+                )}
+              >
+                {STATUS_LABELS[conversation.status]}
               </span>
-            )}
+            </div>
+
+            {/* Channel + patient indicator */}
+            <div className="flex items-center gap-1.5">
+              {conversation.patient_id && (
+                <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                  <User className="size-2.5" />
+                  BN
+                </span>
+              )}
+              <Smartphone className="size-2.5 text-muted-foreground/60" />
+            </div>
           </div>
         </div>
       </div>
@@ -169,6 +193,14 @@ export function ConversationList() {
   const conversations = data?.items ?? useChatStore.getState().conversationsCache;
   const total = data?.total ?? 0;
 
+  // Count per status for tab badges
+  const countByStatus = (status: FilterTab) => {
+    if (status === "all") return total;
+    return conversations.filter((c) => c.status === status).length;
+  };
+
+  const activeFilter = filters.status ?? "all";
+
   return (
     <div className="flex h-full flex-col">
       {/* ── Header ── */}
@@ -191,24 +223,42 @@ export function ConversationList() {
           />
         </div>
 
-        {/* Status Filter */}
-        <Select
-          value={filters.status ?? "all"}
-          onChange={(e) =>
-            setFilters({
-              ...filters,
-              status: e.target.value === "all" ? undefined : (e.target.value as ConversationStatus),
-            })
-          }
-          placeholder="Tất cả trạng thái"
-          options={[
-            { value: "all", label: "Tất cả trạng thái" },
-            { value: "new", label: "Mới" },
-            { value: "in_progress", label: "Đang xử lý" },
-            { value: "closed", label: "Đã đóng" },
-          ]}
-          className="h-8 text-xs"
-        />
+        {/* Status Filter Tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-thin">
+          {FILTER_TABS.map((tab) => {
+            const isActive = activeFilter === tab.key;
+            const count = countByStatus(tab.key);
+            return (
+              <button
+                key={tab.key}
+                onClick={() =>
+                  setFilters({
+                    ...filters,
+                    status: tab.key === "all" ? undefined : (tab.key as ConversationStatus),
+                  })
+                }
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-150",
+                  isActive
+                    ? "bg-primary-600 text-white shadow-sm"
+                    : "bg-muted/70 text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {tab.label}
+                <span
+                  className={cn(
+                    "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── List ── */}
