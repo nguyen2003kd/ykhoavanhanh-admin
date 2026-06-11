@@ -43,7 +43,7 @@ export default function SpecialtiesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data, isLoading, error } = specialtiesHooks.useList({
+  const { data } = specialtiesHooks.useList({
     page: currentPage,
     pageSize,
     sortField: "created_at",
