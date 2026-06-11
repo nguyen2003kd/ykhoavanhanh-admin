@@ -1,0 +1,37 @@
+import { Promotion } from "@/types/promotion";
+
+export const mockPromotions: Promotion[] = [
+  {
+    id: "promo001",
+    name: "Ưu đãi sinh nhật bệnh viện - Tháng 7",
+    description: "Giảm 20% toàn bộ dịch vụ khám bệnh nhân dịp kỷ niệm 15 năm thành lập.",
+    type: "discount",
+    discountPercent: 20,
+    targetAudience: "all",
+    validFrom: "2024-07-01T00:00:00Z",
+    validTo: "2024-07-31T23:59:59Z",
+    usageLimit: 500,
+    usedCount: 187,
+    isActive: true,
+    createdBy: "u001",
+    createdAt: "2024-06-25T10:00:00Z",
+  },
+  {
+    id: "promo002",
+    name: "Ưu đãi thành viên Diamond",
+    description: "Tặng thêm 500 điểm tích lũy cho mỗi lần khám của thành viên Diamond.",
+    type: "points_bonus",
+    bonusPoints: 500,
+    targetAudience: "specific_tier",
+    targetTier: "diamond",
+    validFrom: "2024-07-01T00:00:00Z",
+    validTo: "2024-12-31T23:59:59Z",
+    usedCount: 12,
+    isActive: true,
+    createdBy: "u001",
+    createdAt: "2024-07-01T09:00:00Z",
+  },
+  { id: "promo003", name: "Khuyến mãi khai trương cơ sở 2", description: "Giảm 30% tất cả dịch vụ khám tại cơ sở 2 Quận 7 trong tháng đầu hoạt động.", type: "discount", discountPercent: 30, targetAudience: "new_patients", validFrom: "2024-07-01T00:00:00Z", validTo: "2024-07-31T23:59:59Z", usageLimit: 200, usedCount: 134, isActive: false, createdBy: "u001", createdAt: "2024-06-28T14:00:00Z" },
+  { id: "promo004", name: "Tặng điểm thành viên Silver đăng ký mới", description: "Khách hàng đăng ký thành viên Silver trong tháng 8 được tặng 1000 điểm chào mừng.", type: "points_bonus", bonusPoints: 1000, targetAudience: "specific_tier", targetTier: "silver", validFrom: "2024-08-01T00:00:00Z", validTo: "2024-08-31T23:59:59Z", usedCount: 45, isActive: true, createdBy: "u004", createdAt: "2024-07-30T10:00:00Z" },
+  { id: "promo005", name: "Gói khám tổng quát sức khỏe cuối năm", description: "Ưu đãi đặc biệt gói khám sức khỏe tổng quát cuối năm dành cho doanh nghiệp.", type: "package", targetAudience: "all", validFrom: "2024-11-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", usedCount: 0, isActive: true, createdBy: "u001", createdAt: "2024-08-15T09:00:00Z" },
+];
