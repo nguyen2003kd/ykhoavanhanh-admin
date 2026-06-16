@@ -50,7 +50,7 @@ export default function DoctorsPage() {
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}
       onCreate={(form) => createMutation.mutate(form as Partial<HisDoctor>)}
-      onUpdate={(_id, _form) => {
+      onUpdate={() => {
         // PUT doctors/:id không có trong HIS API doc
       }}
       onDelete={(id) => deleteMutation.mutate(id)}
