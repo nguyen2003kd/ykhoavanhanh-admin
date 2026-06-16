@@ -20,6 +20,18 @@ export type TicketStatus =
   | "refunded";
 export type SyncStatus = "synced" | "pending" | "failed";
 
+export interface Post {
+  id: string;
+  name: string;
+  description: string | null;
+  content: string | null;
+  img_path: string[];
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+}
+
 export interface AdminSpecialty extends AuditFields {
   id: string;
   name: string;

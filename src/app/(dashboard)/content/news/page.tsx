@@ -3,20 +3,27 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { TablePagination } from "@/components/ui/TablePagination";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { mockNews } from "@/mock-data/content";
+import { postsHooks } from "@/api/postsApi";
+import { toast } from "@/components/ui/Toast";
 import { formatDate } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
 export default function NewsPage() {
   const [page, setPage] = useState(1);
-  const total = mockNews.length;
-  const paged = mockNews.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const { data } = postsHooks.useList({ page, pageSize: PAGE_SIZE });
+  const rows = data?.rows ?? [];
+  const total = data?.count ?? 0;
+
+  const deleteMutation = postsHooks.useDelete({
+    onSuccess: () => toast.success("Xóa tin tức thành công"),
+    onError: (err) => toast.error(err.message || "Xóa tin tức thất bại"),
+  });
 
   return (
     <div className="space-y-6">
@@ -38,25 +45,49 @@ export default function NewsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Tiêu đề</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ngày đăng</TableHead>
-              <TableHead />
+              <TableHead>Mô tả</TableHead>
+              <TableHead>Ngày tạo</TableHead>
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paged.map((n) => (
+            {rows.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                  Không có dữ liệu
+                </TableCell>
+              </TableRow>
+            )}
+            {rows.map((n) => (
               <TableRow key={n.id}>
-                <TableCell className="font-medium max-w-sm truncate">{n.title}</TableCell>
-                <TableCell>
-                  <Badge variant={n.status === "published" ? "success" : "default"}>
-                    {n.status === "published" ? "Đã đăng" : "Bản nháp"}
-                  </Badge>
+                <TableCell className="font-medium max-w-sm truncate">{n.name}</TableCell>
+                <TableCell className="text-muted-foreground max-w-xs truncate">
+                  {n.description ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {n.publishedAt ? formatDate(n.publishedAt) : "—"}
+                  {n.created_at ? formatDate(n.created_at) : "—"}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm">Sửa</Button>
+                  <div className="flex items-center gap-1">
+                    <Link href={`/content/news/${n.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Pencil data-icon="inline-start" />
+                        Sửa
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Bạn có chắc muốn xóa tin tức này?")) {
+                          deleteMutation.mutate(n.id);
+                        }
+                      }}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Xóa
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -65,7 +96,7 @@ export default function NewsPage() {
         <div className="p-4">
           <TablePagination
             currentPage={page}
-            totalPages={Math.ceil(total / PAGE_SIZE)}
+            totalPages={Math.ceil(total / PAGE_SIZE) || 1}
             onPageChange={setPage}
             totalItems={total}
             pageSize={PAGE_SIZE}
