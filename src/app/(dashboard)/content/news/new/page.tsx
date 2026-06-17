@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
+// import { Select } from "@/components/ui/Select";
 import { postsHooks } from "@/api/postsApi";
 import { filesService } from "@/api/filesApi";
 import { UploadImage } from "@/components/hospital-admin/UploadImage";
