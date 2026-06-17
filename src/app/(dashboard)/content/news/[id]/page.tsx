@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 import { postsHooks } from "@/api/postsApi";
 import { filesService } from "@/api/filesApi";
 import { UploadImage } from "@/components/hospital-admin/UploadImage";
 import { toast } from "@/components/ui/Toast";
-
-export default function NewNewsPage() {
+export default function EditNewsPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
+  const { data: post, isLoading } = postsHooks.useDetail(id);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -22,12 +25,23 @@ export default function NewNewsPage() {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const createMutation = postsHooks.useCreate({
+  useEffect(() => {
+    if (post) {
+      setForm({
+        name: post.name || "",
+        description: post.description || "",
+        content: post.content || "",
+        img_path: post.img_path || [],
+      });
+    }
+  }, [post]);
+
+  const updateMutation = postsHooks.useUpdate({
     onSuccess: () => {
-      toast.success("Tạo tin tức thành công");
+      toast.success("Cập nhật tin tức thành công");
       router.push("/content/news");
     },
-    onError: (err) => toast.error(err.message || "Tạo tin tức thất bại"),
+    onError: (err) => toast.error(err.message || "Cập nhật tin tức thất bại"),
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,14 +65,30 @@ export default function NewNewsPage() {
       setIsUploading(false);
     }
 
-    createMutation.mutate({ ...form, img_path: uploadedUrls });
+    updateMutation.mutate({ id, data: { ...form, img_path: uploadedUrls } });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Đang tải...</p>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Không tìm thấy tin tức</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" onClick={() => router.back()}>← Quay lại</Button>
-        <h1 className="text-2xl font-bold text-gray-900">Thêm tin tức mới</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa tin tức</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-6">
@@ -110,8 +140,8 @@ export default function NewNewsPage() {
           <Card className="sticky top-6">
             <CardHeader><CardTitle>Xuất bản</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <Button type="submit" variant="primary" className="w-full" disabled={createMutation.isPending || isUploading}>
-                {isUploading ? "Đang upload ảnh..." : createMutation.isPending ? "Đang lưu..." : "Lưu tin tức"}
+              <Button type="submit" variant="primary" className="w-full" disabled={updateMutation.isPending || isUploading}>
+                {isUploading ? "Đang upload ảnh..." : updateMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
               </Button>
               <Button type="button" variant="ghost" className="w-full" onClick={() => router.back()}>
                 Hủy
