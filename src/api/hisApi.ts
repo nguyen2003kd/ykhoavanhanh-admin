@@ -4,6 +4,7 @@
 
 import { apiGet } from "@/lib/axios";
 import { createApi } from "./createApi";
+import { useQuery } from "@tanstack/react-query";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,15 @@ export interface HisService {
   description?: string;
 }
 
+// ─── Query Keys ────────────────────────────────────────────────────────────────
+
+const hisServiceBase = ["his-services"] as const;
+
+export const hisServiceKeys = {
+  all: hisServiceBase,
+  list: () => [...hisServiceBase, "list"] as const,
+};
+
 // ─── API Factories ──────────────────────────────────────────────────────────
 
 export const doctorApi = createApi<Doctor>("doctors");
@@ -46,11 +56,9 @@ async function fetchHisServices(): Promise<HisService[]> {
   throw new Error(res.data.message || "Không thể lấy danh sách dịch vụ");
 }
 
-import { useQuery } from "@tanstack/react-query";
-
 export function useHisServices() {
   return useQuery({
-    queryKey: ["his-services", "list"] as const,
+    queryKey: hisServiceKeys.list(),
     queryFn: fetchHisServices,
     staleTime: 1000 * 60 * 10,
   });

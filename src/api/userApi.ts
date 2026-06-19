@@ -30,7 +30,7 @@ export interface ApiUser {
   role?: string | null;
 }
 
-// ─── Mapper ───────────────────────────────────────────────────────────────
+// ─── Mapper ─────────────────────────────────────────────────────────────
 
 export function mapApiUserToUser(apiUser: ApiUser): User {
   return {
@@ -45,6 +45,18 @@ export function mapApiUserToUser(apiUser: ApiUser): User {
     updatedAt: apiUser.updated_at,
   };
 }
+
+// ─── Query Keys ────────────────────────────────────────────────────────────────
+
+const userBase = ["users"] as const;
+
+export const userKeys = {
+  all: userBase,
+  list: (params?: PaginationParams) =>
+    [...userBase, "list", params] as const,
+  detail: (id: string) =>
+    [...userBase, "detail", id] as const,
+};
 
 // ─── Service Functions ─────────────────────────────────────────────────────
 
@@ -79,11 +91,11 @@ async function updateUser(id: string, payload: Partial<ApiUser>): Promise<ApiUse
   return res.data.responseData as ApiUser;
 }
 
-// ─── Hooks ───────────────────────────────────────────────────────────────
+// ─── Hooks ─────────────────────────────────────────────────────────────
 
 export function useUsersList(params?: PaginationParams) {
   return useQuery({
-    queryKey: ["users", "list", params] as const,
+    queryKey: userKeys.list(params),
     queryFn: () => fetchUsersList(params),
     staleTime: 1000 * 60 * 2,
     placeholderData: (previousData) => previousData,
@@ -92,7 +104,7 @@ export function useUsersList(params?: PaginationParams) {
 
 export function useUserById(id: string | null | undefined) {
   return useQuery({
-    queryKey: ["users", "detail", id] as const,
+    queryKey: userKeys.detail(id ?? ""),
     queryFn: () => fetchUserById(id!),
     enabled: Boolean(id),
     staleTime: 1000 * 60 * 5,
@@ -104,7 +116,7 @@ export function useDeleteUser(options?: { onSuccess?: () => void; onError?: (err
   return useMutation({
     mutationFn: removeUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
       options?.onSuccess?.();
     },
     onError: (error) => options?.onError?.(error),
@@ -120,8 +132,8 @@ export function useUpdateUser(options?: {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ApiUser> }) =>
       updateUser(id, payload),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["users", "detail", id] });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       options?.onSuccess?.();
     },
     onError: (error) => options?.onError?.(error),

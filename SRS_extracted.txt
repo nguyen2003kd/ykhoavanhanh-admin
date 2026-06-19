@@ -1,0 +1,2431 @@
+Tổng quan dự án
+SOFTWARE REQUIREMENTS SPECIFICATION
+Hệ thống Đặt Khám Online & Quản lý Y tế
+Bệnh viện Đa khoa Vạn Hạnh
+Mã dự án
+BVVH
+Phiên bản
+1.0
+Ngày lập
+14/05/2026
+Đơn vị phát triển
+MeU Solutions – contact@meu-solutions.com
+Khách hàng
+Bệnh viện Đa khoa Vạn Hạnh
+Tiến độ
+Ký HĐ 23/04/2026 | Bắt đầu 01/05/2026 | Hoàn thành dự kiến 01/07/2026
+1. GIỚI THIỆU
+1.1 Mục tiêu dự án
+Hệ thống Đặt Khám Online được xây dựng nhằm hiện đại hóa quy trình tiếp nhận và đặt lịch khám tại Bệnh viện Đa khoa Vạn Hạnh, thay thế hoàn toàn việc phụ thuộc vào cổng bên thứ ba (Medpro). Mục tiêu cụ thể:
+•        Cung cấp kênh đặt khám trực tuyến qua Mobile App và Zalo Mini App, giúp bệnh nhân đặt lịch mọi lúc, mọi nơi.
+•        Tích hợp thanh toán điện tử qua Vietcombank – VietQR/NAPAS, giảm thiểu giao dịch tiền mặt.
+•        Đồng bộ dữ liệu hai chiều với hệ thống HIS của bệnh viện, đảm bảo tính nhất quán hồ sơ bệnh nhân.
+•        Cung cấp cổng Admin (Web) với phân quyền đa vai trò để quản lý danh mục, lịch khám, phiếu khám, báo cáo.
+•        Hỗ trợ bệnh nhân theo dõi kết quả xét nghiệm, PACS, đơn thuốc, hóa đơn GTGT ngay trên app.
+•        Gửi thông báo tự động (nhắc hẹn, kết quả CLS, khuyến mãi) qua Push Notification và Zalo OA(cần confirm).
+1.2 Đối tượng sử dụng
+Đối tượng
+Vai trò
+Nền tảng sử dụng
+Bệnh nhân
+Đặt khám, thanh toán, theo dõi kết quả, đánh giá dịch vụ
+Mobile App, Zalo Mini App
+Admin
+Toàn quyền hệ thống: quản lý danh mục, đồng bộ HIS, hoàn hủy phiếu
+Web Admin
+Kế toán
+Hoàn hủy phiếu, trả tiền BN, báo cáo đối soát ngân hàng/HIS
+Web Admin
+CSKH
+Lịch nhắc tái khám, quản lý khảo sát đánh giá, chat tư vấn
+Web Admin
+Marketing
+Quản lý chương trình khuyến mãi, bán dịch vụ gói khám, truyền thông
+Web Admin
+Tiếp tân
+Lập và chỉnh sửa lịch khám, lịch nghỉ phép của BS
+Web Admin
+User thường
+Xem lịch khám của bác sĩ (chỉ xem)
+Web Admin
+1.3 Phạm vi hệ thống
+Hệ thống bao gồm 3 thành phần chính:
+•        Mobile App (iOS & Android): Đặt khám, thanh toán, sổ sức khỏe, thông báo, đánh giá.
+•        Zalo Mini App: Đồng bộ tính năng với Mobile App, tích hợp Zalo OA để gửi thông báo(cần confirm).
+•        Web Admin: Quản trị hệ thống, phân quyền đa vai trò, báo cáo, công cụ vận hành.
+Phạm vi tích hợp bên ngoài:
+•        HIS (Hospital Information System) của Bệnh viện Vạn Hạnh – API một chiều: App gọi HIS.
+•        Vietcombank – VietQR/NAPAS: thanh toán và hoàn tiền tự động.
+•        PACS: lấy link hình ảnh chẩn đoán (qua Anh Phong phụ trách kỹ thuật).
+•        OTP Provider (dự kiến FPT): xác thực số điện thoại khi đăng ký/quên mật khẩu.
+•        Zalo OA: gửi thông báo nhắc hẹn, kết quả CLS(cần confirm).
+Client
+Đăng nhập tài khoản (Mobile App)
+Đăng nhập tài khoản (Mobile App)
+Mô tả
+Người dùng đăng nhập vào Mobile App bằng số điện thoại và mật khẩu để truy cập các chức năng cá nhân như đặt lịch khám, xem lịch sử khám, sổ sức khỏe, thông báo, membership và các tiện ích khác
+Actor
+Người dùng đã có tài khoản trong hệ thống
+Input
+Số điện thoại, mật khẩu
+Validation
+SĐT đúng định dạng; mật khẩu tối thiểu 6 ký tự; tài khoản đang ở trạng thái active; sai mật khẩu 5 lần liên tiếp → khóa tạm 15 phút
+Business Rule
+Mỗi người dùng đăng nhập bằng số điện thoại đã đăng ký.
+Nếu nhập sai mật khẩu, hệ thống ghi nhận số lần đăng nhập thất bại.
+Nếu sai mật khẩu 5 lần liên tiếp, tài khoản bị khóa tạm thời trong 15 phút.
+Output
+Đăng nhập thành công.
+Người dùng được chuyển vào màn hình trang chủ App.
+Trường hợp đăng nhập thất bại, hệ thống hiển thị thông báo lỗi phù hợp.
+Flow xử lý
+Bước 1: Người dùng mở Mobile App.
+Bước 2: Người dùng chọn chức năng Đăng nhập.
+Bước 3: Người dùng nhập số điện thoại và mật khẩu.
+Bước 4: Người dùng nhấn nút Đăng nhập.
+Bước 5: App kiểm tra thông tin đăng nhập.
+Bước 6: Nếu thông tin hợp lệ, App đăng nhập thành công và chuyển người dùng vào màn hình Trang chủ.
+Bước 7: Nếu thông tin không hợp lệ, App hiển thị thông báo sai số điện thoại hoặc mật khẩu.
+Bước 8: Người dùng nhập lại thông tin đăng nhập.
+Bước 9: Nếu người dùng nhập sai mật khẩu 5 lần liên tiếp, App thông báo tài khoản bị khóa tạm thời trong 15 phút.
+Bước 10: Sau thời gian khóa tạm, người dùng có thể đăng nhập lại.
+Đăng ký tài khoản người dùng (Mobile App)
+Đăng ký tài khoản Người dùng(Mobile App)
+Mô tả
+Người dùng tạo tài khoản mới trên Mobile App bằng số điện thoại và mật khẩu. Hệ thống gửi OTP về số điện thoại (SMS) để xác thực trước khi tạo tài khoản. Sau khi đăng ký thành công, Người dùng có thể đăng nhập và cập nhật hồ sơ cá nhân để liên kết với hồ sơ Người dùng/mã Người dùng HIS
+Actor
+Người dùng (chưa có tài khoản)
+Input
+Số điện thoại. Mật khẩu. Nhập lại mật khẩu. Mã OTP.
+Validation
+Số điện thoại không được để trống. Số điện thoại phải đúng định dạng. Số điện thoại chưa được đăng ký tài khoản trong hệ thống. Mật khẩu không được để trống. Mật khẩu tối thiểu 6 ký tự. Mật khẩu nhập lại phải khớp với mật khẩu đã nhập. OTP không được để trống. OTP phải đúng và còn hiệu lực trong 5 phút.
+Business Rule
+Người dùng chỉ được đăng ký tài khoản bằng số điện thoại hợp lệ. Mỗi số điện thoại chỉ được dùng để tạo một tài khoản đăng nhập trên Mobile App. Trước khi tạo tài khoản, người dùng bắt buộc phải xác thực OTP thành công. Hệ thống cần giới hạn thời gian hiệu lực OTP, số lần nhập sai OTP và số lần gửi lại OTP để đảm bảo bảo mật. Sau khi đăng ký thành công, tài khoản được tạo với trạng thái mặc định là Hoạt động. Tài khoản mới được gán vai trò mặc định là Khách hàng. Thông tin định danh như họ tên, ngày sinh, CCCD, giới tính, nghề nghiệp, quốc tịch, dân tộc và mã Người dùng HIS sẽ được cập nhật tại chức năng Hồ sơ cá nhân sau khi đăng ký. Việc liên kết mã Người dùng HIS không thực hiện trực tiếp tại bước đăng ký tài khoản, mà được xử lý khi Người dùng cập nhật hồ sơ cá nhân hoặc khi hệ thống cần đồng bộ hồ sơ với HIS.
+Output
+Tài khoản Người dùng được tạo thành công. Số điện thoại được xác thực. Người dùng có thể đăng nhập vào Mobile App. Hệ thống hiển thị thông báo đăng ký thành công. Người dùng được chuyển đến màn hình đăng nhập
+Flow xử lý
+Bước 1: BN mở App và chọn chức năng Đăng ký tài khoản.
+Bước 2: BN nhập số điện thoại.
+Bước 3: BN nhập mật khẩu và xác nhận mật khẩu.
+Bước 4: BN nhấn nút Đăng ký.
+Bước 5: App gửi mã OTP về số điện thoại đã nhập.
+Bước 6: BN nhập mã OTP để xác thực.
+Bước 7: App kiểm tra mã OTP.
+Bước 8: Nếu OTP hợp lệ, App tạo tài khoản và thông báo đăng ký thành công.
+Bước 9: BN được chuyển sang màn hình Đăng nhập
+Bước 10: Nếu OTP sai hoặc hết hạn, App hiển thị thông báo lỗi và cho phép BN nhập chọn gửi lại OTP.
+Đăng nhập tài khoản (Zalo miniApp)
+Đăng nhập tài khoản (Zalo miniApp)
+Mô tả
+Người dùng truy cập Zalo Mini App và cấp quyền truy cập thông tin Zalo. Sau khi người dùng đồng ý cấp quyền, hệ thống lấy thông tin cơ bản gồm số điện thoại và tên người dùng để đăng nhập hoặc tạo phiên truy cập vào Mini App.
+Actor
+Người dùng sử dụng Zalo Mini App
+Input
+Quyền truy cập thông tin người dùng từ Zalo.
+Số điện thoại.
+Tên người dùng.
+Validation
+Người dùng phải mở Zalo Mini App từ ứng dụng Zalo.
+Người dùng phải đồng ý cấp quyền truy cập thông tin.
+Hệ thống phải lấy được số điện thoại hợp lệ.
+Hệ thống phải lấy được tên người dùng từ Zalo.
+Tài khoản tương ứng với số điện thoại phải đang ở trạng thái active nếu đã tồn tại trong hệ thống.
+Business Rule
+Người dùng đăng nhập Zalo Mini App thông qua cơ chế cấp quyền từ Zalo(bắt buộc), không cần nhập số điện thoại và mật khẩu như Mobile App.
+Sau khi người dùng cấp quyền, hệ thống sử dụng số điện thoại để kiểm tra tài khoản đã tồn tại hay chưa.
+Nếu số điện thoại đã tồn tại, hệ thống cho phép người dùng đăng nhập vào Mini App.
+Nếu số điện thoại chưa tồn tại, hệ thống có thể tạo tài khoản mới với thông tin cơ bản gồm số điện thoại và tên người dùng.
+Mỗi số điện thoại được dùng để định danh một tài khoản đăng nhập trên hệ thống.
+Sau khi đăng nhập thành công, hệ thống tạo phiên đăng nhập để người dùng sử dụng các chức năng cá nhân trên Mini App.
+Output
+Người dùng đăng nhập thành công vào Zalo Mini App.
+Hệ thống lấy được số điện thoại và tên người dùng.
+Người dùng được chuyển vào màn hình trang chủ Mini App.
+Flow xử lý
+Bước 1: Người dùng mở Zalo Mini App.
+Bước 2: Mini App hiển thị yêu cầu cấp quyền truy cập thông tin người dùng.
+Bước 3: Người dùng nhấn đồng ý cấp quyền.
+Bước 4: Mini App lấy thông tin số điện thoại và tên người dùng từ Zalo.
+Bước 5: Mini App kiểm tra số điện thoại trong hệ thống.
+Bước 6: Nếu số điện thoại đã có tài khoản, Mini App đăng nhập người dùng vào hệ thống.
+Bước 7: Nếu số điện thoại chưa có tài khoản, Mini App tạo tài khoản mới bằng số điện thoại và tên người dùng.
+Bước 8: Mini App tạo phiên đăng nhập cho người dùng.
+Bước 9: Người dùng được chuyển vào màn hình Trang chủ Mini App.
+Quên mật khẩu (Mobile App)
+Quên mật khẩu (Mobile App)
+Mô tả
+Người dùng sử dụng chức năng quên mật khẩu để lấy lại quyền truy cập tài khoản thông qua xác minh số điện thoại bằng OTP.
+Actor
+Người dùng đã có tài khoản trong hệ thống.
+Input
+Số điện thoại đã đăng ký.
+Mã OTP nhận qua SMS.
+Mật khẩu mới.
+Xác nhận mật khẩu mới
+Validation
+SĐT tồn tại trong hệ thống; OTP đúng và còn hiệu lực (5 phút); mật khẩu mới tối thiểu 6 ký tự; mật khẩu mới xác nhận phải khớp
+Business Rule
+Chỉ tài khoản đã đăng ký mới được sử dụng chức năng quên mật khẩu.
+OTP được gửi đến số điện thoại đã đăng ký của Người dùng.
+Mỗi mã OTP chỉ có hiệu lực trong 5 phút.
+OTP chỉ được sử dụng một lần.
+Người dùng phải đăng nhập lại bằng mật khẩu mới sau khi đổi mật khẩu thành công.
+Output
+Mật khẩu được cập nhật thành công.
+Hệ thống hiển thị thông báo đổi mật khẩu thành công.
+Người dùng được chuyển về màn hình đăng nhập.
+Flow xử lý
+Bước 1: Người dùng chọn chức năng Quên mật khẩu.
+Bước 2: Người dùng nhập số điện thoại đã đăng ký.
+Bước 3: Người dùng nhấn Tiếp tục hoặc Gửi OTP.
+Bước 4: App kiểm tra số điện thoại.
+Bước 5: Nếu số điện thoại hợp lệ và đã tồn tại, App gửi mã OTP qua SMS.
+Bước 6: Người dùng nhập mã OTP.
+Bước 7: App kiểm tra OTP đúng và còn hiệu lực.
+Bước 8: Nếu OTP hợp lệ, người dùng nhập mật khẩu mới và xác nhận mật khẩu mới.
+Bước 9: Người dùng nhấn Xác nhận đổi mật khẩu.
+Bước 10: App kiểm tra mật khẩu mới và xác nhận mật khẩu có khớp không.
+Bước 11: Nếu hợp lệ, App cập nhật mật khẩu mới.
+Bước 12: App thông báo đổi mật khẩu thành công.
+Bước 13: Người dùng được chuyển về màn hình Đăng nhập.
+Bước 14: Nếu số điện thoại, OTP hoặc mật khẩu không hợp lệ, App hiển thị thông báo lỗi tương ứng.
+Quản lý hồ sơ cá nhân
+Quản lý hồ sơ cá nhân
+Mô tả
+Cho phép Người dùng xem và cập nhật thông tin cá nhân cơ bản trên Mobile App / Zalo Mini App. Hồ sơ cá nhân được liên kết với mã Người dùng HIS để phục vụ đặt lịch, khám bệnh, tra cứu lịch sử và đồng bộ dữ liệu với hệ thống bệnh viện
+Actor
+Người dùng.
+Input
+Họ tên(*)
+Ngày sinh(*)
+Giới tính(*)
+Nghề nghiệp.
+Quốc tịch
+Dân tộc
+CCCD(*)
+Số điện thoại. (*)
+Mã bệnh nhân HIS.
+Tiểu sử bệnh lí, dị ứng nếu có.
+Validation
+Người dùng phải đăng nhập trước khi xem hoặc cập nhật hồ sơ cá nhân.
+Không cho phép bỏ trống các thông tin bắt buộc.
+Số điện thoại phải đúng định dạng.
+CCCD phải đúng định dạng.
+Không cho phép Người dùng tự sửa trực tiếp mã Người dùng HIS, thông tin định danh như CCCD, số điện thoại, họ tên
+Business Rule
+Một số điện thoại có thể được dùng cho nhiều bệnh nhân(sổ sức khỏe) trong trường hợp người thân đặt lịch hoặc quản lý hồ sơ thay.
+Hệ thống kết hợp CCCD và số điện thoại để hỗ trợ định danh bệnh nhân.
+Mã bệnh nhân HIS được cấp hoặc xác nhận thông qua hệ thống HIS.
+Bệnh nhân chỉ được cập nhật các trường thông tin được phép chỉnh sửa.
+Admin có quyền cập nhật hoặc hợp nhất mã bệnh nhân trong trường hợp phát sinh mã mới nhưng HIS đã tồn tại mã cũ.
+Output
+Thông tin hồ sơ cá nhân được cập nhật thành công.
+Hồ sơ cá nhân được liên kết đúng với mã bệnh nhân HIS.
+Admin có thể xem và xử lý các trường hợp lệch hoặc trùng mã bệnh nhân.
+Flow xử lý
+Bước 1: Bệnh nhân đăng nhập vào Mobile App hoặc Zalo Mini App.
+Bước 2: Bệnh nhân mở màn hình Hồ sơ cá nhân.
+Bước 3: Bệnh nhân xem thông tin cá nhân hiện có.
+Bước 4: Bệnh nhân chọn Chỉnh sửa hồ sơ.
+Bước 5: Bệnh nhân cập nhật các thông tin được phép chỉnh sửa(Ngày sinh, Giới tính, Nghề nghiệp, Quốc tịch, Dân tộc)
+Bước 6: Bệnh nhân nhấn Lưu thông tin.
+Bước 7: App kiểm tra dữ liệu đã nhập.
+Bước 8: Nếu dữ liệu không hợp lệ, App hiển thị thông báo lỗi để bệnh nhân chỉnh sửa lại.
+Bước 9: Nếu dữ liệu hợp lệ, App lưu thông tin hồ sơ cá nhân.
+Bước 10: Nếu phát sinh lệch hoặc trùng mã bệnh nhân, Admin kiểm tra và xử lý hợp nhất hồ sơ.
+Bước 11: App thông báo cập nhật hồ sơ cá nhân thành công, thông tin được tự động đồng bộ sang HIS
+Đặt khám
+Đặt khám
+Mô tả
+Người dùng đặt lịch khám trên Mobile App hoặc Zalo Mini App bằng cách chọn người đi khám, khu vực khám, chuyên khoa, bác sĩ, dịch vụ khám, ngày giờ khám và thực hiện thanh toán. Sau khi ngân hàng xác nhận thanh toán thành công, hệ thống tạo phiếu khám và cấp số thứ tự cho người đi khám. 
+Actor
+Người dùng đã đăng nhập
+Input
+Người đi khám: Chủ tài khoản hoặc thành viên gia đình.
+Khu vực khám.
+Chuyên khoa.
+Bác sĩ.
+Dịch vụ khám: Thu phí/Không BHYT, BHYT, VIP.
+Ngày khám.
+Giờ khám/slot khám.
+Phương thức thanh toán. 
+Validation
+Người dùng phải đăng nhập trước khi đặt khám. Người dùng phải chọn người đi khám. Người đi khám phải có hồ sơ cá nhân đầy đủ thông tin bắt buộc, đặc biệt là CCCD. Người đi khám phải có mã bệnh nhân HIS.
+Người dùng phải chọn khu vực khám. Người dùng phải chọn chuyên khoa. Người dùng phải chọn loại dịch vụ khám. Người dùng phải chọn bác sĩ. Ngày khám và giờ khám phải còn khả dụng. Khung giờ khám phải còn slot trống. Giao dịch thanh toán phải được ngân hàng xác nhận thành công trước khi xuất phiếu khám và số thứ tự.
+Người dùng phải đăng nhập trước khi đặt khám.
+Người dùng phải chọn người đi khám.
+Người đi khám phải có hồ sơ cá nhân đầy đủ thông tin bắt buộc, đặc biệt là CCCD.
+Người đi khám phải có mã bệnh nhân HIS.
+Người dùng phải chọn khu vực khám.
+Người dùng phải chọn chuyên khoa.
+Người dùng phải chọn bác sĩ.
+Người dùng phải chọn dịch vụ khám.
+Ngày khám và giờ khám phải còn khả dụng.
+Khung giờ khám phải còn slot trống.
+Nếu người đi khám chọn BHYT, trong cùng ngày không được đăng ký trùng chuyên khoa với một lịch BHYT đã đặt trước đó.
+Nếu người đi khám đã đăng ký BHYT chuyên khoa Nội, người đi khám không được đăng ký thêm một lịch BHYT khác cũng thuộc chuyên khoa Nội trong cùng ngày.
+Nếu người đi khám đã đăng ký BHYT chuyên khoa Nội, người đi khám vẫn được đăng ký thêm lịch Thu phí/Không BHYT hoặc VIP cùng chuyên khoa Nội.
+Giao dịch thanh toán phải được ngân hàng xác nhận thành công trước khi xuất phiếu khám và số thứ tự.
+Business Rule
+Một tài khoản có thể quản lý nhiều hồ sơ sức khỏe, bao gồm hồ sơ của chủ tài khoản và các thành viên gia đình.
+Mỗi hồ sơ sức khỏe tương ứng với một người bệnh và được liên kết với một mã bệnh nhân HIS riêng.
+Ở màn hình Đặt khám, người dùng chọn người đi khám từ danh sách chủ tài khoản hoặc thành viên gia đình đã thêm.
+Hệ thống không yêu cầu người dùng nhập mã bệnh nhân thủ công tại bước đặt khám.
+Mã bệnh nhân HIS được lấy từ hồ sơ của người đi khám đã chọn.
+Nếu hồ sơ người đi khám chưa đầy đủ thông tin bắt buộc, App yêu cầu người dùng cập nhật hồ sơ trước khi đặt khám.
+Khi cập nhật hồ sơ, nếu HIS đã có mã bệnh nhân tương ứng, hệ thống lấy mã cũ và hiển thị lên hồ sơ.
+Nếu HIS chưa có mã bệnh nhân tương ứng, hệ thống tạo mã bệnh nhân mới và hiển thị lên hồ sơ.
+Hệ thống không giới hạn số lần đăng ký khám trong ngày.
+Hệ thống không giới hạn số lượng phòng khám/chuyên khoa người bệnh được đăng ký.
+Riêng đối tượng BHYT, trong cùng ngày không được đăng ký trùng chuyên khoa để đảm bảo đúng quy định thanh toán BHYT. Tối đa 4 chuyên khoa trong 1 ngày.
+Người dùng chỉ được đặt lịch trong các khung giờ được bệnh viện cấu hình.
+Mỗi khung giờ khám có số lượng slot giới hạn.
+Ngày đó bác sĩ có thể khám BHYT và Dịch vụ, hoặc chỉ khám Dịch vụ, tùy theo lịch khám được Admin cấu hình.
+Dịch vụ khám gồm Thu phí/Không BHYT, BHYT và VIP; mỗi loại dịch vụ áp dụng mức giá và quy trình tiếp nhận khác nhau.
+Nếu người bệnh đăng ký từ công khám thứ hai trở đi, hệ thống áp dụng chính sách giảm 50% đơn giá khám theo quy định bệnh viện.
+Nếu người bệnh hủy công khám đầu tiên trong nhóm đăng ký có áp dụng giảm giá, hệ thống yêu cầu hủy toàn bộ nhóm công khám và đăng ký lại để đảm bảo đúng chính sách tính giá.
+Thanh toán online được tích hợp với Vietcombank qua chuẩn VietQR/NAPAS.
+Chỉ khi ngân hàng xác nhận giao dịch thành công, hệ thống mới xác nhận lịch khám, xuất phiếu khám và cấp số thứ tự.
+Output
+Lịch khám được tạo thành công.
+Phiếu khám được tạo sau khi thanh toán thành công.
+Số thứ tự khám được cấp sau khi thanh toán thành công.
+Người dùng nhận được thông tin lịch hẹn.
+Người dùng có thể xem lịch hẹn trong mục Lịch sử đặt khám. 
+Flow xử lý
+Bước 1: Người dùng mở Mobile App hoặc Zalo Mini App. Bước 2: Người dùng chọn chức năng Đặt khám. Bước 3: App hiển thị danh sách người đi khám gồm chủ tài khoản và các thành viên gia đình đã thêm. Bước 4: Người dùng chọn người đi khám. Bước 5: App kiểm tra hồ sơ của người đi khám đã đầy đủ thông tin bắt buộc hay chưa, đặc biệt là CCCD. Bước 6: Nếu hồ sơ chưa đầy đủ, App hiển thị popup yêu cầu cập nhật hồ sơ trước khi đặt khám. Bước 7: Người dùng nhấn Cập nhật hồ sơ. Bước 8: App điều hướng người dùng sang màn hình Hồ sơ cá nhân hoặc Hồ sơ thành viên tương ứng. Bước 9: Người dùng cập nhật đầy đủ thông tin bắt buộc và nhấn Lưu thông tin. Bước 10: App lưu hồ sơ và hiển thị mã bệnh nhân HIS của người đi khám. Bước 11: Popup hiển thị 2 nút: Ở lại và Trang đặt lịch khám. Bước 12: Nếu người dùng nhấn Ở lại, App đóng popup và giữ người dùng ở màn hình hồ sơ. Bước 13: Nếu người dùng nhấn Trang đặt lịch khám, App đưa người dùng quay lại màn hình Đặt khám.
+Bước 14: Người dùng chọn khu vực khám. Bước 15: Người dùng chọn chuyên khoa cần khám. Bước 16: Người dùng chọn bác sĩ. Hệ thống căn cứ vào lịch trực của bác sĩ để hiển thị phòng khám mà bác sĩ đang làm việc tại thời điểm và khung giờ còn trống. Bước 17:  Người dùng chọn loại dịch vụ khám gồm Không BHYT, BHYT hoặc VIP. Bước 18: Người dùng chọn ngày khám và giờ khám còn trống. Bước 19: App kiểm tra số lượng lịch của người đi khám đã đăng ký trong ngày. Bước 20: Nếu người đi khám đã có lịch trong ngày, App hiển thị cảnh báo và yêu cầu người dùng xác nhận trước khi đặt thêm. Bước 21: App tính giá khám theo loại dịch vụ và chính sách giảm giá nếu có. Bước 22: Người dùng kiểm tra lại thông tin lịch khám, người đi khám, giá khám và thông tin thanh toán. Bước 23: Người dùng nhấn Xác nhận đặt khám. Bước 24: App hiển thị mã VietQR/NAPAS để người dùng thanh toán. Bước 25: Người dùng thực hiện thanh toán online. Bước 26: Hệ thống nhận xác nhận giao dịch thành công từ ngân hàng. Bước 27: Nếu thanh toán thành công, App xác nhận lịch khám, xuất phiếu khám và cấp số thứ tự cho người đi khám. Bước 28: Người dùng xem thông tin phiếu khám và số thứ tự trên App. Bước 29: Nếu thanh toán thất bại hoặc chưa được xác nhận, App hiển thị trạng thái thanh toán chưa thành công và chưa xuất phiếu khám.
+Flow xử lý đặt khám từ bác sĩ
+Bước 1: Người dùng mở Mobile App hoặc Zalo Mini App. Bước 2: Người dùng chọn chức năng Danh sách bác sĩ. Bước 3: Người dùng chọn một bác sĩ để xem chi tiết. Bước 4: App hiển thị thông tin chi tiết bác sĩ. Bước 5: Người dùng nhấn nút Đặt lịch khám. Bước 6: App chuyển sang màn hình Đặt khám. Bước 7: App tự động điền sẵn thông tin bác sĩ đã chọn. Bước 8: App tự động gợi ý chuyên khoa tương ứng với bác sĩ. Bước 9: App tự động gợi ý khu vực khám và phòng khám theo lịch trực của bác sĩ nếu có. Bước 10: Người dùng chọn người đi khám gồm chủ tài khoản hoặc thành viên gia đình. Bước 11: App kiểm tra hồ sơ người đi khám đã đầy đủ thông tin bắt buộc hay chưa, đặc biệt là CCCD và mã bệnh nhân HIS. Bước 12: Nếu hồ sơ chưa đầy đủ, App hiển thị popup yêu cầu cập nhật hồ sơ trước khi đặt khám. Bước 13: Nếu hồ sơ đầy đủ, người dùng chọn loại dịch vụ khám gồm Không BHYT, BHYT hoặc VIP. Bước 14: Người dùng chọn ngày khám theo lịch làm việc còn khả dụng của bác sĩ. Bước 15: Người dùng chọn giờ khám/slot khám còn trống. Bước 16: App kiểm tra số lượng lịch người đi khám đã đăng ký trong ngày. Bước 17: Nếu người đi khám đã có lịch trong ngày, App hiển thị cảnh báo và yêu cầu người dùng xác nhận trước khi đặt thêm. Bước 18: App tính giá khám theo loại dịch vụ và chính sách giảm giá nếu có. Bước 19: Người dùng kiểm tra lại thông tin lịch khám. Bước 20: Người dùng nhấn Xác nhận đặt khám. Bước 21: App hiển thị mã VietQR/NAPAS để người dùng thanh toán. Bước 22: Người dùng thực hiện thanh toán online. Bước 23: Hệ thống nhận xác nhận giao dịch thành công từ ngân hàng. Bước 24: Nếu thanh toán thành công, App xác nhận lịch khám, xuất phiếu khám và cấp số thứ tự cho người đi khám. Bước 25: Người dùng xem thông tin phiếu khám và số thứ tự trên App. Bước 26: Nếu thanh toán thất bại hoặc chưa được xác nhận, App hiển thị trạng thái thanh toán chưa thành công và chưa xuất phiếu khám.
+Lịch sử đặt khám
+Lịch sử đặt khám
+Mô tả
+Người dùng xem lại danh sách các lịch khám đã đặt trên Mobile App hoặc Zalo Mini App, bao gồm lịch của chủ tài khoản và các thành viên gia đình đã được thêm vào hệ thống. Người dùng có thể tìm kiếm, lọc danh sách và xem chi tiết từng lịch khám.
+Actor
+Người dùng đã đăng nhập.
+Input
+Từ khóa tìm kiếm:
+- Mã lịch hẹn.
+- Tên người đi khám.
+- Mã bệnh nhân HIS.
+- Số điện thoại người đi khám nếu có.
+Bộ lọc:
+- Người đi khám: Chủ tài khoản hoặc thành viên gia đình.
+- Thời gian: Khoảng ngày khám.
+- Trạng thái lịch khám: Chờ xác nhận, đã đặt, đã khám, đã hủy.
+- Trạng thái thanh toán: Chưa thanh toán, đã thanh toán, thanh toán thất bại, hết hạn thanh toán, đã hoàn
+- Loại dịch vụ khám: Không BHYT, BHYT, VIP.
+- Khu vực khám.
+- Chuyên khoa.
+- Bác sĩ.
+Validation
+Người dùng phải đăng nhập trước khi xem lịch sử đặt khám.
+Người dùng chỉ được xem lịch khám của chủ tài khoản hoặc các thành viên gia đình thuộc tài khoản đang đăng nhập.
+Nếu nhập từ khóa tìm kiếm, hệ thống chỉ tìm trong phạm vi dữ liệu lịch khám thuộc tài khoản đang đăng nhập.
+Nếu chọn bộ lọc thời gian theo khoảng ngày, ngày bắt đầu không được lớn hơn ngày kết thúc.
+Nếu không có dữ liệu phù hợp với điều kiện tìm kiếm hoặc bộ lọc, hệ thống hiển thị thông báo không có kết quả.
+Business Rule
+Một tài khoản có thể xem lịch sử đặt khám của chủ tài khoản và các thành viên gia đình đã được liên kết.
+Mỗi lịch đặt khám phải gắn với một người đi khám cụ thể và một mã bệnh nhân HIS tương ứng.
+Người dùng có thể tìm kiếm lịch khám theo mã lịch hẹn, tên người đi khám, mã bệnh nhân HIS và số điện thoại người đi khám nếu có.
+Người dùng có thể lọc lịch sử theo người đi khám, thời gian khám, trạng thái lịch khám, trạng thái thanh toán, loại dịch vụ khám, khu vực khám, chuyên khoa hoặc bác sĩ.
+Danh sách lịch sử đặt khám mặc định hiển thị theo thời gian đặt lịch gần nhất lên đầu.
+Lịch sử đặt khám cần hiển thị đủ thông tin chính để người dùng nhận biết nhanh lịch khám gồm người đi khám, mã lịch hẹn, khu vực, chuyên khoa, phòng khám, bác sĩ, ngày giờ khám, trạng thái thanh toán và trạng thái lịch khám.
+Chỉ các lịch đã thanh toán thành công mới được xuất phiếu khám và số thứ tự khám.
+Nếu lịch khám chưa thanh toán, thanh toán thất bại hoặc hết hạn thanh toán, hệ thống hiển thị trạng thái thanh toán tương ứng và không hiển thị phiếu khám/số thứ tự.
+Nếu lịch khám bị hủy, hệ thống hiển thị trạng thái hủy và lý do hủy nếu có.
+Output
+Danh sách lịch sử đặt khám được hiển thị.
+Danh sách kết quả tìm kiếm/lọc được hiển thị theo điều kiện người dùng chọn.
+Người dùng xem được thông tin chi tiết lịch khám.
+Người dùng xem được phiếu khám và số thứ tự nếu lịch đã thanh toán thành công.
+Trường hợp không có dữ liệu hoặc không có kết quả phù hợp, hệ thống hiển thị thông báo phù hợp.
+Thông tin hiển thị trên danh sách lịch sử đặt khám
+Mã lịch hẹn.
+Người đi khám.
+Mã bệnh nhân HIS.
+Khu vực.
+Chuyên khoa.
+Bác sĩ khám.
+Ngày khám.
+Giờ khám.
+Dịch vụ khám: Không BHYT, BHYT hoặc VIP.
+Trạng thái thanh toán.
+Trạng thái lịch khám.
+Số thứ tự khám nếu đã thanh toán thành công.
+Thông tin hiển thị trong chi tiết lịch khám
+Mã lịch hẹn.
+Người đi khám.
+Mã bệnh nhân HIS.
+Số điện thoại người đi khám nếu có.
+Khu vực khám.
+Chuyên khoa.
+Phòng khám.
+Dịch vụ khám: Không BHYT, BHYT hoặc VIP.
+Bác sĩ khám.
+Ngày khám.
+Giờ khám.
+Giá khám.
+Thông tin giảm giá nếu có.
+Tổng tiền thanh toán.
+Phương thức thanh toán.
+Trạng thái thanh toán.
+Trạng thái lịch khám.
+Số thứ tự khám nếu đã thanh toán thành công.
+Phiếu khám nếu đã thanh toán thành công.
+Lý do hủy nếu lịch đã hủy.
+Ngày tạo lịch.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo mã lịch hẹn, tên người đi khám, mã bệnh nhân HIS và số điện thoại người đi khám nếu có.
+Bộ lọc người đi khám.
+Bộ lọc khoảng ngày khám.
+Bộ lọc trạng thái lịch khám.
+Bộ lọc trạng thái thanh toán.
+Bộ lọc loại dịch vụ khám.
+Bộ lọc khu vực khám.
+Bộ lọc chuyên khoa.
+Bộ lọc bác sĩ.
+Nút Tìm kiếm hoặc Áp dụng bộ lọc.
+Nút Xóa bộ lọc.
+Flow xử lý
+Bước 1: Người dùng mở Mobile App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Lịch sử đặt khám.
+Bước 3: App hiển thị danh sách lịch khám đã đặt của chủ tài khoản và các thành viên gia đình, mặc định sắp xếp lịch mới nhất lên đầu.
+Bước 4: Người dùng nhập từ khóa tìm kiếm nếu muốn tìm nhanh lịch khám.
+Bước 5: Người dùng chọn bộ lọc nếu muốn lọc theo người đi khám, thời gian, trạng thái lịch, trạng thái thanh toán, loại dịch vụ, khu vực khám, chuyên khoa hoặc bác sĩ.
+Bước 6: Người dùng nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 7: App hiển thị danh sách lịch khám phù hợp với điều kiện tìm kiếm/lọc.
+Bước 8: Nếu không có dữ liệu phù hợp, App hiển thị thông báo không có kết quả.
+Bước 9: Người dùng có thể nhấn Xóa bộ lọc để quay lại danh sách lịch sử ban đầu.
+Bước 10: Người dùng chọn một lịch khám để xem chi tiết.
+Bước 11: App hiển thị thông tin chi tiết lịch khám gồm thông tin người đi khám, khu vực khám, chuyên khoa, phòng khám, dịch vụ, bác sĩ, ngày giờ, giá tiền, trạng thái thanh toán và trạng thái lịch khám…
+Bước 12: Nếu lịch khám đã thanh toán thành công, App hiển thị phiếu khám và số thứ tự khám.
+Bước 13: Nếu lịch khám chưa thanh toán, thanh toán thất bại hoặc hết hạn thanh toán, App hiển thị trạng thái thanh toán tương ứng và không hiển thị phiếu khám/số thứ tự.
+Bước 14: Nếu lịch khám đã bị hủy, App hiển thị trạng thái hủy và lý do hủy nếu có.
+Xem danh sách và chi tiết bác sĩ
+Xem danh sách và chi tiết bác sĩ
+Mô tả
+Người dùng xem danh sách bác sĩ trên Mobile App hoặc Zalo Mini App để tra cứu thông tin cơ bản của bác sĩ, chuyên khoa phụ trách và xem chi tiết bác sĩ trước khi đặt lịch khám.
+Actor
+Người dùng truy cập App.
+Input
+Từ khóa tìm kiếm:
+- Tên bác sĩ.
+- Chuyên khoa.
+Bộ lọc:
+- Chuyên khoa.
+Validation
+Hệ thống chỉ hiển thị các bác sĩ đang hoạt động và được phép hiển thị trên App.
+Nếu người dùng nhập từ khóa tìm kiếm, hệ thống tìm theo tên bác sĩ hoặc chuyên khoa.
+Nếu người dùng chọn bộ lọc chuyên khoa, hệ thống hiển thị danh sách bác sĩ phù hợp.
+Nếu không có bác sĩ phù hợp, hệ thống hiển thị thông báo không có kết quả.
+Business Rule
+Danh sách bác sĩ được lấy từ dữ liệu cấu hình trên Web Admin
+Mỗi bác sĩ có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS, tuy nhiên ID nội bộ không hiển thị cho người dùng trên App.
+Chỉ hiển thị bác sĩ đang hoạt động và được phép hiển thị trên App.
+Mỗi bác sĩ có thể thuộc một hoặc nhiều chuyên khoa.
+Một bác sĩ có thể làm việc ở nhiều khu vực khám hoặc nhiều phòng khám khác nhau tùy theo lịch trực.
+Thông tin phòng khám, khu vực khám, ngày khám, giờ khám và slot trống sẽ được xử lý chi tiết trong luồng Đặt khám.
+Thông tin điện thoại, email, ngày sinh, ID nội bộ, trạng thái cấu hình và các trường quản trị nội bộ chỉ hiển thị trên Web Admin, không hiển thị công khai cho người dùng.
+Người dùng có thể xem chi tiết bác sĩ trước khi đặt lịch khám.
+Nếu người dùng chọn Đặt lịch từ màn hình chi tiết bác sĩ, hệ thống chuyển sang màn hình Đặt khám và gợi ý sẵn bác sĩ đã chọn.
+Output
+Danh sách bác sĩ được hiển thị.
+Người dùng xem được thông tin cơ bản của bác sĩ.
+Người dùng xem được thông tin chi tiết bác sĩ.
+Người dùng có thể chọn Đặt lịch khám từ màn hình chi tiết bác sĩ.
+Thông tin hiển thị trên danh sách bác sĩ
+Ảnh đại diện bác sĩ nếu có.
+Họ tên bác sĩ.
+Chức danh.
+Chuyên khoa.
+Đánh giá trung bình nếu có.
+Số lượt đánh giá nếu có.
+Nút Xem chi tiết.
+Nút Đặt lịch khám nếu cần hỗ trợ đặt nhanh.
+Thông tin hiển thị trong chi tiết bác sĩ
+Ảnh đại diện bác sĩ nếu có.
+Họ tên bác sĩ.
+Chức danh.
+Chuyên khoa.
+Giới tính
+Ghi chú đặt khám nếu có.
+Đánh giá trung bình nếu có.
+Danh sách đánh giá/góp ý nếu có.
+Nút Đặt lịch khám.
+Flow xử lý
+Bước 1: Người dùng mở Mobile App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Danh sách bác sĩ.
+Bước 3: App hiển thị danh sách bác sĩ đang hoạt động và được phép hiển thị.
+Bước 4: Người dùng nhập tên bác sĩ hoặc chuyên khoa để tìm kiếm nếu cần.
+Bước 5: Người dùng chọn bộ lọc chuyên khoa nếu cần.
+Bước 6: App hiển thị danh sách bác sĩ phù hợp.
+Bước 7: Nếu không có dữ liệu phù hợp, App hiển thị thông báo không có kết quả.
+Bước 8: Người dùng chọn một bác sĩ để xem chi tiết.
+Bước 9: App hiển thị thông tin chi tiết bác sĩ.
+Bước 10: Người dùng nhấn Đặt lịch khám nếu muốn đặt lịch với bác sĩ này.
+Bước 11: App chuyển sang màn hình Đặt khám và gợi ý bác sĩ đã chọn, khu vực, chuyên khoa ứng với bác sĩ đã chọn.
+Hủy phiếu khám & Hoàn tiền
+Hủy phiếu khám & Hoàn tiền
+Mô tả
+Người dùng hủy phiếu khám đã đặt trên Mobile App hoặc Zalo Mini App. Nếu phiếu đã thanh toán thành công, hệ thống ghi nhận yêu cầu hoàn tiền theo chính sách bệnh viện
+Actor
+ Người dùng đã đăng nhập. 
+Input
+Mã phiếu khám.
+Lý do hủy phiếu nếu có.
+Thông tin lịch khám cần hủy. 
+Validation
+Người dùng phải đăng nhập.
+Người dùng chỉ được hủy phiếu khám của chủ tài khoản hoặc thành viên gia đình thuộc tài khoản đang đăng nhập.
+Phiếu khám phải tồn tại trong hệ thống.
+Phiếu khám phải ở trạng thái được phép hủy (Chờ xác nhận hoặc đã đặt)
+Nếu phiếu thuộc nhóm đặt nhiều phòng khám có áp dụng giảm giá, hệ thống phải kiểm tra chính sách hủy liên quan.
+Business Rule
+Chỉ phiếu khám chưa diễn ra hoặc còn trong thời gian được phép hủy mới được hủy.
+Nếu phiếu đã thanh toán thành công, hệ thống ghi nhận yêu cầu hoàn tiền.
+Nếu bệnh nhân đăng ký nhiều phòng khám trong cùng một lần đăng ký và có áp dụng giảm giá 50% từ công khám thứ hai, khi hủy phòng khám đầu tiên hệ thống yêu cầu hủy cả nhóm phiếu và đăng ký lại.
+Nếu phiếu đã đồng bộ sang HIS, việc hủy cần ghi nhận trạng thái để đồng bộ hoặc xử lý lại trên HIS.
+Lịch khám sau khi hủy sẽ không còn hiệu lực. 
+Output
+Phiếu khám được hủy thành công nếu đủ điều kiện.
+Yêu cầu hoàn tiền được ghi nhận nếu phiếu đã thanh toán.
+Người dùng nhận được thông báo kết quả hủy phiếu.
+Trạng thái phiếu khám được cập nhật. 
+Flow xử lý
+Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng vào Lịch sử đặt khám.
+Bước 3: Người dùng chọn phiếu khám cần hủy.
+Bước 4: Người dùng nhấn Hủy phiếu khám.
+Bước 5: App hiển thị thông tin phiếu và cảnh báo chính sách hủy/hoàn tiền.
+Bước 6: Người dùng nhập lý do hủy nếu có.
+Bước 7: Người dùng xác nhận hủy phiếu.
+Bước 8: App kiểm tra điều kiện hủy phiếu.
+Bước 9: Nếu phiếu không đủ điều kiện hủy, App hiển thị thông báo không thể hủy.
+Bước 10: Nếu phiếu đủ điều kiện hủy, App cập nhật trạng thái phiếu là Đã hủy.
+Bước 11: Nếu phiếu đã thanh toán, App ghi nhận yêu cầu hoàn tiền.
+Bước 12: App thông báo hủy phiếu thành công cho người dùng. 
+Xem tin tức & kiến thức
+Xem tin tức 
+Mô tả
+Người dùng xem danh sách tin tức, bài viết truyền thông, kiến thức sức khỏe hoặc thông báo chung từ bệnh viện trên Mobile App hoặc Zalo Mini App.  
+Actor
+ Người dùng truy cập App. 
+Input
+Từ khóa tìm kiếm.
+Danh mục tin tức. 
+Validation
+Chỉ hiển thị các bài viết đang ở trạng thái công khai.
+Nếu người dùng tìm kiếm nhưng không có kết quả, hệ thống hiển thị thông báo không có dữ liệu.  
+Business Rule
+Tin tức được quản lý từ Web Admin.
+Bài viết phân loại theo danh mục như: kiến thức & sức khỏe, tin tức
+Bài viết có ảnh đại diện, tiêu đề, tiêu đề, nội dung chi tiết và ngày đăng.
+Các bài viết bị ẩn hoặc ở trạng thái nháp sẽ không hiển thị trên App.  
+Output
+Danh sách tin tức được hiển thị.
+Người dùng xem được chi tiết bài viết.
+Thông tin hiển thị trên danh sách
+Ảnh đại diện bài viết.
+Tiêu đề.
+Mô tả ngắn.
+Danh mục.
+Ngày đăng.
+Thông tin hiển thị trong chi tiết
+Tiêu đề bài viết.
+Ảnh đại diện.
+Nội dung chi tiết.
+Ngày đăng.
+Danh mục.
+Flow xử lý
+Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Tin tức.
+Bước 3: App hiển thị danh sách tin tức đang công khai.
+Bước 4: Người dùng nhập từ khóa hoặc chọn danh mục nếu cần.
+Bước 5: App hiển thị danh sách bài viết phù hợp.
+Bước 6: Người dùng chọn một bài viết.
+Bước 7: App hiển thị nội dung chi tiết bài viết.  
+Quản lí thành viên
+Quản lí thành viên/ Sổ sức khỏe gia đình 
+Mô tả
+Người dùng quản lý danh sách thành viên trong tài khoản như bản thân, con, cha mẹ, ông bà hoặc người thân. Mỗi thành viên tương ứng với một hồ sơ sức khỏe riêng và có thể được dùng để đặt lịch khám. 
+Actor
+Người dùng truy cập App.  
+Input
+Họ tên thành viên(*)
+Ngày sinh(*)
+Giới tính(*)
+Nghề nghiệp.
+Quốc tịch
+Dân tộc
+Mối quan hệ với chủ tài khoản(*)
+Số CCCD nếu có/bắt buộc theo nghiệp vụ đặt khám(*)
+Số điện thoại nếu có.
+Tiểu sử bệnh lý nếu có.
+Dị ứng nếu có.
+Hồ sơ bệnh án
+Validation
+Người dùng phải đăng nhập.
+Họ tên, ngày sinh, giới tính và mối quan hệ không được để trống.
+CCCD phải đúng định dạng nếu được nhập.
+Không cho phép tạo trùng thành viên theo thông tin định danh.
+Thông tin bắt buộc phải đầy đủ trước khi dùng thành viên để đặt khám.
+Business Rule
+Một tài khoản có thể quản lý nhiều thành viên gia đình.
+Mỗi thành viên là một sổ sức khỏe riêng.
+Mỗi thành viên có thể được liên kết với một mã bệnh nhân HIS riêng.
+Khi cập nhật đầy đủ thông tin thành viên, hệ thống kiểm tra với HIS.
+Nếu HIS đã có mã bệnh nhân tương ứng, hệ thống lấy mã bệnh nhân cũ và hiển thị trên hồ sơ.
+Nếu HIS chưa có mã bệnh nhân, hệ thống tạo mã bệnh nhân mới và hiển thị trên hồ sơ.
+Người dùng có thể chọn thành viên khi đặt lịch khám.
+Không cho phép xóa thành viên nếu thành viên đang có lịch khám hiệu lực, trừ khi hệ thống chỉ cho ẩn/ngưng sử dụng.
+Output
+Danh sách thành viên được hiển thị.
+Thành viên được thêm/cập nhật thành công.
+Mã bệnh nhân HIS của thành viên được hiển thị nếu đã có.
+Người dùng có thể chọn thành viên để đặt khám. 
+Flow xử lý
+Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Người thân
+Bước 3: App hiển thị danh sách chủ tài khoản và các thành viên đã thêm.
+Bước 4: Người dùng chọn Thêm thành viên.
+Bước 5: Người dùng nhập thông tin thành viên.
+Bước 6: Người dùng nhấn Lưu thông tin.
+Bước 7: App kiểm tra dữ liệu.
+Bước 8: Nếu dữ liệu không hợp lệ, App hiển thị thông báo lỗi.
+Bước 9: Nếu dữ liệu hợp lệ, App lưu hồ sơ thành viên.
+Bước 10: Hệ thống kiểm tra/liên kết mã bệnh nhân HIS.
+Bước 11: App hiển thị thông báo lưu thành công và mã bệnh nhân nếu có.  
+Xem thông báo
+Xem thông báo
+Mô tả
+Người dùng xem các thông báo được gửi từ hệ thống như nhắc lịch khám, kết quả đặt khám, thông báo hủy/hoàn tiền, tin tức, khuyến mãi vàchương trình chăm sóc sức khỏe.  
+Actor
+Người dùng đã đăng nhập.  
+Input
+Loại thông báo.
+Trạng thái đọc/chưa đọc.  
+Validation
+Người dùng phải đăng nhập.
+Người dùng chỉ được xem thông báo thuộc tài khoản của mình.
+Nếu không có thông báo, hệ thống hiển thị “Không có thông báo”.  
+Business Rule
+Thông báo được tạo tự động từ nghiệp vụ đặt khám/thanh toán/hủy phiếu và Admin được phép bật/tắt nhắc hẹn theo từng bác sĩ và chỉnh sửa mẫu tin.
+Mỗi thông báo có trạng thái đã đọc/chưa đọc.
+Thông báo có thể điều hướng đến màn hình liên quan như chi tiết lịch khám, phiếu khám, tin tức.  
+Output
+Danh sách thông báo được hiển thị.
+Người dùng xem được chi tiết thông báo.
+Trạng thái đọc/chưa đọc được cập nhật.
+Thông tin hiển thị
+Tiêu đề thông báo.
+Nội dung ngắn.
+Loại thông báo.
+Thời gian gửi.
+Trạng thái đã đọc/chưa đọc.
+Nút xem chi tiết.  
+Flow xử lý
+Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Thông báo (icon chuông).
+Bước 3: App hiển thị danh sách thông báo.
+Bước 4: Người dùng chọn một thông báo.
+Bước 5: App hiển thị chi tiết thông báo.
+Bước 6: App cập nhật trạng thái thông báo là đã đọc.
+Bước 7: Nếu thông báo có liên kết, người dùng có thể nhấn để chuyển đến màn hình liên quan.  
+Chat CSKH/ chatbot AI
+Chatbot AI/CSKH
+Mô tả
+Người dùng gửi câu hỏi hoặc yêu cầu hỗ trợ đến bộ phận chăm sóc khách hàng thông qua App hoặc Zalo Mini App.  
+Actor
+Người dùng đã đăng nhập.
+Input
+Nội dung tin nhắn.
+Tệp đính kèm/hình ảnh nếu có.  
+Validation
+Nội dung tin nhắn không được để trống.
+Tệp đính kèm nếu có phải đúng định dạng và dung lượng cho phép.  
+Business Rule
+Người dùng có thể chat với chatbot hoặc nhân viên CSKH.
+Nếu chatbot không xử lý được, cuộc chat có thể được chuyển cho nhân viên CSKH bằng cách nhấn vào nút “Chat với nhân viên”
+Mỗi cuộc chat có trạng thái như mới, đang xử lý, đã xử lý.
+Lịch sử chat được lưu để phục vụ chăm sóc khách hàng. 
+Output
+Tin nhắn được gửi thành công.
+Người dùng nhận được phản hồi từ chatbot hoặc nhân viên CSKH.
+Cuộc chat được ghi nhận trong hệ thống.  
+Flow xử lý
+Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng chọn chức năng Chat CSKH.
+Bước 3: App hiển thị màn hình chat.
+Bước 4: Người dùng nhập nội dung cần hỗ trợ.
+Bước 5: Người dùng gửi tin nhắn.
+Bước 6: Hệ thống ghi nhận tin nhắn.
+Bước 7: Chatbot hoặc nhân viên CSKH phản hồi người dùng.
+Bước 8: Người dùng tiếp tục trao đổi hoặc kết thúc cuộc chat. 
+Đánh giá
+Đánh giá bác sĩ / dịch vụ khám 
+Mô tả
+Người dùng đánh giá chất lượng bác sĩ hoặc dịch vụ khám sau khi lịch khám đã hoàn tất.  
+Actor
+Người dùng đã đăng nhập. 
+Input
+Lịch khám đã hoàn tất.
+Số sao đánh giá.
+Nội dung góp ý nếu có.
+Đối tượng đánh giá: bác sĩ, dịch vụ, bệnh viện. 
+Validation
+Người dùng phải đăng nhập.
+Chỉ được đánh giá lịch khám thuộc chủ tài khoản hoặc thành viên gia đình của tài khoản đang đăng nhập.
+Chỉ được đánh giá sau khi lịch khám đã hoàn tất.
+Số sao đánh giá là bắt buộc.
+Nội dung góp ý không được vượt quá số ký tự quy định.  
+Business Rule
+Mỗi lịch khám chỉ được đánh giá một lần cho từng đối tượng đánh giá theo quy định.
+Đánh giá bác sĩ chỉ được ghi nhận khi người bệnh đã khám với bác sĩ đó.
+Đánh giá hợp lệ được dùng để tính điểm trung bình của bác sĩ 
+Output
+Đánh giá được gửi thành công.
+Hệ thống ghi nhận điểm sao và nội dung góp ý.
+Thông tin đánh giá được chuyển đến Admin để quản lý
+Flow xử lý
+ Bước 1: Người dùng mở App hoặc Zalo Mini App.
+Bước 2: Người dùng vào Lịch sử đặt khám.
+Bước 3: Người dùng chọn lịch khám đã hoàn tất.
+Bước 4: Người dùng chọn Đánh giá.
+Bước 5: App hiển thị form đánh giá.
+Bước 6: Người dùng chọn số sao và nhập góp ý nếu có.
+Bước 7: Người dùng nhấn Gửi đánh giá.
+Bước 8: App kiểm tra dữ liệu đánh giá.
+Bước 9: Nếu hợp lệ, App ghi nhận đánh giá.
+Bước 10: App thông báo gửi đánh giá thành công. 
+Thanh toán VietQR/NAPAS
+Thanh toán VietQR/NAPAS 
+Mô tả
+Người dùng thực hiện thanh toán online cho phiếu đặt khám trên Mobile App hoặc Zalo Mini App thông qua VietQR/NAPAS. Sau khi ngân hàng xác nhận giao dịch thành công, hệ thống xác nhận lịch khám, xuất phiếu khám và cấp số thứ tự cho người đi khám.
+Actor
+Người dùng đã đăng nhập. 
+Input
+Thông tin phiếu đặt khám.
+Người đi khám.
+Mã bệnh nhân HIS.
+Khu vực.
+Chuyên khoa.
+Bác sĩ.
+Ngày khám.
+Giờ khám.
+Loại dịch vụ khám: Không BHYT, BHYT, VIP.
+Tổng tiền cần thanh toán.
+Phương thức thanh toán: VietQR/NAPAS. 
+Validation
+Người dùng phải đăng nhập trước khi thanh toán.
+Phiếu đặt khám phải tồn tại trong hệ thống.
+Phiếu đặt khám phải ở trạng thái chờ thanh toán.
+Tổng tiền thanh toán phải khớp với số tiền hệ thống đã tính.
+QR thanh toán phải còn hiệu lực.
+Không cho phép thanh toán lại phiếu đã thanh toán thành công.
+Không cho phép thanh toán phiếu đã bị hủy hoặc hết hạn giữ lịch.
+Chỉ khi ngân hàng xác nhận giao dịch thành công, hệ thống mới cập nhật trạng thái thanh toán thành công.
+Business Rule
+Thanh toán online được tích hợp với Vietcombank thông qua chuẩn VietQR/NAPAS.
+Mỗi phiếu đặt khám phát sinh một giao dịch thanh toán tương ứng.
+Hệ thống tạo mã QR thanh toán dựa trên thông tin phiếu đặt khám và tổng tiền cần thanh toán.
+Người dùng phải hoàn tất thanh toán trong thời gian hiệu lực của QR.
+Nếu giao dịch thanh toán thành công, hệ thống cập nhật trạng thái phiếu là Đã thanh toán.
+Sau khi thanh toán thành công, hệ thống xuất phiếu khám và cấp số thứ tự cho người đi khám.
+Nếu giao dịch thất bại, hết hạn hoặc chưa có xác nhận từ ngân hàng, hệ thống không xuất phiếu khám và không cấp số thứ tự.
+Hệ thống không dựa vào thao tác quay lại App của người dùng để xác nhận thanh toán, mà phải dựa vào kết quả xác nhận từ ngân hàng.
+Nếu ngân hàng gửi kết quả giao dịch nhiều lần, hệ thống chỉ ghi nhận một lần để tránh trùng thanh toán.
+Nếu người dùng thoát màn hình thanh toán, phiếu vẫn giữ trạng thái chờ thanh toán cho đến khi có kết quả từ ngân hàng hoặc hết hạn thanh toán.
+Output
+Mã QR thanh toán được hiển thị cho người dùng.
+Giao dịch thanh toán được tạo.
+Trạng thái thanh toán được cập nhật.
+Nếu thanh toán thành công, hệ thống hiển thị phiếu khám và số thứ tự khám.
+Nếu thanh toán thất bại hoặc hết hạn, hệ thống hiển thị thông báo thanh toán không thành công.
+Thông tin hiển thị trên màn hình thanh toán
+Mã lịch hẹn.
+Người đi khám.
+Mã bệnh nhân HIS.
+Khu vực.
+Chuyên khoa.
+Bác sĩ khám.
+Ngày khám.
+Giờ khám.
+Loại dịch vụ khám.
+Giá khám.
+Thông tin giảm giá nếu có.
+Tổng tiền cần thanh toán.
+Phương thức thanh toán: VietQR/NAPAS.
+Mã QR thanh toán.
+Thời gian hiệu lực của mã QR.
+Trạng thái thanh toán.
+Thông tin hiển thị sau khi thanh toán thành công
+Thông báo thanh toán thành công.
+Mã lịch hẹn.
+Mã bệnh nhân HIS.
+Người đi khám.
+Khu vực.
+Chuyên khoa.
+Bác sĩ khám.
+Ngày khám.
+Giờ khám.
+Phòng khám.
+Số thứ tự khám.
+Tổng tiền đã thanh toán.
+Mã giao dịch ngân hàng nếu có.
+Nút Xem phiếu khám.
+Nút Xem lịch sử đặt khám.
+Thông tin hiển thị khi thanh toán thất bại/hết hạn
+Thông báo thanh toán không thành công hoặc hết hạn thanh toán.
+Mã lịch hẹn.
+Tổng tiền cần thanh toán.
+Trạng thái thanh toán.
+Nút Thanh toán lại.
+Nút Quay lại Lịch sử đặt khám 
+Flow xử lý
+Bước 1: Người dùng hoàn tất chọn thông tin đặt khám.
+Bước 2: Người dùng kiểm tra lại thông tin người đi khám, chuyên khoa, bác sĩ, ngày giờ khám và tổng tiền.
+Bước 3: Người dùng nhấn Xác nhận đặt khám.
+Bước 4: App chuyển sang màn hình Thanh toán.
+Bước 5: App hiển thị mã VietQR/NAPAS và tổng tiền cần thanh toán.
+Bước 6: Người dùng quét mã QR hoặc thực hiện thanh toán theo hướng dẫn.
+Bước 7: Ngân hàng xử lý giao dịch thanh toán.
+Bước 8: Hệ thống nhận kết quả xác nhận giao dịch từ ngân hàng.
+Bước 9: Nếu giao dịch thành công, App cập nhật trạng thái thanh toán thành công.
+Bước 10: App xác nhận lịch khám, xuất phiếu khám và cấp số thứ tự cho người đi khám.
+Bước 11: Người dùng xem phiếu khám và số thứ tự trên App.
+Bước 12: Nếu giao dịch thất bại, App hiển thị thông báo thanh toán thất bại.
+Bước 13: Nếu giao dịch hết hạn, App hiển thị thông báo hết hạn thanh toán.
+Bước 14: Người dùng có thể thanh toán lại nếu phiếu vẫn còn hiệu lực. 
+Admin
+[nháp]Tính giá công khám
+Tính giá công khám
+Mô tả
+Hệ thống cấu hình giá công khám theo từng đối tượng khám. Khi người dùng đặt khám trên Mobile App hoặc Zalo Mini App, hệ thống tự động tính số tiền cần thanh toán dựa trên dịch vụ khám, số lượng phòng khám/chuyên khoa đăng ký và chính sách giảm giá từ công khám thứ hai trở đi. 
+Actor
+Hệ thống.
+Người dùng đặt khám. 
+Input
+Đối tượng khám: Thu phí, BHYT, VIP.
+Giá Thu phí.
+Giá BHYT.
+Giá VIP.
+Tỷ lệ giảm giá từ công khám thứ hai trở đi.
+Tỷ lệ BHYT áp dụng từ công khám thứ hai trở đi.
+Danh sách phòng khám/chuyên khoa người dùng đăng ký.
+Thông tin người đi khám. 
+Validation
+Hệ thống phải cấu hình giá công khám theo từng đối tượng khám.
+Giá Thu phí, giá BHYT và giá VIP không được âm.
+Đối tượng khám phải hợp lệ và đang được sử dụng.
+Tỷ lệ giảm giá phải hợp lệ.
+Tỷ lệ BHYT áp dụng từ công khám thứ hai trở đi phải hợp lệ.
+Người dùng bắt buộc chọn dịch vụ khám khi đặt khám.
+Mỗi phòng khám/chuyên khoa được đăng ký phải có giá công khám tương ứng. 
+Business Rule
+Một công khám được khai báo giá theo 3 nhóm đối tượng: Thu phí, BHYT và VIP.
+Đối tượng Thu phí là người bệnh không sử dụng bảo hiểm y tế, hệ thống áp dụng giá Thu phí và người dùng phải thanh toán khi đặt lịch trên App.
+Đối tượng BHYT là người bệnh có bảo hiểm y tế, hệ thống chỉ thu phần chênh lệch giữa giá Thu phí và phần BHYT chi trả.
+Đối tượng VIP hoặc Dịch vụ đặc biệt áp dụng giá riêng, không tách phần BHYT.
+Nếu người dùng chọn Thu phí, số tiền thanh toán công khám thứ nhất bằng giá Thu phí.
+Nếu người dùng chọn VIP, số tiền thanh toán công khám thứ nhất bằng giá VIP.
+Nếu người dùng chọn BHYT, số tiền bệnh nhân thanh toán công khám thứ nhất bằng giá Thu phí trừ giá BHYT.
+Phần giá BHYT được ghi nhận để phục vụ xử lý trên HIS hoặc bảng kê theo quy định bệnh viện.
+Khi người dùng đăng ký từ công khám thứ hai trở đi, hệ thống áp dụng chính sách giảm 50% trên giá công khám tương ứng.
+Đối với Thu phí, công khám thứ hai trở đi được tính bằng giá Thu phí sau khi giảm 50%.
+Đối với VIP, công khám thứ hai trở đi được tính bằng giá VIP sau khi giảm 50%.
+Đối với BHYT, công khám thứ hai trở đi được tính bằng giá Thu phí sau khi giảm 50%, sau đó trừ tiếp phần BHYT được hỗ trợ theo tỷ lệ cấu hình.
+Tỷ lệ BHYT áp dụng cho công khám thứ hai trở đi hiện tại là 30% giá BHYT.
+Số tiền bệnh nhân phải thanh toán không được nhỏ hơn 0.
+Nếu người dùng hủy công khám đầu tiên trong nhóm đăng ký nhiều công khám có áp dụng giảm giá, hệ thống yêu cầu hủy toàn bộ nhóm công khám và đăng ký lại để đảm bảo đúng chính sách tính giá. 
+Output
+Hệ thống tính được giá từng công khám.
+Hệ thống hiển thị giá gốc, số tiền giảm giá, phần BHYT nếu có và số tiền bệnh nhân cần thanh toán.
+Hệ thống tính tổng tiền cần thanh toán.
+Dữ liệu tính giá được lưu vào phiếu đặt khám.
+Thông tin hiển thị trên màn hình xác nhận thanh toán
+Người đi khám.
+Mã bệnh nhân HIS.
+Danh sách phòng khám/chuyên khoa đã chọn.
+Đối tượng khám: Thu phí, BHYT hoặc VIP.
+Giá gốc từng công khám.
+Tỷ lệ giảm giá nếu có.
+Số tiền giảm giá nếu có.
+Phần BHYT được trừ nếu có.
+Số tiền bệnh nhân cần thanh toán từng công khám.
+Tổng tiền cần thanh toán.
+Công thức tính giá
+Trường hợp Thu phí công khám thứ nhất:
+Số tiền thanh toán = Giá Thu phí.
+Trường hợp Thu phí từ công khám thứ hai trở đi:
+Số tiền thanh toán = Giá Thu phí x 50%.
+Trường hợp VIP công khám thứ nhất:
+Số tiền thanh toán = Giá VIP.
+Trường hợp VIP từ công khám thứ hai trở đi:
+Số tiền thanh toán = Giá VIP x 50%.
+Trường hợp BHYT công khám thứ nhất:
+Số tiền bệnh nhân thanh toán = Giá Thu phí - Giá BHYT.
+Phần BHYT ghi nhận = Giá BHYT.
+Trường hợp BHYT từ công khám thứ hai trở đi:
+Giá công khám sau giảm = Giá Thu phí x 50%.
+Phần BHYT được trừ = Giá BHYT x 30%.
+Số tiền bệnh nhân thanh toán = Giá công khám sau giảm - Phần BHYT được trừ.
+Ví dụ tính giá BHYT
+Công khám 1 có giá Thu phí 230.000 và giá BHYT 45.000.
+Số tiền bệnh nhân thanh toán = 230.000 - 45.000 = 185.000.
+Công khám 2 có giá Thu phí 300.000 và giá BHYT 45.000.
+Giá sau giảm = 300.000 x 50% = 150.000.
+Phần BHYT được trừ = 45.000 x 30% = 13.500.
+Số tiền bệnh nhân thanh toán = 150.000 - 13.500 = 136.500. 
+Dashboard
+Dashboard
+Mô tả
+Admin xem tổng quan tình hình vận hành hệ thống đặt khám trên Web Admin, bao gồm doanh thu App, hoàn tiền, số lượng phiếu khám, số lượng bác sĩ, số lượng nội dung, lịch khám ngày mai, tỷ lệ trạng thái phiếu và danh sách phiếu gần đây.
+Actor
+Admin đã đăng nhập. 
+Input
+Không có dữ liệu bắt buộc cần nhập.
+Bộ lọc:
+- Tuần thống kê: Tuần hiện tại, tuần trước và chọn tuần cụ thể. 
+Validation
+Admin phải đăng nhập vào Web Admin.
+Tuần thống kê phải hợp lệ.
+Dữ liệu hiển thị phải đúng theo tuần được chọn.
+Dữ liệu hiển thị phải đúng theo phạm vi quyền của vai trò đang đăng nhập.
+Các nút thao tác như Xem, Cập nhật, Hủy chỉ hiển thị hoặc chỉ cho phép thao tác nếu Admin có quyền tương ứng.
+Nếu không có dữ liệu trong tuần được chọn, hệ thống hiển thị trạng thái chưa có dữ liệu.
+Business Rule
+Dashboard là màn hình tổng quan đầu tiên sau khi Admin đăng nhập.
+Mặc định Dashboard hiển thị dữ liệu của tuần hiện tại.
+Admin có thể đổi sang tuần trước hoặc chọn một tuần cụ thể để xem lại số liệu.
+Khi Admin thay đổi tuần thống kê, toàn bộ số liệu trên Dashboard phải cập nhật theo tuần được chọn.
+Doanh thu App được tính từ các phiếu khám đã thanh toán thành công trong tuần được chọn.
+Nếu phiếu đã hoàn tiền, hệ thống ghi nhận doanh thu riêng
+Tổng số phiếu hiển thị số lượng phiếu khám phát sinh trong tuần được chọn.
+Tổng số bác sĩ hiển thị số lượng bác sĩ đang được quản lý trong hệ thống.
+Tổng số nội dung hiển thị số lượng bài viết/nội dung đang được quản lý.
+Khu vực Lịch khám ngày mai luôn hiển thị lịch khám của ngày kế tiếp, không phụ thuộc vào bộ lọc tuần.
+Tỷ lệ trạng thái phiếu được tính theo các phiếu thuộc tuần được chọn.
+Danh sách Phiếu gần đây hiển thị các phiếu mới phát sinh hoặc được cập nhật gần nhất trong tuần được chọn.
+Admin có thể thao tác nhanh trên phiếu gần đây gồm Xem, Cập nhật hoặc Hủy.
+Trạng thái đồng bộ HIS giúp Admin biết phiếu đã được đồng bộ sang HIS hay chưa.
+Output
+Hiển thị Dashboard tổng quan.
+Hiển thị dữ liệu Dashboard theo tuần được chọn.
+Hiển thị các thẻ thống kê tổng quan (doanh thu App, hoàn tiền, phiếu, bác sĩ, nội dung)
+Hiển thị danh sách lịch khám ngày mai.
+Hiển thị tỷ lệ trạng thái phiếu.
+Hiển thị danh sách phiếu gần đây.
+Cho phép Admin điều hướng nhanh sang các màn hình quản lý liên quan.
+Thông tin hiển thị trên Dashboard
+Bộ lọc tuần:
+- Tuần hiện tại.
+- Tuần trước.
+- Chọn tuần cụ thể.
+Thẻ thống kê tổng quan:
+- Doanh thu App.
+- Hoàn tiền 
+- Tổng số phiếu khám.
+- Tổng số bác sĩ.
+- Tổng số nội dung.
+Khu vực Lịch khám ngày mai:
+- Tên bác sĩ.
+- Phòng khám, chuyên khoa.
+- Buổi khám: AM hoặc PM.
+- Giờ bắt đầu khám.
+- Thời gian mỗi slot.
+- Loại dịch vụ khám: BHYT, không BHYT, VIP
+- Nút “Xem tất cả” điều hướng sang trang Quản lí lịch khám bác sĩ
+Khu vực Tỷ lệ trạng thái lịch khám:
+Chờ xác nhận
+Đã đặt
+Đã khám
+Đã hủy.
+- Tỷ lệ phần trăm của từng trạng thái.
+Khu vực Phiếu gần đây:
+- Mã phiếu.
+- Số thứ tự khám.
+- Tên bệnh nhân.
+- Số điện thoại bệnh nhân.
+- Ngày khám.
+- Buổi khám.
+- Dịch vụ/phòng khám đã đăng ký.
+- Trạng thái thanh toán.
+- Số tiền thanh toán.
+- Trạng thái đồng bộ HIS.
+- Thao tác: Xem, Cập nhật, Hủy.
+Chức năng thao tác trên Dashboard
+Lọc dữ liệu theo tuần.
+Xem tất cả phiếu khám.
+Xem chi tiết phiếu khám.
+Cập nhật phiếu khám.
+Hủy phiếu khám.
+Điều hướng sang Quản lý phiếu khám khi nhấn nút “Cập nhật” tại mục “Phiếu gần đây”
+Điều hướng sang Đồng bộ HIS.
+Điều hướng sang Quản lý lịch khám bác sĩ
+Điều hướng sang Báo cáo. 
+Flow xử lý
+Bước 1: Admin đăng nhập vào Web Admin.
+Bước 2: Hệ thống hiển thị màn hình Dashboard.
+Bước 3: Hệ thống mặc định hiển thị dữ liệu của tuần hiện tại.
+Bước 4: Admin xem các thẻ thống kê gồm Doanh thu App, Hoàn tiền,  Phiếu, Bác sĩ và Nội dung.
+Bước 5: Admin xem danh sách Lịch khám ngày mai.
+Bước 6: Admin xem biểu đồ/tỷ lệ trạng thái phiếu.
+Bước 7: Admin xem danh sách Phiếu gần đây.
+Bước 8: Admin chọn bộ lọc Tuần nếu muốn xem dữ liệu theo tuần khác.
+Bước 9: Hệ thống cập nhật lại doanh thu App, số phiếu, tỷ lệ trạng thái phiếu và danh sách phiếu gần đây theo tuần được chọn.
+Bước 10: Admin nhấn Xem tất cả để chuyển sang màn hình Quản lý phiếu khám bác sĩ
+Bước 11: Admin nhấn Xem để xem chi tiết một phiếu khám.
+Bước 12: Admin nhấn Cập nhật để chỉnh sửa thông tin phiếu khám sẽ điều hướng sang trang Quản lí phiếu khám
+Bước 13: Admin nhấn Hủy để hủy phiếu khám nếu phiếu đủ điều kiện hủy 
+Đồng bộ dữ liệu với HIS
+Đồng bộ dữ liệu HIS
+Mô tả
+Hệ thống App/Zalo Mini App đồng bộ dữ liệu đặt khám với hệ thống HIS để bệnh viện tiếp nhận thông tin bệnh nhân, phiếu khám, số thứ tự, phòng khám, bác sĩ, giá công khám và trạng thái liên quan. Dữ liệu đồng bộ phục vụ cho quy trình tiếp nhận bệnh nhân tại bệnh viện.
+Dữ liệu đồng bộ với HIS
+1. Thông tin bệnh nhân/người đi khám
+2. Thông tin tài khoản đặt khám
+3. Thông tin phiếu đặt khám
+4. Thông tin khu vực/phòng khám/chuyên khoa
+5. Thông tin bác sĩ
+6. Thông tin dịch vụ khám (không BHYT, BHYT hoặc VIP)
+7. Thông tin giá công khám
+8. Thông tin thanh toán
+9. Thông tin hủy phiếu/hoàn tiền nếu có
+10. Thông tin đồng bộ
+- Trạng thái đồng bộ HIS: 
+- Chưa đồng bộ, Đã đồng bộ, Đồng bộ lỗi, Cần đồng bộ lại.
+- Thời gian đồng bộ.
+- Loại đồng bộ: tự động hoặc thủ công.
+Actor
+Admin.
+Hệ thống App/Zalo Mini App.
+Hệ thống HIS. 
+Input
+Từ khóa tìm kiếm:
+- Mã phiếu khám.
+- Mã bệnh nhân HIS.
+- Họ tên bệnh nhân.
+- Số điện thoại.
+- Tên bác sĩ.
+- Phòng khám.
+Bộ lọc:
+- Ngày khám.
+- Trạng thái đồng bộ HIS: Chưa sync, Sync lỗi, Cần sync lại, Đã sync.
+Validation
+Admin phải đăng nhập và có quyền thao tác chức năng Đồng bộ HIS.
+Phiếu khám phải tồn tại trong hệ thống.
+Phiếu khám phải có mã bệnh nhân HIS trước khi đồng bộ sang HIS.
+Phiếu khám phải có đầy đủ thông tin người đi khám, khu vực, chuyên khoa, phòng khám, bác sĩ, ngày khám, giờ khám và số thứ tự.
+Chỉ phiếu đã thanh toán thành công mới được đồng bộ như phiếu khám hợp lệ sang HIS.
+Không cho phép đồng bộ trùng phiếu đã sync thành công, trừ trường hợp có thay đổi cần sync lại.
+Nếu đồng bộ lại, hệ thống phải ghi nhận lý do đồng bộ lại.
+Nếu HIS trả lỗi, hệ thống phải lưu nội dung lỗi để Admin kiểm tra.
+Nếu lọc theo thời gian, ngày bắt đầu không được lớn hơn ngày kết thúc. 
+Business Rule
+Hệ thống tự động đồng bộ dữ liệu đặt khám của ngày hôm sau sang HIS trong khung giờ đúng 24:00 hằng ngày.
+Trường hợp bệnh nhân đặt khám trong ngày, hệ thống tự động đồng bộ sang HIS ngay tại thời điểm đặt khám thành công.
+Các phiếu đã tự động đồng bộ thành công không hiển thị trong danh sách cần xử lý thủ công.
+Màn hình Đồng bộ HIS mặc định chỉ hiển thị các phiếu cần Admin xử lý thủ công.
+Các trường hợp cần đồng bộ thủ công gồm: phiếu đồng bộ lỗi, phiếu cần cập nhật lại mã bệnh nhân, phiếu cần đổi bác sĩ/phòng khám, phiếu đã hủy/hoàn tiền cần cập nhật trạng thái sang HIS.
+Nếu App tự tạo mã bệnh nhân mới nhưng HIS đã có mã cũ, Admin cập nhật/hợp nhất mã bệnh nhân và thực hiện đồng bộ lại sang HIS.
+Nếu bệnh nhân đăng ký sai phòng khám hoặc bác sĩ nghỉ đột xuất, Admin cập nhật lại bác sĩ/phòng khám và đồng bộ lại sang HIS.
+Nếu phiếu đã sync sang HIS nhưng sau đó bị hủy hoặc phát sinh hoàn tiền, hệ thống đưa phiếu vào danh sách cần sync lại trạng thái.
+App cấp số thứ tự khám từ 1 đến N hoặc theo dải số lẻ/chẵn(cần confirm). Khi đồng bộ sang HIS, HIS nhận đúng số thứ tự do App đã cấp.
+Dữ liệu vận hành theo cơ chế App gọi API HIS. HIS không chủ động đẩy dữ liệu về App.
+Phân loại dữ liệu đồng bộ:
+1. Tự động đồng bộ và không hiển thị ở danh sách xử lý thủ công
+- Phiếu đặt khám cho ngày hôm sau, đã thanh toán thành công trước khung giờ đồng bộ đúng 24:00.
+- Phiếu được hệ thống đồng bộ thành công trong job tự động hằng đêm.
+- Phiếu đặt khám trong ngày, đã thanh toán thành công và được hệ thống đồng bộ ngay tại thời điểm đặt khám
+- Hồ sơ bệnh nhân được HIS trả mã bệnh nhân thành công khi người dùng cập nhật hồ sơ.
+- Phiếu đã đồng bộ thành công và không phát sinh thay đổi sau đồng bộ.
+2. Hiển thị ở danh sách cần đồng bộ thủ công
+- Phiếu đồng bộ tự động bị lỗi.
+- Phiếu thiếu hoặc sai mã bệnh nhân HIS cần Admin cập nhật/hợp nhất mã bệnh nhân.
+- Phiếu cần đổi bác sĩ do bác sĩ nghỉ đột xuất.
+- Phiếu cần đổi phòng khám do đăng ký sai phòng hoặc bệnh viện điều chỉnh lịch.
+- Phiếu đã sync HIS nhưng sau đó bị hủy.
+- Phiếu đã sync HIS nhưng phát sinh hoàn tiền.
+- Phiếu có thay đổi thông tin quan trọng sau khi đã sync như mã bệnh nhân, bác sĩ, phòng khám, ngày giờ khám, số thứ tự hoặc trạng thái phiếu.
+Output
+Danh sách các phiếu/case cần đồng bộ thủ công được hiển thị.
+Admin xem được chi tiết từng phiếu cần xử lý.
+Admin thực hiện đồng bộ thủ công hoặc đồng bộ lại sang HIS.
+Trạng thái đồng bộ HIS được cập nhật.
+Nội dung lỗi đồng bộ được ghi nhận nếu có.
+Lịch sử đồng bộ được lưu để tra cứu và đối soát.
+Thông tin hiển thị trên danh sách Đồng bộ HIS
+Mã phiếu khám.
+Mã bệnh nhân HIS.
+Họ tên bệnh nhân.
+Số điện thoại.
+Ngày khám.
+Giờ khám.
+Phòng khám.
+Dịch vụ khám: Thu phí, BHYT hoặc VIP.
+Tổng tiền thanh toán.
+Trạng thái thanh toán.Trạng thái đồng bộ HIS.
+Loại xử lý cần đồng bộ.
+Thao tác: Xem chi tiết, Đồng bộ, Đồng bộ lại.
+Thông tin hiển thị trong chi tiết đồng bộ
+Mã phiếu khám.
+Mã lịch hẹn.
+Mã bệnh nhân HIS.
+Thông tin người đi khám.
+Thông tin người đặt lịch.
+Thông tin chuyên khoa/phòng khám/bác sĩ.
+Ngày khám, giờ khám, slot khám.
+Số thứ tự khám.
+Dịch vụ khám.
+Chi tiết giá công khám.
+Thông tin thanh toán.
+Trạng thái phiếu.
+Trạng thái đồng bộ HIS.
+Nội dung lỗi đồng bộ nếu có. 
+Flow xử lý tự động
+Bước 1: Người dùng đặt khám và thanh toán thành công trên App hoặc Zalo Mini App.
+Bước 2: Hệ thống tạo phiếu khám và cấp số thứ tự.
+Bước 3: Nếu phiếu khám là lịch khám trong ngày, hệ thống tự động đồng bộ ngay sang HIS.
+Bước 4: Nếu phiếu khám là lịch khám ngày hôm sau và nằm trước khung đồng bộ, hệ thống đưa vào danh sách chờ đồng bộ tự động.
+Bước 5: Từ đúng 24:00, hệ thống tự động lấy danh sách phiếu khám của ngày hôm sau đủ điều kiện đồng bộ.
+Bước 6: Hệ thống gửi dữ liệu phiếu khám sang HIS.
+Bước 7: Nếu HIS phản hồi thành công, hệ thống cập nhật trạng thái Đã sync HIS.
+Bước 8: Phiếu đã sync thành công không hiển thị trong danh sách cần xử lý thủ công.
+Bước 9: Nếu HIS phản hồi lỗi, hệ thống cập nhật trạng thái Sync lỗi và đưa phiếu vào danh sách cần xử lý thủ công. 
+Flow xử lý thủ công
+Bước 1: Admin mở chức năng Đồng bộ HIS.
+Bước 2: Hệ thống hiển thị danh sách các phiếu/case cần xử lý thủ công.
+Bước 3: Admin tìm kiếm hoặc lọc dữ liệu theo, ngày khám, trạng thái đồng bộ.
+Bước 4: Admin chọn một phiếu để xem chi tiết.
+Bước 5: Admin kiểm tra thông tin phiếu và lý do cần đồng bộ thủ công.
+Bước 6: Nếu cần cập nhật mã bệnh nhân, bác sĩ hoặc phòng khám, Admin cập nhật thông tin trước.
+Bước 7: Admin nhấn Đồng bộ lại.
+Bước 8: Hệ thống gửi dữ liệu sang HIS.
+Bước 9: Nếu HIS phản hồi thành công, hệ thống cập nhật trạng thái Đã sync HIS 
+Bước 10: Nếu HIS phản hồi lỗi, hệ thống giữ trạng thái Sync lỗi và hiển thị nội dung lỗi để Admin xử lý tiếp. 
+Quản lí khu vực khám
+Quản lí khu vực khám
+Mô tả
+Admin quản lý danh sách khu vực khám bệnh của bệnh viện để phục vụ đặt lịch khám trên Mobile App/Zalo Mini App. Khu vực khám giúp phân biệt địa điểm khám thực tế, tránh trường hợp người dùng đặt nhầm khu và đi sai địa điểm.
+Actor
+Admin 
+Input
+Tên khu khám bệnh.
+Mô tả khu khám.
+Địa chỉ khu khám.
+ID nội bộ.
+Trạng thái hoạt động. 
+Validation
+Tên khu khám bệnh không được để trống.
+Địa chỉ khu khám không được để trống.
+ID nội bộ không được để trống dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong hệ thống.
+Không cho phép xóa khu khám đã được sử dụng trong phòng khám, lịch khám hoặc phiếu đặt khám. 
+Business Rule
+Hiện tại hệ thống có 2 khu vực khám chính: PK1 - Phòng Khám và BV - Bệnh Viện.
+Mỗi khu vực khám có địa chỉ riêng để người dùng xác định đúng nơi đến khám.
+Mỗi khu vực khám có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS.
+Một khu vực khám có thể có nhiều phòng khám.
+Một phòng khám phải thuộc một khu vực khám cụ thể.
+Khu vực khám được sử dụng trong luồng đặt khám để người dùng chọn đúng địa điểm khám.
+Chỉ khu vực khám đang hoạt động mới được hiển thị trên App/Zalo Mini App.
+Nếu khu vực khám đã phát sinh dữ liệu đặt khám, hệ thống không nên xóa cứng mà chỉ cho phép ngưng hoạt động. 
+Output
+Danh sách khu vực khám được hiển thị.
+Admin có thể thêm mới, cập nhật, tìm kiếm hoặc ngưng hoạt động khu vực khám.
+Khu vực khám được sử dụng trong cấu hình phòng khám, lịch khám bác sĩ và luồng đặt khám.
+Thông tin hiển thị trên danh sách khu vực khám
+STT.
+Tên khu khám bệnh.
+Mô tả khu khám.
+Địa chỉ.
+ID nội bộ.
+Thao tác: Cập nhật, Xóa, bật/tắt hoạt động/ngưng hoạt động.
+Dữ liệu khu vực khám hiện tại
+Khu 1:
+Tên khu khám bệnh: PK1.
+Mô tả khu khám: Phòng Khám.
+Địa chỉ: Cơ sở: 700 Sư Vạn Hạnh ND.
+ID nội bộ: PK1.
+Khu 2:
+Tên khu khám bệnh: BV.
+Mô tả khu khám: Bệnh Viện.
+Địa chỉ: 781/B1-B3-B5 Lê Hồng Phong ND.
+ID nội bộ: PK2.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo tên khu khám bệnh, mô tả khu khám, địa chỉ, ID nội bộ.
+Nút Tìm kiếm.
+Nút Thêm khu khám bệnh.
+Nút Cập nhật.
+Nút Xóa.
+Nút bật/tắt hoạt động/ngưng hoạt động. 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý khu vực khám.
+Bước 3: Hệ thống hiển thị danh sách khu vực khám bệnh hiện có.
+Bước 4: Admin nhập từ khóa nếu muốn tìm kiếm khu vực khám.
+Bước 5: Admin nhấn Tìm kiếm.
+Bước 6: Hệ thống hiển thị danh sách khu vực khám phù hợp.
+Bước 7: Admin nhấn Thêm khu khám bệnh nếu muốn tạo khu khám mới.
+Bước 8: Admin nhập tên khu khám bệnh, mô tả, địa chỉ và ID nội bộ.
+Bước 9: Admin nhấn Lưu.
+Bước 10: Hệ thống kiểm tra dữ liệu.
+Bước 11: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 12: Nếu dữ liệu hợp lệ, hệ thống lưu thông tin khu vực khám.
+Bước 13: Admin có thể nhấn Cập nhật để chỉnh sửa thông tin khu vực khám.
+Bước 14: Nếu khu vực khám chưa phát sinh dữ liệu liên quan, Admin có thể xóa theo quyền được cấp.
+Bước 15: Nếu khu vực khám đã phát sinh dữ liệu liên quan, hệ thống không cho xóa cứng và chỉ cho phép ngưng hoạt động. 
+#Hình ảnh khách gửi của App Medpro
+Quản lí chuyên khoa
+Quản lí chuyên khoa
+Mô tả
+Admin quản lý danh sách chuyên khoa của bệnh viện để phục vụ đặt khám trên Mobile App/Zalo Mini App và cấu hình lịch khám bác sĩ trên Web Admin. Mỗi chuyên khoa có tên, mô tả/ghi chú đặt khám và ID nội bộ để liên kết với chương trình Khám bệnh/HIS. 
+Actor
+Admin 
+Input
+Tên chuyên khoa.
+Phòng hướng dẫn vào khám.
+Ghi chú đặt khám.
+ID nội bộ.
+Nhóm đặt khám.
+Ưu tiên hiển thị.
+Ẩn tìm kiếm.
+Validation
+Tên chuyên khoa không được để trống.
+ID nội bộ không được để trống dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong hệ thống.
+Ưu tiên hiển thị phải là số hợp lệ nếu có nhập.
+Nếu chuyên khoa bị ẩn tìm kiếm, chuyên khoa không hiển thị trong danh sách tìm kiếm/chọn chuyên khoa trên App.
+Business Rule
+Danh sách chuyên khoa được dùng trong luồng đặt khám để người dùng chọn chuyên khoa cần khám.
+Chuyên khoa được dùng trong form cập nhật lịch khám để Admin cấu hình bác sĩ, phòng khám, ngày khám và khung giờ khám.
+Mỗi chuyên khoa có thể liên kết với một hoặc nhiều phòng khám.
+Mỗi chuyên khoa có thể có nhiều bác sĩ phụ trách theo lịch khám.
+Mỗi chuyên khoa cần có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS. 
+Trường ghi chú đặt khám dùng để hiển thị hướng dẫn hoặc triệu chứng gợi ý cho người dùng khi chọn chuyên khoa.
+Trường phòng hướng dẫn vào khám dùng để hướng dẫn người bệnh đến đúng phòng/khu vực tiếp nhận nếu bệnh viện có cấu hình.
+Trường nhóm đặt khám dùng để gom nhóm chuyên khoa phục vụ hiển thị hoặc cấu hình lịch khám.
+Trường ưu tiên hiển thị dùng để sắp xếp chuyên khoa trên App, chuyên khoa có độ ưu tiên cao sẽ được hiển thị trước theo cấu hình.
+Trường ẩn tìm kiếm dùng để ẩn chuyên khoa khỏi chức năng tìm kiếm/chọn chuyên khoa trên App nhưng vẫn có thể giữ dữ liệu trong hệ thống để phục vụ quản trị hoặc lịch sử.
+Output
+Danh sách chuyên khoa được hiển thị.
+Chuyên khoa được sử dụng trong đặt khám, quản lý phòng khám, quản lý bác sĩ và quản lý lịch khám.
+Thông tin hiển thị trên danh sách chuyên khoa
+STT.
+Tên chuyên khoa.
+Phòng hướng dẫn vào khám.
+Ghi chú đặt khám.
+ID nội bộ.
+Nhóm đặt khám.
+Ưu tiên hiển thị.
+Ẩn tìm kiếm.
+Thông tin hiển thị trên App/Zalo Mini App
+Tên chuyên khoa.
+Mô tả/ghi chú đặt khám..
+Thứ tự hiển thị theo cấu hình ưu tiên.
+Lưu ý: Các trường ID nội bộ, ưu tiên hiển thị, ẩn tìm kiếm và thao tác quản trị không hiển thị cho người dùng trên App.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo tên chuyên khoa, ghi chú đặt khám hoặc ID nội bộ.
+Nút Tìm kiếm.
+Flow xử lý
+#Hình ảnh khách gửi của App Medpro
+Quản lí phòng khám
+Quản lí phòng khám
+Mô tả
+Admin quản lý danh sách phòng khám theo từng khu khám bệnh để phục vụ cấu hình lịch khám, đặt lịch khám và đồng bộ dữ liệu với chương trình Khám bệnh/HIS. Mỗi phòng khám thuộc một khu khám bệnh cụ thể và có ID nội bộ dùng để đồng bộ với HIS.
+Actor
+Tên phòng khám.
+Loại phòng khám.
+Hướng dẫn vào khám.
+Ghi chú đặt khám.
+Khu khám bệnh.
+Mô tả khu khám.
+ID nội bộ
+Input
+Tên phòng khám không được để trống.
+Khu khám bệnh không được để trống.
+ID nội bộ không được để trống dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong cùng hệ thống.
+Validation
+Tên phòng khám không được để trống.
+Khu khám bệnh không được để trống.
+ID nội bộ không được để trống dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong cùng hệ thống.
+ID nội bộ có thể bắt đầu bằng số 0.
+Business Rule
+Mỗi khu khám bệnh có danh sách phòng khám riêng.
+Một phòng khám phải thuộc một khu khám bệnh cụ thể, ví dụ khu Phòng khám hoặc khu Bệnh viện.
+Mỗi phòng khám có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS.
+ID nội bộ có thể bắt đầu bằng số 0 nên hệ thống phải lưu dưới dạng phù hợp
+Mỗi phòng khám có thể gắn với chuyên khoa hoặc công khám tương ứng theo cấu hình bệnh viện.
+Một phòng khám có thể có nhiều bác sĩ làm việc theo từng ngày, từng buổi hoặc từng khung giờ.
+Một bác sĩ có thể ngồi ở nhiều phòng khám khác nhau tùy theo lịch khám được cấu hình.
+Phòng khám được sử dụng trong chức năng Quản lý lịch khám bác sĩ và luồng Đặt khám trên App/Zalo Mini App.
+Chỉ phòng khám đang hoạt động mới được sử dụng để cấu hình lịch khám và hiển thị trong luồng đặt khám.
+Các thông tin như ID nội bộ, trạng thái cấu hình và thao tác quản trị chỉ hiển thị trên Web Admin, không hiển thị trực tiếp cho người dùng trên App.
+Output
+Danh sách phòng khám được hiển thị.
+Phòng khám được sử dụng trong cấu hình lịch khám bác sĩ.
+Phòng khám được dùng để xác định địa điểm khám khi người dùng đặt lịch.
+Dữ liệu phòng khám được đồng bộ/liên kết với HIS thông qua ID nội bộ.
+Thông tin hiển thị trên danh sách phòng khám
+STT.
+Tên phòng khám(*)
+Loại phòng khám.
+Hướng dẫn vào khám.
+Ghi chú đặt khám.
+Khu khám bệnh(*)
+Mô tả khu khám.
+ID nội bộ(*)
+Thông tin hiển thị trên App/Zalo Mini App 
+Tên phòng khám.
+Lưu ý
+ID nội bộ, trạng thái cấu hình và các thao tác quản trị không hiển thị cho người dùng trên App/Zalo Mini App.
+Chức năng tìm kiếm
+Ô tìm kiếm theo tên phòng khám, khu khám bệnh và ID nội bộ.
+Nút Tìm kiếm.
+Flow xử lý
+Quản lí bác sĩ
+Quản lí bác sĩ
+Mô tả
+Admin quản lý danh sách bác sĩ của bệnh viện để phục vụ hiển thị trên App/Zalo Mini App, cấu hình lịch khám, đặt lịch khám và đồng bộ dữ liệu với chương trình Khám bệnh/HIS. Mỗi bác sĩ có ID nội bộ để liên kết với HIS. Bác sĩ có thể được phân công làm việc tại nhiều phòng khám, nhiều khu khám khác nhau tùy theo lịch khám được cấu hình. 
+Actor
+Admin 
+Input
+Tên bác sĩ.(*)
+Chức danh.(*)
+Điện thoại.(*)
+Email.
+Giới tính.(*)
+Ngày sinh.
+Ghi chú đặt khám.
+ID nội bộ.(*)
+Trạng thái: hoạt động, ngưng hoạt động(*)
+Nhóm đặt khám.
+Ưu tiên hiển thị.
+Nhóm hiển thị.
+Hiển thị giá.
+Ảnh đại diện nếu có.
+Chuyên khoa phụ trách nếu có. 
+Validation
+Tên bác sĩ không được để trống.
+ID nội bộ không được để trống dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong hệ thống.
+ID nội bộ phải được lưu dạng phù để hỗ trợ trường hợp mã bắt đầu bằng số 0.
+Số điện thoại phải đúng định dạng.
+Email phải đúng định dạng nếu có nhập.
+Ngày sinh không được lớn hơn ngày hiện tại nếu có nhập.
+Trạng thái bác sĩ phải hợp lệ.
+Ưu tiên hiển thị phải là số hợp lệ nếu có nhập.
+Không cho phép xóa bác sĩ đã được sử dụng trong lịch khám, phiếu đặt khám hoặc dữ liệu đã đồng bộ HIS.
+Nếu bác sĩ bị ngưng hoạt động, hệ thống không cho phép chọn bác sĩ đó khi tạo lịch khám mới. 
+Business Rule
+Danh sách bác sĩ được quản lý trên Web Admin và có thể được sử dụng để hiển thị trên App/Zalo Mini App.
+Mỗi bác sĩ có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS.
+ID nội bộ có thể bắt đầu bằng số 0 nên hệ thống phải lưu dưới dạng phù hợp
+Một bác sĩ có thể thuộc một hoặc nhiều chuyên khoa/nhóm đặt khám.
+Một bác sĩ có thể làm việc tại nhiều khu khám khác nhau tùy theo lịch khám.
+Một bác sĩ có thể ngồi ở nhiều phòng khám khác nhau theo từng ngày, từng buổi hoặc từng khung giờ.
+Một phòng khám cũng có thể có nhiều bác sĩ làm việc theo lịch.
+Bác sĩ chỉ được hiển thị trên App/Zalo Mini App khi trạng thái đang hoạt động và được phép hiển thị.
+Trường nhóm đặt khám dùng để gom bác sĩ theo nhóm chuyên khoa hoặc nhóm nghiệp vụ đặt khám.
+Trường ưu tiên hiển thị dùng để sắp xếp thứ tự bác sĩ trên App/Zalo Mini App.
+Trường nhóm hiển thị và hiển thị giá dùng để cấu hình việc hiển thị thông tin giá khám nếu bệnh viện có nhu cầu.
+Ghi chú đặt khám dùng để hiển thị hoặc lưu hướng dẫn liên quan đến việc đặt khám với bác sĩ.
+Nếu bác sĩ đã phát sinh lịch khám hoặc phiếu đặt khám, hệ thống không nên xóa cứng mà chỉ cho phép ngưng hoạt động.
+Output
+Danh sách bác sĩ được hiển thị.
+Admin có thể thêm mới, cập nhật, tìm kiếm, xuất danh sách bật/tắt hoạt động bác sĩ.
+Thông tin bác sĩ được sử dụng trong cấu hình lịch khám.
+Thông tin bác sĩ được sử dụng trong luồng đặt khám trên App/Zalo Mini App.
+Dữ liệu bác sĩ có thể được đồng bộ/liên kết với HIS thông qua ID nội bộ.
+Thông tin hiển thị trên danh sách bác sĩ Web Admin
+STT.
+Tên bác sĩ.
+Chức danh.
+Điện thoại.
+Email.
+Giới tính.
+Ngày sinh.
+Ghi chú đặt khám.
+ID nội bộ.
+Trạng thái.
+Nhóm đặt khám.
+Ưu tiên hiển thị.
+Nhóm hiển thị giá.
+Hiển thị giá.
+Thao tác: Cập nhật, Xóa và bật/tắt hoạt động.
+Thông tin hiển thị trên App/Zalo Mini App nếu được cấu hình
+Ảnh đại diện bác sĩ nếu có.
+Tên bác sĩ.
+Chức danh
+Chuyên khoa 
+Giới tính
+Đánh giá trung bình nếu có.
+Ghi chú đặt khám nếu có
+Đánh giá trung bình nếu có.
+Danh sách đánh giá/góp ý nếu có.
+Nút Xem chi tiết.
+Nút Đặt lịch khám.
+Lưu ý
+Các trường ID nội bộ, điện thoại, email, ngày sinh, trạng thái hoạt động/ngưng hoạt động, nhóm hiển thị giá, hiển thị giá và thao tác quản trị không nên hiển thị công khai cho người dùng trên App/Zalo Mini App.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo tên bác sĩ, số điện thoại, email hoặc ID nội bộ.
+Bộ lọc trạng thái.
+Bộ lọc chuyên khoa.
+Nút Tìm kiếm.
+Nút Thêm bác sĩ.
+Nút Xuất danh sách.
+Nút Nhập danh  sách
+Nút Cập nhật.
+Nút Xóa và bật/tắt hoạt động. 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý bác sĩ.
+Bước 3: Hệ thống hiển thị danh sách bác sĩ hiện có.
+Bước 4: Admin nhập từ khóa nếu muốn tìm kiếm bác sĩ.
+Bước 5: Admin nhấn Tìm kiếm.
+Bước 6: Hệ thống hiển thị danh sách bác sĩ phù hợp.
+Bước 7: Admin nhấn Thêm bác sĩ nếu muốn tạo bác sĩ mới.
+Bước 8: Admin nhập thông tin bác sĩ gồm tên bác sĩ, chức danh, điện thoại, email, giới tính, ngày sinh, ghi chú đặt khám, ID nội bộ, trạng thái, nhóm đặt khám, ưu tiên hiển thị, nhóm hiển thị giá và hiển thị giá nếu có.
+Bước 9: Admin nhấn Lưu.
+Bước 10: Hệ thống kiểm tra dữ liệu.
+Bước 11: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 12: Nếu dữ liệu hợp lệ, hệ thống lưu thông tin bác sĩ.
+Bước 13: Admin có thể nhấn Cập nhật để chỉnh sửa thông tin bác sĩ.
+Bước 14: Admin có thể nhấn Xuất/Nhập danh sách để xuất danh sách bác sĩ.
+Bước 15: Nếu bác sĩ chưa phát sinh dữ liệu liên quan, Admin có thể xóa theo quyền được cấp.
+Bước 16: Nếu bác sĩ đã phát sinh lịch khám, phiếu đặt khám hoặc dữ liệu đồng bộ HIS, hệ thống không cho xóa cứng và chỉ cho phép ngưng hoạt động. 
+Quản lí tài khoản
+Quản lí tài khoản
+Mô tả
+Admin quản lý danh sách tài khoản đăng nhập vào hệ thống, bao gồm tài khoản người dùng Mobile App/Zalo Mini App. Chức năng này dùng để tra cứu tài khoản, kiểm tra trạng thái hoạt động, khóa/mở khóa tài khoản, cập nhật thông tin cơ bản và quản lý nguồn đăng ký.
+Actor
+Admin 
+Input
+Từ khóa tìm kiếm:
+- Họ tên tài khoản.
+- Số điện thoại.
+- Email nếu có.
+- Mã tài khoản.
+Bộ lọc:
+- Trạng thái tài khoản: Hoạt động, tạm khóa, ngưng hoạt động.
+Thông tin tài khoản:
+- Họ tên tài khoản.
+- Số điện thoại đăng nhập.
+- Email nếu có.
+- Mật khẩu nếu tạo tài khoản Admin.
+- Trạng thái tài khoản.
+- Ghi chú quản trị nếu có. 
+Validation
+Admin phải đăng nhập và có quyền quản lý tài khoản.
+Số điện thoại không được để trống đối với tài khoản người dùng App/Mini App.
+Số điện thoại phải đúng định dạng.
+Số điện thoại không được trùng với tài khoản đã tồn tại nếu dùng làm tài khoản đăng nhập.
+Email phải đúng định dạng nếu có nhập.
+Không cho phép xem hoặc hiển thị mật khẩu người dùng.
+Không cho phép xóa cứng tài khoản đã phát sinh dữ liệu như hồ sơ bệnh nhân, thành viên gia đình, đặt khám, thanh toán, đánh giá.
+Business Rule
+Tài khoản là đối tượng dùng để đăng nhập hệ thống.
+Tài khoản người dùng App/Mini App được định danh chính bằng số điện thoại.
+Một số điện thoại chỉ tạo một tài khoản đăng nhập chính trên hệ thống.
+Một tài khoản có thể quản lý nhiều hồ sơ bệnh nhân/sổ sức khỏe, bao gồm chủ tài khoản và các thành viên gia đình.
+Tài khoản người dùng có thể được tạo từ Mobile App hoặc Zalo Mini App.
+Nếu người dùng đăng nhập Zalo Mini App bằng số điện thoại đã tồn tại, hệ thống liên kết vào tài khoản hiện có, không tạo tài khoản mới.
+Thông tin hồ sơ bệnh nhân, CCCD, mã bệnh nhân HIS, tiểu sử bệnh lý, dị ứng và ghi chú sức khỏe không quản lý trực tiếp tại chức năng Quản lý tài khoản, mà quản lý tại chức năng Quản lý bệnh nhân/Hồ sơ sức khỏe.
+Admin có thể khóa/mở khóa tài khoản.
+Admin có thể reset trạng thái khóa tạm nếu tài khoản bị khóa do nhập sai mật khẩu nhiều lần.
+Output
+Danh sách tài khoản được hiển thị.
+Admin xem được thông tin chi tiết tài khoản.
+Admin có thể cập nhật thông tin tài khoản được phép chỉnh sửa.
+Admin có thể khóa, mở khóa và ngưng hoạt động tài khoản.
+Trạng thái tài khoản được cập nhật.
+Thông tin hiển thị trên danh sách tài khoản
+STT.
+Mã tài khoản.
+Họ tên tài khoản.
+Số điện thoại.
+Email nếu có.
+Vai trò nếu có.
+Trạng thái tài khoản.
+Ngày tạo.
+Lần đăng nhập gần nhất.
+Thao tác: Xem chi tiết, Cập nhật, Khóa/Mở khóa, Ngưng hoạt động.
+Thông tin hiển thị trong chi tiết tài khoản
+Mã tài khoản.
+Họ tên tài khoản.
+Số điện thoại.
+Email nếu có.
+Vai trò.
+Trạng thái tài khoản.
+Số lượng hồ sơ bệnh nhân/sổ sức khỏe đang liên kết.(nếu tài khoản có vai trò là bệnh nhân)
+Số lượng lịch khám đã đặt nếu có.(nếu tài khoản có vai trò là bệnh nhân)
+Ngày tạo tài khoản.
+Lần đăng nhập gần nhất nếu có.
+Ghi chú quản trị nếu có.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo họ tên, số điện thoại, email hoặc mã tài khoản.
+Bộ lọc loại tài khoản..
+Bộ lọc trạng thái tài khoản.
+Bộ lọc vai trò.
+Bộ lọc ngày tạo.
+Nút Tìm kiếm.
+Nút Xóa bộ lọc.
+Nút Thêm tài khoản 
+Nút Cập nhật.
+Nút Khóa/Mở khóa.
+Nút Ngưng hoạt động. 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý tài khoản.
+Bước 3: Hệ thống hiển thị danh sách tài khoản.
+Bước 4: Admin nhập từ khóa hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 6: Hệ thống hiển thị danh sách tài khoản phù hợp.
+Bước 7: Admin chọn một tài khoản để xem chi tiết.
+Bước 8: Hệ thống hiển thị thông tin chi tiết tài khoản.
+Bước 9: Admin chọn Cập nhật nếu muốn chỉnh sửa thông tin được phép.
+Bước 10: Admin chọn Khóa tài khoản nếu cần khóa tài khoản.
+Bước 11: Hệ thống cập nhật trạng thái tài khoản 
+Bước 12: Admin chọn Mở khóa nếu muốn kích hoạt lại tài khoản.
+Bước 13: Hệ thống cập nhật trạng thái hoạt động 
+Bước 14: Nếu Admin thêm tài khoản, Admin nhập thông tin tài khoản và gán vai trò.
+Bước 15: Hệ thống kiểm tra dữ liệu.
+Bước 16: Nếu dữ liệu hợp lệ, hệ thống lưu tài khoản.
+Bước 17: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi để Admin chỉnh sửa.  
+Quản lí bệnh nhân
+Quản lí bệnh nhân
+Mô tả
+Admin quản lý danh sách hồ sơ bệnh nhân/sổ sức khỏe trong hệ thống. Hồ sơ bệnh nhân bao gồm hồ sơ của chủ tài khoản và các thành viên gia đình được thêm trong cùng tài khoản. Mỗi hồ sơ đại diện cho một người đi khám thực tế và được liên kết với một mã bệnh nhân HIS riêng.
+Actor
+Admin 
+Input
+Từ khóa tìm kiếm:
+- Họ tên bệnh nhân.
+- Số điện thoại.
+- CCCD.
+- Mã bệnh nhân HIS.
+Bộ lọc:
+- Loại hồ sơ: Chủ tài khoản, thành viên gia đình.
+- Mối quan hệ với chủ tài khoản.
+- Ngày tạo hồ sơ.
+Thông tin hồ sơ cá nhân:
+- Họ tên.
+- Ngày sinh.
+- Giới tính.
+- Nghề nghiệp.
+- Quốc tịch.
+- Dân tộc.
+- CCCD.
+- Số điện thoại.
+- Mã bệnh nhân HIS.
+Thông tin thành viên gia đình:
+- Họ tên thành viên.
+- Ngày sinh.
+- Giới tính.
+- Mối quan hệ với chủ tài khoản.
+- CCCD nếu có hoặc bắt buộc theo nghiệp vụ đặt khám.
+- Số điện thoại nếu có.
+- Mã bệnh nhân HIS.
+Thông tin sức khỏe ban đầu:
+- Tiểu sử bệnh lý nếu có.
+- Dị ứng nếu có.
+- Ghi chú sức khỏe nếu có.
+- Thông tin BHYT nếu có.
+Validation
+Admin phải đăng nhập
+Họ tên không được để trống.
+Ngày sinh không được để trống.
+Giới tính không được để trống
+CCCD không được để trống
+CCCD phải đúng định dạng 12 số 
+Số điện thoại phải đúng định dạng 
+Mối quan hệ với chủ tài khoản không được để trống đối với hồ sơ thành viên gia đình.
+Không cho phép bệnh nhân tự sửa trực tiếp mã bệnh nhân HIS trên App.
+Admin có quyền cập nhật/hợp nhất mã bệnh nhân HIS theo nghiệp vụ.
+Không cho phép tạo trùng hồ sơ bệnh nhân theo CCCD + số điện thoại nếu hệ thống xác định đã tồn tại.
+Không cho phép xóa cứng hồ sơ bệnh nhân đã phát sinh lịch khám, phiếu khám, thanh toán hoặc dữ liệu đồng bộ HIS.
+Business Rule
+Hồ sơ bệnh nhân là người đi khám thực tế, không đồng nhất với tài khoản đăng nhập.
+Một tài khoản có thể có nhiều hồ sơ bệnh nhân/sổ sức khỏe.
+Hồ sơ đầu tiên là hồ sơ của chủ tài khoản.
+Các hồ sơ khác là thành viên gia đình như con, cha, mẹ, ông, bà hoặc người thân.
+Mỗi hồ sơ bệnh nhân có thể có một mã bệnh nhân HIS riêng.
+Khi người dùng cập nhật đầy đủ thông tin hồ sơ, hệ thống kiểm tra với HIS bằng thông tin định danh theo quy định.
+Nếu HIS đã có mã bệnh nhân tương ứng, hệ thống lấy mã bệnh nhân cũ và hiển thị trên hồ sơ.
+Nếu HIS chưa có mã bệnh nhân tương ứng, hệ thống tạo/cấp mã bệnh nhân mới và hiển thị trên hồ sơ.
+Khi đặt khám, người dùng chọn người đi khám từ danh sách hồ sơ bệnh nhân gồm chủ tài khoản và thành viên gia đình.
+Hệ thống không yêu cầu nhập mã bệnh nhân thủ công tại bước đặt khám, mà lấy mã bệnh nhân HIS từ hồ sơ người đi khám đã chọn..
+Admin có thể kiểm tra và xử lý trường hợp trùng/lệch mã bệnh nhân.
+Nếu hồ sơ đã có dữ liệu nghiệp vụ phát sinh, hệ thống chỉ cho phép ngưng hoạt động, không xóa cứng.
+Output
+Danh sách hồ sơ bệnh nhân/sổ sức khỏe được hiển thị.
+Admin xem được thông tin chi tiết hồ sơ bệnh nhân.
+Admin xem được chủ tài khoản liên kết với hồ sơ.
+Admin cập nhật được thông tin hồ sơ.
+Admin có thể xuất báo cáo
+Admin xử lý được trường hợp trùng/lệch mã bệnh nhân HIS.
+Hồ sơ bệnh nhân được liên kết đúng với mã bệnh nhân HIS.
+Hồ sơ bệnh nhân được sử dụng trong luồng đặt khám.
+Thông tin hiển thị trên danh sách bệnh nhân/hồ sơ sức khỏe
+STT.
+Mã hồ sơ.
+Họ tên bệnh nhân.
+Ngày sinh.
+Giới tính.
+Số điện thoại.
+CCCD.
+Loại hồ sơ: Chủ tài khoản hoặc thành viên gia đình.
+Mối quan hệ với chủ tài khoản.
+Mã bệnh nhân HIS.
+Ngày tạo hồ sơ.
+Thao tác: Xem chi tiết, Cập nhật, bật/tắt hoạt động.
+Thông tin hiển thị trong chi tiết hồ sơ bệnh nhân
+Mã hồ sơ.
+Loại hồ sơ: Chủ tài khoản hoặc thành viên gia đình.
+Họ tên.
+Ngày sinh.
+Giới tính.
+Nghề nghiệp.
+Quốc tịch.
+Dân tộc.
+CCCD.
+Số điện thoại.
+Mối quan hệ với chủ tài khoản nếu là thành viên gia đình.
+Mã bệnh nhân HIS.
+Tiểu sử bệnh lý.
+Dị ứng.
+Ghi chú sức khỏe.
+Số điện thoại tài khoản chủ.
+Lịch sử đặt khám 
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo họ tên, số điện thoại, CCCD, mã bệnh nhân HIS, mã tài khoản.
+Bộ lọc mối quan hệ.
+Bộ lọc trạng thái hồ sơ.
+Bộ lọc ngày tạo.
+Nút Tìm kiếm.
+Nút Xóa bộ lọc.
+Nút Xem chi tiết.
+Nút Cập nhật.
+Nút bật/tắt hoạt động. 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý bệnh nhân
+Bước 3: Hệ thống hiển thị danh sách hồ sơ bệnh nhân gồm chủ tài khoản và các thành viên gia đình.
+Bước 4: Admin nhập từ khóa hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 6: Hệ thống hiển thị danh sách hồ sơ phù hợp.
+Bước 7: Admin chọn một hồ sơ để xem chi tiết.
+Bước 8: Hệ thống hiển thị thông tin chi tiết hồ sơ bệnh nhân.
+Bước 9: Admin chọn Cập nhật nếu cần chỉnh sửa thông tin được phép.
+Bước 10: Admin cập nhật thông tin hồ sơ.
+Bước 11: Hệ thống kiểm tra dữ liệu.
+Bước 12: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 13: Nếu dữ liệu hợp lệ, hệ thống lưu thông tin hồ sơ.
+Bước 14: Nếu hồ sơ đã phát sinh dữ liệu liên quan, hệ thống không cho xóa cứng và chỉ cho phép ngưng hoạt động. 
+Quản lí lịch đặt khám
+Quản lí lịch đặt khám
+Mô tả
+Admin quản lý danh sách lịch đặt khám phát sinh từ Mobile App/Zalo Mini App. Chức năng này dùng để tra cứu lịch đặt khám, xem chi tiết thông tin người đi khám, kiểm tra trạng thái thanh toán, trạng thái phiếu khám, số thứ tự và xử lý các trường hợp phát sinh như đổi bác sĩ, đổi phòng khám, hủy lịch hoặc cập nhật thông tin lịch đặt khám.
+Actor
+Admin 
+Input
+Từ khóa tìm kiếm:
+- Mã phiếu khám.
+- Mã bệnh nhân HIS.
+- Họ tên người đi khám.
+- Số điện thoại.
+- CCCD.
+- Tên bác sĩ.
+Bộ lọc:
+- Ngày khám.
+- Ngày khám.
+- Khu vực khám.
+- Chuyên khoa.
+- Bác sĩ.
+- Đối tượng khám: Thu phí, BHYT, VIP.
+- Trạng thái lịch khám.
+Thông tin lịch đặt khám:
+- Người đi khám.
+- Mã bệnh nhân HIS.
+- Tài khoản đặt lịch.
+- Khu vực khám.
+- Chuyên khoa.
+- Phòng khám.
+- Bác sĩ.
+- Ngày khám.
+- Giờ khám.
+- Số thứ tự khám.
+- Dịch vụ khám.
+- Tổng tiền thanh toán.
+- Trạng thái thanh toán.
+- Trạng thái lịch khám.
+- Ghi chú nếu có. 
+Validation
+Admin phải đăng nhập.
+Lịch đặt khám phải tồn tại trong hệ thống.
+Người đi khám phải có hồ sơ bệnh nhân hợp lệ.
+Lịch đặt khám phải gắn với mã bệnh nhân HIS.
+Ngày khám, giờ khám, chuyên khoa, phòng khám và bác sĩ không được để trống.
+Nếu cập nhật bác sĩ/phòng khám, lịch mới phải còn khả dụng và không bị trùng slot.
+Nếu đổi bác sĩ, bác sĩ mới phải có lịch trực phù hợp với ngày khám, khu vực khám, phòng khám và loại dịch vụ.
+Nếu đổi phòng khám, phòng khám mới phải thuộc khu vực/chuyên khoa hợp lệ.
+Không cho phép chỉnh sửa trực tiếp số tiền thanh toán
+Không cho phép hủy lịch không đủ điều kiện hủy theo chính sách bệnh viện.
+Nếu lọc theo khoảng ngày, ngày bắt đầu không được lớn hơn ngày kết thúc. 
+Business Rule
+Lịch đặt khám được tạo sau khi người dùng đặt khám và thanh toán thành công trên App/Zalo Mini App.
+Sau khi thanh toán thành công, hệ thống tự động xác nhận lịch khám và cấp số thứ tự cho người đi khám.
+Một lịch đặt khám phải gắn với một người đi khám cụ thể, có thể là chủ tài khoản hoặc thành viên gia đình.
+Mỗi người đi khám có một mã bệnh nhân HIS riêng.
+Admin có thể tra cứu lịch đặt khám theo mã lịch hẹn, mã bệnh nhân HIS, người đi khám, số điện thoại, bác sĩ, chuyên khoa hoặc ngày khám.
+Admin có thể cập nhật bác sĩ hoặc phòng khám trong trường hợp bệnh nhân đăng ký sai, bác sĩ nghỉ đột xuất hoặc bệnh viện điều chỉnh lịch.
+Nếu lịch đã đồng bộ sang HIS, sau khi đổi bác sĩ/phòng khám hệ thống cần đưa lịch vào danh sách cần đồng bộ lại.
+Nếu lịch chưa đồng bộ HIS, hệ thống cập nhật thông tin trước khi đồng bộ.
+Nếu lịch bị hủy, hệ thống cập nhật trạng thái hủy và xử lý hoàn tiền theo quy định.
+Nếu lịch thuộc nhóm đăng ký nhiều phòng khám có áp dụng giảm giá, khi hủy phòng khám đầu tiên hệ thống phải kiểm tra chính sách hủy cả nhóm để tránh sai lệch giá.
+Lịch đã thanh toán thành công mới có phiếu khám và số thứ tự.
+Lịch chưa thanh toán, thanh toán thất bại hoặc hết hạn thanh toán không được xem là lịch khám hợp lệ.
+Output
+Danh sách lịch đặt khám được hiển thị.
+Admin xem được chi tiết từng lịch đặt khám.
+Admin cập nhật được bác sĩ/phòng khám.
+Admin hủy được lịch đặt khám nếu đủ điều kiện.
+Admin theo dõi được trạng thái thanh toán và trạng thái đồng bộ HIS.
+Lịch đặt khám được cập nhật trạng thái chính xác.
+Các lịch cần đồng bộ lại HIS được đưa vào danh sách xử lý nếu có phát sinh.
+Admin có thể xuất báo cáo
+Thông tin hiển thị trên danh sách lịch đặt khám
+STT.
+Mã phiếu khám.
+Người đi khám.
+Mã bệnh nhân HIS.
+Số điện thoại.
+Ngày khám.
+Giờ khám.
+Số thứ tự khám.
+Khu vực khám.
+Chuyên khoa.
+Phòng khám.
+Bác sĩ.
+Dịch vụ  khám: Thu phí, BHYT hoặc VIP.
+Tổng tiền thanh toán.
+Trạng thái thanh toán.
+Trạng thái lịch khám.
+Trạng thái đồng bộ HIS.
+Ngày tạo lịch.
+Thao tác: Xem chi tiết, Cập nhật, Hủy
+Thông tin hiển thị trong chi tiết lịch đặt khám
+Mã phiếu khám.
+Ngày tạo lịch.
+Thông tin tài khoản đặt lịch.
+Họ tên người đặt.
+Số điện thoại người đặt.
+Thông tin người đi khám.
+Họ tên người đi khám.
+Ngày sinh.
+Giới tính.
+CCCD.
+Số điện thoại người đi khám nếu có.
+Mối quan hệ với chủ tài khoản nếu là thành viên gia đình.
+Mã bệnh nhân HIS.
+Khu vực khám.
+Chuyên khoa.
+Phòng khám.
+Bác sĩ.
+Ngày khám.
+Giờ khám.
+Slot khám.
+Số thứ tự khám.
+Dịch vụ khám: Thu phí, BHYT hoặc VIP.
+Giá gốc.
+Thông tin giảm giá nếu có.
+Phần BHYT được trừ nếu có.
+Tổng tiền thanh toán.
+Phương thức thanh toán.
+Trạng thái thanh toán.
+Trạng thái lịch khám.
+Trạng thái đồng bộ HIS.
+Lý do hủy nếu có.
+Trạng thái hoàn tiền nếu có.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo, mã phiếu khám, mã bệnh nhân HIS, họ tên người đi khám, số điện thoại, CCCD hoặc tên bác sĩ.
+Bộ lọc ngày khám.
+Bộ lọc khu vực khám.
+Bộ lọc chuyên khoa.
+Bộ lọc phòng khám.
+Bộ lọc bác sĩ.
+Bộ lọc đối tượng khám.
+Bộ lọc trạng thái lịch khám.
+Bộ lọc trạng thái thanh toán.
+Bộ lọc trạng thái đồng bộ HIS.
+Nút Tìm kiếm.
+Nút Xóa bộ lọc.
+Nút Xem chi tiết.
+Nút Cập nhật.
+Nút Hủy lịch.
+Trạng thái lịch khám
+- Chờ thanh toán.
+- Đã thanh toán/Đã xác nhận.
+- Đã đồng bộ HIS.
+- Đang chờ khám.
+- Đã khám.
+- Đã hủy.
+- Chờ hoàn tiền.
+- Đã hoàn tiền.
+Trạng thái thanh toán
+- Chưa thanh toán.
+- Đã thanh toán.
+- Thanh toán thất bại.
+- Hết hạn thanh toán.
+- Chờ hoàn tiền.
+- Đã hoàn tiền.
+Trạng thái đồng bộ HIS
+- Chưa đồng bộ.
+- Đã đồng bộ.
+- Đồng bộ lỗi.
+- Cần đồng bộ lại.
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý lịch đặt khám.
+Bước 3: Hệ thống hiển thị danh sách lịch đặt khám.
+Bước 4: Admin nhập từ khóa tìm kiếm hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 6: Hệ thống hiển thị danh sách lịch đặt khám phù hợp.
+Bước 7: Admin chọn một lịch đặt khám để xem chi tiết.
+Bước 8: Hệ thống hiển thị đầy đủ thông tin lịch đặt khám, người đi khám, phiếu khám, thanh toán và đồng bộ HIS.
+Bước 9: Nếu cần cập nhật bác sĩ hoặc phòng khám, Admin nhấn Cập nhật.
+Bước 10: Admin chọn bác sĩ/phòng khám mới phù hợp.
+Bước 11: Hệ thống kiểm tra lịch trực, slot khám và dữ liệu liên quan.
+Bước 12: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 13: Nếu dữ liệu hợp lệ, hệ thống cập nhật lịch đặt khám
+Bước 14: Nếu lịch đã đồng bộ HIS, hệ thống chuyển trạng thái sang Cần đồng bộ lại.
+Bước 15: Nếu Admin cần hủy lịch, Admin nhấn Hủy lịch.
+Bước 16: Hệ thống kiểm tra điều kiện hủy theo chính sách bệnh viện.
+Bước 17: Nếu lịch không đủ điều kiện hủy, hệ thống hiển thị thông báo không thể hủy.
+Bước 18: Nếu lịch đủ điều kiện hủy, hệ thống cập nhật trạng thái Đã hủy.
+Bước 19: Nếu lịch đã thanh toán, hệ thống ghi nhận trạng thái Chờ hoàn tiền.
+Bước 20: Hệ thống lưu thao tác và cập nhật trạng thái liên quan. 
+Quản lí lịch làm việc bác sĩ
+Quản lí lịch làm việc của bác sĩ
+Mô tả
+Admin quản lý lịch làm việc/lịch khám của bác sĩ theo khu vực khám, phòng khám, chuyên khoa, ngày khám, buổi khám và khung giờ khám. Lịch làm việc của bác sĩ là dữ liệu nền để người dùng có thể chọn bác sĩ, ngày khám, giờ khám và đặt lịch trên Mobile App/Zalo Mini App.
+Actor
+Admin 
+Lễ tân
+Input
+Từ khóa tìm kiếm:
+- Tên bác sĩ.
+- Tên chuyên khoa.
+- Tên phòng khám.
+- Tên dịch vụ khám.
+Bộ lọc:
+- Chuyên khoa.
+- Dịch vụ khám.
+- Bác sĩ.
+- Phòng khám.
+- Khu khám bệnh.
+- Buổi làm việc.
+- Trạng thái lịch.
+Thông tin lịch khám:
+- Dịch vụ khám.
+- Chuyên khoa.
+- Phòng khám.
+- Bác sĩ.
+- Ngày làm việc.
+- Buổi làm việc.
+- Giờ bắt đầu.
+- Giờ kết thúc.
+- Thời gian mỗi slot.
+- Số phiếu khám tối đa trong một slot.
+- Trạng thái lịch.
+Validation
+Admin phải đăng nhập.
+Dịch vụ khám không được để trống.
+Chuyên khoa không được để trống.
+Phòng khám không được để trống.
+Bác sĩ không được để trống.
+Ngày làm việc không được để trống.
+Giờ bắt đầu phải nhỏ hơn giờ kết thúc.
+Thời gian mỗi slot phải lớn hơn 0.
+Số phiếu khám tối đa trong một slot phải lớn hơn 0.
+Bác sĩ phải đang hoạt động.
+Phòng khám phải đang hoạt động.
+Chuyên khoa phải đang hoạt động.
+Dịch vụ khám phải đang hoạt động.
+Phòng khám phải thuộc khu khám bệnh hợp lệ.
+Không cho phép tạo trùng lịch cho cùng một bác sĩ tại cùng một thời điểm ở nhiều phòng khám khác nhau.
+Không cho phép tạo lịch trùng phòng khám nếu phòng khám không cho phép nhiều bác sĩ khám cùng thời điểm.
+Nếu lịch đã có bệnh nhân đặt, khi cập nhật hoặc tắt lịch hệ thống phải cảnh báo Admin.
+Nếu lịch đã phát sinh phiếu đặt khám, không cho phép xóa cứng, chỉ cho phép tắt/ngưng lịch.
+Business Rule
+Lịch khám bác sĩ là dữ liệu nền để người dùng đặt khám trên App/Zalo Mini App.
+Admin có thể cấu hình lịch khám theo buổi sáng/chiều, theo thứ trong tuần hoặc theo ngày cụ thể trong tháng.
+Mỗi bác sĩ có thể ngồi nhiều phòng khám khác nhau theo từng ngày, từng buổi hoặc từng khung giờ.
+Một phòng khám có thể có nhiều bác sĩ làm việc theo lịch.
+Ngày đó bác sĩ có thể khám BHYT và Dịch vụ, hoặc chỉ khám Dịch vụ, tùy cấu hình.
+Dịch vụ khám gắn với giá khám tương ứng, ví dụ Khám thường, BHYT, VIP.
+Thời gian mỗi slot có thể cấu hình, ví dụ 7 phút, 8 phút hoặc theo quy định bệnh viện.
+Số phiếu khám tối đa trong một slot dùng để giới hạn số bệnh nhân được đặt trong cùng khung giờ.
+Admin có thể tùy chỉnh số phiếu khám cho từng khung giờ nếu cần.
+Chỉ lịch đang bật và còn slot trống mới hiển thị cho người dùng đặt khám.
+Nếu bác sĩ nghỉ đột xuất, Admin có thể tắt lịch hoặc cập nhật bác sĩ/phòng khám cho các phiếu đã đặt.
+Nếu lịch thay đổi sau khi phiếu đã đồng bộ HIS, hệ thống cần đưa phiếu liên quan vào danh sách cần đồng bộ lại nếu có ảnh hưởng đến HIS.
+Không nên chỉ chọn ngày làm việc bằng checkbox thứ trong tuần; nên hỗ trợ thêm chọn ngày cụ thể theo tháng để bệnh viện dễ cấu hình lịch khám thực tế.
+Output
+Danh sách lịch khám bác sĩ được hiển thị.
+Admin có thể tìm kiếm, lọc, thêm mới, cập nhật, tắt hoặc xóa lịch nếu đủ điều kiện.
+Hệ thống sinh danh sách slot khám dựa trên giờ bắt đầu, giờ kết thúc và thời gian mỗi slot.
+Lịch khám hợp lệ được hiển thị trên App/Zalo Mini App.
+Người dùng có thể đặt khám theo lịch bác sĩ đã cấu hình.
+Thông tin hiển thị trên danh sách lịch khám
+STT.
+Chuyên khoa.
+Phòng khám.
+Dịch vụ khám.
+Bác sĩ.
+Ca làm việc.(Ngày/buổi làm việc, giờ bắt đầu- giờ kết thúc)
+Số phiếu khám(Số phiếu/tổng thời gian)
+ID nội bộ 
+Trạng thái.
+Thao tác: Tắt/Bật, Cập nhật, Xóa.
+Thông tin hiển thị trong form thêm/cập nhật lịch khám
+Dịch vụ khám.
+Chuyên khoa.
+Phòng khám.
+Bác sĩ.
+Ngày làm việc.
+Giờ bắt đầu.
+Giờ kết thúc.
+Thời gian mỗi slot.
+Số phiếu khám tối đa trong một slot.
+Tùy chỉnh phiếu khám theo từng khung giờ.
+Tùy chỉnh ngày khám theo ngày cụ thể.
+Trạng thái lịch.
+Trường ngày làm việc
+Chọn ngày cụ thể trong tháng
+- Admin chọn trực tiếp các ngày làm việc trên lịch tháng.
+- Ví dụ: 2026-06-08, 2026-06-15, 2026-06-22.
+- Phù hợp với trường hợp bác sĩ làm việc không cố định theo thứ.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo tên bác sĩ, chuyên khoa, phòng khám hoặc dịch vụ khám.
+Bộ lọc chuyên khoa.
+Bộ lọc dịch vụ khám.
+Bộ lọc bác sĩ.
+Bộ lọc phòng khám.
+Bộ lọc khu khám bệnh.
+Bộ lọc buổi làm việc.
+Bộ lọc trạng thái.
+Nút Tìm kiếm.
+Nút Import lịch khám.
+Nút Thêm lịch khám.
+Nút Tắt/Bật lịch.
+Nút Cập nhật.
+Nút Xóa. 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý lịch khám.
+Bước 3: Hệ thống hiển thị danh sách lịch làm việc bác sĩ hiện có.
+Bước 4: Admin nhập từ khóa hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm.
+Bước 6: Hệ thống hiển thị danh sách lịch khám phù hợp.
+Bước 7: Admin nhấn Thêm lịch khám nếu muốn tạo lịch mới.
+Bước 8: Admin chọn dịch vụ khám.
+Bước 9: Admin chọn chuyên khoa.
+Bước 10: Admin chọn phòng khám.
+Bước 11: Admin chọn bác sĩ.
+Bước 12: Admin chọn ngày làm việc theo thứ trong tuần hoặc chọn ngày cụ thể trong tháng.
+Bước 13: Admin nhập giờ bắt đầu và giờ kết thúc.
+Bước 14: Admin nhập thời gian mỗi slot.
+Bước 15: Admin nhập số phiếu khám tối đa trong một slot.
+Bước 16: Admin cấu hình tùy chỉnh số phiếu theo từng khung giờ nếu cần.
+Bước 17: Admin nhấn Lưu.
+Bước 18: Hệ thống kiểm tra dữ liệu và kiểm tra trùng lịch.
+Bước 19: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 20: Nếu dữ liệu hợp lệ, hệ thống lưu lịch khám và sinh slot khám.
+Bước 21: Lịch khám được hiển thị trên App/Zalo Mini App nếu đang bật và còn slot.
+Bước 22: Admin có thể nhấn Cập nhật để chỉnh sửa lịch.
+Bước 23: Admin có thể nhấn Tắt nếu muốn tạm ngưng lịch.
+Bước 24: Nếu lịch đã có bệnh nhân đặt, hệ thống cảnh báo Admin trước khi lưu thay đổi.
+Quản lí giá dịch vụ
+Quản lí giá dịch vụ
+Mô tả
+Admin quản lý danh sách giá dịch vụ khám dùng trong luồng đặt khám trên Mobile App/Zalo Mini App. Mỗi dịch vụ khám có mức giá riêng theo đối tượng khám như Thu phí, BHYT hoặc VIP và có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS.
+Actor
+Admin 
+Input
+Tên dịch vụ.
+Loại dịch vụ.
+Nhóm dịch vụ.
+Loại khám bảo hiểm
+Giá dịch vụ.
+Giá gốc
+Tạm ứng.
+Ghi chú đặt khám.
+Phòng hướng dẫn vào khám.
+ID nội bộ.
+Nhóm đặt khám.
+Nhóm hiển thị.
+Ưu tiên hiển thị.
+Validation
+Admin phải đăng nhập.
+Tên dịch vụ không được để trống.
+Loại dịch vụ không được để trống.
+Giá dịch vụ không được để trống.
+Giá dịch vụ phải là số hợp lệ và không được âm.
+ID nội bộ không được để trống nếu dùng để đồng bộ với HIS.
+ID nội bộ không được trùng trong hệ thống.
+ID nội bộ phải được lưu dạng chuỗi để hỗ trợ trường hợp mã bắt đầu bằng số 0.
+Ưu tiên hiển thị phải là số hợp lệ nếu có nhập.
+Business Rule
+Danh sách giá dịch vụ bao gồm các giá khám như Khám thường, Khám BHYT và Khám VIP.
+Mỗi giá dịch vụ có ID nội bộ để đồng bộ với chương trình Khám bệnh/HIS.
+ID nội bộ có thể bắt đầu bằng số 0 nên hệ thống phải lưu dưới dạng chuỗi, không lưu dạng số.
+Giá dịch vụ được sử dụng trong luồng đặt khám để tính số tiền người dùng cần thanh toán.
+Đối tượng Thu phí/Không BHYT áp dụng giá thu phí trực tiếp.
+Đối tượng BHYT áp dụng giá theo chính sách BHYT, bệnh nhân thanh toán phần chênh lệch theo quy tắc tính giá.
+Đối tượng VIP áp dụng giá riêng.
+Trường loại khám bảo hiểm dùng để xác định dịch vụ có áp dụng bảo hiểm hay không, ví dụ Không khám bảo hiểm hoặc Chỉ khám bảo hiểm.
+Trường ghi chú đặt khám dùng để hiển thị hoặc lưu các điều kiện áp dụng của dịch vụ, ví dụ giảm 50% từ công khám thứ 2 cùng ngày.
+Trường phòng hướng dẫn vào khám dùng để hướng dẫn người bệnh đến đúng phòng/khu vực nếu bệnh viện có cấu hình.
+Trường nhóm đặt khám dùng để gom nhóm dịch vụ phục vụ đặt khám.
+Trường nhóm hiển thị và ưu tiên hiển thị dùng để cấu hình cách hiển thị dịch vụ trên App/Zalo Mini App.
+Chỉ giá dịch vụ đang hoạt động mới được sử dụng trong cấu hình lịch khám và đặt khám.
+Công thức tính giá chi tiết khi đặt nhiều công khám hoặc có BHYT được xử lý tại chức năng Tính giá công khám.
+Output
+Danh sách giá dịch vụ được hiển thị.
+Admin có thể xuất báo cáo
+Admin có thể tìm kiếm 
+Giá dịch vụ được sử dụng trong luồng đặt khám và thanh toán.
+Thông tin hiển thị trên danh sách giá dịch vụ
+STT.
+Tên dịch vụ.
+Loại dịch vụ.
+Nhóm dịch vụ.
+Loại khám bảo hiểm
+Giá dịch vụ.
+Giá gốc
+Giá tạm ứng
+Ghi chú đặt khám.
+Phòng hướng dẫn vào khám.
+ID nội bộ.
+Nhóm đặt khám.
+Nhóm hiển thị.
+Ưu tiên hiển thị.
+Lưu ý
+ID nội bộ, nhóm hiển thị, ưu tiên hiển thị và các thao tác quản trị không hiển thị cho người dùng trên App/Zalo Mini App.
+Chức năng tìm kiếm
+Ô tìm kiếm theo tên dịch vụ, loại dịch vụ, ID nội bộ.
+Nút Tìm kiếm.
+Flow xử lý
+Quản lí nội dung
+Quản lí nội dung
+Mô tả
+Admin quản lý các nội dung hiển thị trên Mobile App/Zalo Mini App như tin tức, kiến thức sức khỏe, bài viết truyền thông, banner, video, chương trình khuyến mãi hoặc nội dung hướng dẫn người dùng. Chức năng này giúp bệnh viện chủ động cập nhật thông tin và truyền thông đến người dùng trên App.
+Actor
+Admin
+Marketing
+Input
+Từ khóa tìm kiếm:
+- Tiêu đề nội dung.
+- Danh mục nội dung.
+- Người tạo.
+Bộ lọc:
+- Danh mục nội dung: Tin tức, Kiến thức sức khỏe, Video, Chương trình khuyến mãi, Hướng dẫn.
+- Trạng thái hiển thị: Nháp, Đang hiển thị, Đã ẩn.
+- Thời gian đăng.
+Thông tin nội dung:
+- Tiêu đề.
+- Danh mục nội dung.
+- Mô tả ngắn.
+- Nội dung chi tiết.
+- Ảnh đại diện.
+- Video/link video nếu có.
+- File đính kèm nếu có.
+- Thời gian đăng.
+- Trạng thái hiển thị.
+Validation
+Admin phải đăng nhập.
+Tiêu đề nội dung không được để trống.
+Danh mục không được để trống.
+Video hoặc link video phải đúng định dạng nếu có nhập.
+Thời gian đăng phải hợp lệ.
+Trạng thái hiển thị phải hợp lệ.
+Nếu nội dung đang ở trạng thái Nháp, người dùng App không được nhìn thấy.
+Nếu nội dung đã bị ẩn, hệ thống không hiển thị trên App/Zalo Mini App.
+Business Rule
+Nội dung được tạo và quản lý trên Web Admin.
+Chỉ nội dung có trạng thái Đang hiển thị mới được hiển thị trên Mobile App/Zalo Mini App.
+Admin có thể lưu nháp, đăng ngay, ẩn nội
+Nội dung có thể được phân loại theo danh mục để người dùng dễ tra cứu.
+Admin có thể cập nhật hoặc ẩn nội dung đã đăng.
+Output
+Danh sách nội dung được hiển thị trên Web Admin.
+Admin có thể thêm mới, cập nhật, tìm kiếm, lọc, ẩn hoặc đăng nội dung.
+Nội dung hợp lệ được hiển thị trên Mobile App/Zalo Mini App.
+Người dùng có thể xem danh sách và chi tiết nội dung trên App.
+Trạng thái nội dung được cập nhật.
+Thông tin hiển thị trên danh sách nội dung
+STT.
+Tiêu đề.
+Danh mục.
+Ảnh đại diện nếu có.
+Nền tảng hiển thị.
+Trạng thái hiển thị.
+Thời gian đăng.
+Người tạo.
+Ngày tạo.
+Thao tác: Xem chi tiết, Cập nhật, Đăng, Ẩn, Xóa
+Thông tin hiển thị trong chi tiết nội dung
+Tiêu đề.
+Danh mục nội dung.
+Mô tả ngắn.
+Nội dung chi tiết.
+Ảnh đại diện.
+Video/link video nếu có.
+File đính kèm nếu có.
+Tác giả/người tạo.
+Thời gian đăng.
+Ngày tạo.
+Ngày cập nhật.
+Thông tin hiển thị trên App/Zalo Mini App
+Ảnh đại diện.
+Tiêu đề.
+Mô tả ngắn.
+Danh mục.
+Ngày đăng.
+Nội dung chi tiết.
+Video/link video nếu có.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo tiêu đề, danh mục, tác giả
+Bộ lọc danh mục nội dung.
+Bộ lọc trạng thái hiển thị.
+Bộ lọc người tạo.
+Nút Tìm kiếm.
+Nút Xóa bộ lọc.
+Nút Thêm nội dung.
+Nút Cập nhật.
+Nút Đăng.
+Nút Ẩn.
+Nút Xóa 
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý nội dung.
+Bước 3: Hệ thống hiển thị danh sách nội dung hiện có.
+Bước 4: Admin nhập từ khóa hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 6: Hệ thống hiển thị danh sách nội dung phù hợp.
+Bước 7: Admin nhấn Thêm nội dung nếu muốn tạo nội dung mới.
+Bước 8: Admin nhập tiêu đề, danh mục, mô tả ngắn và nội dung chi tiết.
+Bước 9: Admin upload ảnh đại diện, video hoặc file đính kèm nếu có.
+Bước 10: Admin chọn trạng thái Lưu nháp hoặc Đăng ngay
+Bước 11: Admin nhấn Lưu.
+Bước 12: Hệ thống kiểm tra dữ liệu.
+Bước 13: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 14: Nếu dữ liệu hợp lệ, hệ thống lưu nội dung.
+Bước 15: Nếu nội dung ở trạng thái Đang hiển thị hệ thống hiển thị nội dung trên App/Zalo Mini App.
+Bước 16: Admin có thể chọn Cập nhật để chỉnh sửa nội dung.
+Bước 17: Admin có thể chọn Ẩn để ngưng hiển thị nội dung trên App/Zalo Mini App.
+Quản lí thông báo
+Quản lí thông báo
+Mô tả
+Admin quản lý các thông báo gửi đến người dùng trên Mobile App/Zalo Mini App, bao gồm thông báo tự động từ hệ thống và thông báo thủ công do Admin tạo. Thông báo dùng để nhắc lịch khám, cập nhật trạng thái đặt khám/thanh toán, hủy/hoàn tiền, kết quả khám, đánh giá sau khám và các thông tin truyền thông từ bệnh viện.
+Actor
+Admin.
+Nhân sự CSKH. 
+Input
+Từ khóa tìm kiếm:
+- Tiêu đề thông báo.
+- Nội dung thông báo.
+- Số điện thoại người nhận.
+- Họ tên người nhận.
+Bộ lọc:
+- Loại thông báo.
+- Trạng thái gửi: Chưa gửi, đã gửi, gửi lỗi.
+- Trạng thái đọc: Chưa đọc, đã đọc.
+- Thời gian gửi.
+- Người tạo.
+Thông tin thông báo:
+- Tiêu đề thông báo.
+- Nội dung thông báo.
+- Loại thông báo.
+- Nhóm người nhận.
+- Thời gian gửi.
+- Trạng thái gửi.
+Validation
+Admin phải đăng nhập.
+Tiêu đề thông báo không được để trống.
+Nội dung thông báo không được để trống.
+Loại thông báo không được để trống.
+Nhóm người nhận không được để trống nếu là thông báo gửi thủ công.
+Thời gian gửi phải hợp lệ nếu chọn gửi theo lịch.
+Business Rule
+Thông báo được chia thành 2 nhóm: thông báo tự động và thông báo thủ công.
+Thông báo tự động được hệ thống gửi theo sự kiện phát sinh như đặt khám thành công, thanh toán thành công, hủy phiếu, hoàn tiền, nhắc lịch khám, có kết quả khám hoặc mời đánh giá.
+Thông báo thủ công do Admin tạo nội dung, chọn nhóm người nhận và gửi ngay hoặc lên lịch gửi.
+Admin có thể quản lý mẫu thông báo tự động, bật/tắt một số loại thông báo.
+Mỗi thông báo cần lưu trạng thái gửi và trạng thái đọc của người dùng.
+Các loại thông báo gồm:
+- Thông báo đặt khám.
+- Thông báo thanh toán.
+- Thông báo nhắc lịch khám/tái khám.
+- Thông báo thay đổi lịch khám.
+- Thông báo hủy phiếu/hoàn tiền.
+- Thông báo kết quả khám.
+- Thông báo mời đánh giá.
+- Thông báo tin tức/chương trình từ bệnh viện.
+- Thông báo hệ thống.
+Output
+Danh sách thông báo được hiển thị.
+Admin tạo được thông báo mới.
+Admin gửi được thông báo ngay hoặc lên lịch gửi.
+Người dùng nhận được thông báo trên App/Zalo Mini App.
+Hệ thống ghi nhận trạng thái gửi, gửi lỗi, đã đọc hoặc chưa đọc.
+Admin xem được lịch sử gửi thông báo.
+Flow xử lý
+Bước 1: Admin đăng nhập Web Admin.
+Bước 2: Admin chọn chức năng Quản lý thông báo.
+Bước 3: Hệ thống hiển thị danh sách thông báo.
+Bước 4: Admin nhập từ khóa hoặc chọn bộ lọc nếu cần.
+Bước 5: Admin nhấn Tìm kiếm hoặc Áp dụng bộ lọc.
+Bước 6: Hệ thống hiển thị danh sách thông báo phù hợp.
+Bước 7: Admin nhấn Tạo thông báo mới.
+Bước 8: Admin nhập tiêu đề, nội dung, loại thông báo và nhóm người nhận.
+Bước 9: Admin chọn gửi ngay hoặc lên lịch gửi.
+Bước 10: Hệ thống kiểm tra dữ liệu thông báo.
+Bước 11: Nếu dữ liệu không hợp lệ, hệ thống hiển thị thông báo lỗi.
+Bước 12: Nếu dữ liệu hợp lệ, hệ thống lưu thông báo.
+Bước 13: Nếu chọn gửi ngay, hệ thống gửi thông báo đến người dùng.
+Bước 14: Nếu chọn lên lịch gửi, hệ thống gửi thông báo theo thời gian đã cấu hình.
+Bước 15: Hệ thống cập nhật trạng thái gửi.
+Bước 16: Người dùng mở App/Zalo Mini App và xem thông báo.
+Bước 17: Hệ thống cập nhật trạng thái thông báo là đã đọc khi người dùng xem chi tiết. 
+Quản lí đánh giá
+Quản lí đánh giá
+Mô tả
+Admin quản lý danh sách đánh giá của người dùng sau khi hoàn tất khám hoặc có kết quả dịch vụ liên quan. Chức năng này dùng để xem đánh giá, lọc theo bác sĩ/dịch vụ, xử lý góp ý không hài lòng, cập nhật trạng thái xử lý và xuất báo cáo đánh giá chất lượng.
+Actor
+Admin.
+Nhân sự CSKH. 
+Người dùng App/Zalo Mini App. 
+Input
+Từ khóa tìm kiếm:
+- Họ tên người đánh giá.
+- Số điện thoại.
+- Mã phiếu khám.
+- Mã bệnh nhân HIS.
+- Tên bác sĩ.
+Bộ lọc:
+- Loại đánh giá: Bác sĩ khám, bác sĩ/cận lâm sàng, nhân viên phục vụ, môi trường, mức độ hài lòng chung.
+- Số sao đánh giá: 1 đến 5 sao.
+- Chuyên khoa.
+- Bác sĩ.
+- Phòng khám.
+- Trạng thái xử lý: Chưa xử lý, đang xử lý, đã xử lý.
+- Ngày gửi đánh giá.
+Thông tin đánh giá:
+- Mã đánh giá.
+- Mã phiếu khám.
+- Người đi khám.
+- Mã bệnh nhân HIS.
+- Số điện thoại.
+- Bác sĩ/dịch vụ được đánh giá.
+- Nội dung đánh giá theo tiêu chí.
+- Số sao từng tiêu chí.
+- Góp ý tự do.
+- Ngày gửi đánh giá.
+- Trạng thái xử lý.
+- Ghi chú xử lý nội bộ.
+- Người xử lý. 
+Validation
+Admin phải đăng nhập.
+Đánh giá phải gắn với một phiếu khám/lịch khám hợp lệ.
+Người dùng chỉ được đánh giá sau khi hoàn tất khám, sau khi có kết quả cận lâm sàng/xét nghiệm hoặc khi kết thúc đợt khám/điều trị.
+Số sao đánh giá phải nằm trong khoảng 1 đến 5.
+Nội dung góp ý không được vượt quá số ký tự quy định.
+Không cho phép Admin chỉnh sửa nội dung đánh giá gốc của người dùng.
+Nếu cập nhật trạng thái xử lý, hệ thống phải ghi nhận người xử lý và thời gian xử lý.
+Business Rule
+Admin có thể tạo và cấu hình biểu mẫu đánh giá trên Web Admin.
+Biểu mẫu đánh giá gồm tên biểu mẫu, mô tả, danh sách câu hỏi, loại câu hỏi và trạng thái bắt buộc.
+Các loại câu hỏi hỗ trợ gồm chọn sao, trắc nghiệm, chọn nhiều đáp án, câu trả lời ngắn và góp ý dạng đoạn văn.
+Admin có thể cấu hình biểu mẫu áp dụng cho bác sĩ khám, bác sĩ/cận lâm sàng, nhân viên phục vụ, môi trường bệnh viện hoặc mức độ hài lòng chung.
+Chỉ biểu mẫu đang hoạt động mới được hiển thị cho người dùng trên App/Zalo Mini App.
+Nếu biểu mẫu đã phát sinh dữ liệu đánh giá, hệ thống không cho phép xóa cứng biểu mẫu/câu hỏi mà chỉ cho phép ngưng sử dụng để đảm bảo dữ liệu báo cáo.
+Kết quả người dùng gửi từ biểu mẫu sẽ được lưu vào danh sách đánh giá để Admin/CSKH theo dõi và xử lý.
+Thông tin biểu mẫu đánh giá
+Tên biểu mẫu.
+Mô tả biểu mẫu.
+Trạng thái biểu mẫu: Nháp, đang áp dụng, tạm ngưng.
+Danh sách câu hỏi.
+Loại câu hỏi.
+Tùy chọn trả lời nếu có.
+Bắt buộc trả lời hoặc không bắt buộc.
+Thứ tự hiển thị câu hỏi. 
+Output
+Danh sách đánh giá được hiển thị.
+Admin xem được chi tiết đánh giá.
+Admin cập nhật được trạng thái xử lý đánh giá.
+Hệ thống ghi nhận lịch sử xử lý đánh giá.
+Admin có thể xuất báo cáo đánh giá.
+Thông tin hiển thị trên danh sách đánh giá
+STT.
+Mã đánh giá.
+Người đi khám.
+Mã bệnh nhân HIS.
+Số điện thoại.
+Mã phiếu khám.
+Bác sĩ/dịch vụ được đánh giá.
+Chuyên khoa.
+Số sao trung bình.
+Trạng thái xử lý.
+Ngày gửi đánh giá.
+Người xử lý nếu có.
+Thao tác: Xem chi tiết, Cập nhật xử lý, Xuất báo cáo.
+Thông tin hiển thị trong chi tiết đánh giá
+Mã đánh giá.
+Mã phiếu khám.
+Người đi khám.
+Mã bệnh nhân HIS.
+Số điện thoại.
+Chuyên khoa.
+Phòng khám.
+Bác sĩ khám.
+Tiêu chí đánh giá bác sĩ.
+Tiêu chí đánh giá nhân viên.
+Tiêu chí đánh giá môi trường.
+Mức độ hài lòng chung.
+Góp ý tự do.
+Ngày gửi đánh giá.
+Trạng thái xử lý.
+Ghi chú xử lý nội bộ.
+Người xử lý.
+Thời gian xử lý.
+Admin tạo được biểu mẫu đánh giá.
+Admin cập nhật được câu hỏi, loại câu hỏi
+Biểu mẫu đánh giá được hiển thị cho người dùng khi đủ điều kiện.
+Kết quả đánh giá của người dùng được ghi nhận vào danh sách đánh giá.
+Admin xem được kết quả đánh giá và trạng thái xử lý.
+Quản lí Chat CSKH
+Quản lí Chat CSKH
+Mô tả
+Admin/nhân sự CSKH quản lý các cuộc trò chuyện của người dùng gửi từ Mobile App/Zalo Mini App. Chức năng này dùng để tiếp nhận câu hỏi, tư vấn, phản hồi thắc mắc về đặt khám, thanh toán, hủy/hoàn tiền, kết quả khám, tài khoản và các vấn đề hỗ trợ khác.
+Actor
+Admin.
+Nhân sự CSKH.
+Người dùng App/Zalo Mini App 
+Input
+Từ khóa tìm kiếm:
+- Họ tên người dùng.
+- Số điện thoại.
+- Mã bệnh nhân HIS.
+- Nội dung tin nhắn.
+Bộ lọc:
+- Trạng thái cuộc chat: Mới, đang xử lý, chờ phản hồi, đã xử lý, đã đóng.
+- Nhân sự phụ trách.
+- Thời gian gửi.
+- Chủ đề hỗ trợ: Đặt khám, thanh toán, hủy/hoàn tiền, hồ sơ bệnh nhân, kết quả khám, tài khoản, khác.
+Thông tin cuộc chat:
+- Mã cuộc trò chuyện.
+- Người gửi.
+- Số điện thoại.
+- Mã bệnh nhân HIS nếu có.
+- Chủ đề hỗ trợ.
+- Nội dung tin nhắn.
+- Tệp đính kèm/hình ảnh nếu có.
+- Nhân sự phụ trách.
+- Trạng thái xử lý.
+- Thời gian gửi.
+- Thời gian phản hồi gần nhất.
+- Ghi chú nội bộ nếu có. 
+Validation
+Admin/CSKH phải đăng nhập.
+Nội dung phản hồi không được để trống.
+Người dùng phải tồn tại trong hệ thống nếu cuộc chat gắn với tài khoản.
+Tệp đính kèm nếu có phải đúng định dạng và dung lượng cho phép.
+Nhân sự CSKH được xem và xử lý các cuộc chat.
+Không cho phép chỉnh sửa nội dung tin nhắn gốc của người dùng.
+Business Rule
+Người dùng có thể gửi yêu cầu hỗ trợ từ Mobile App/Zalo Mini App.
+Mỗi yêu cầu hỗ trợ được ghi nhận thành một cuộc trò chuyện.
+Cuộc chat gắn với tài khoản người dùng
+CSKH có thể phản hồi trực tiếp cho người dùng.
+Admin có thể phân công người phụ trách xử lý cuộc chat.
+Mỗi cuộc chat cần có trạng thái xử lý để theo dõi tiến độ.
+Các trạng thái gồm: Mới, đang xử lý, chờ phản hồi, đã xử lý, đã đóng.
+CSKH có thể thêm ghi chú nội bộ, ghi chú này không hiển thị cho người dùng.
+Lịch sử trao đổi cần được lưu lại để phục vụ chăm sóc khách hàng và kiểm tra khi cần.
+Nếu vấn đề liên quan đến hủy/hoàn tiền, đặt khám hoặc hồ sơ bệnh nhân, CSKH có thể điều hướng sang màn hình nghiệp vụ tương ứng để kiểm tra.
+Mọi thao tác phản hồi, chuyển người phụ trách, cập nhật trạng thái hoặc đóng cuộc chat cần được ghi log.
+Output
+Danh sách cuộc chat được hiển thị.
+Admin/CSKH xem được chi tiết cuộc trò chuyện.
+CSKH phản hồi được tin nhắn cho người dùng.
+Trạng thái xử lý cuộc chat được cập nhật.
+Cuộc chat được lưu lịch sử trao đổi.
+Thông tin hiển thị trên danh sách chat
+STT.
+Mã cuộc trò chuyện.
+Người gửi.
+Số điện thoại.
+Chủ đề hỗ trợ.
+Nội dung tin nhắn gần nhất.
+Nhân sự phụ trách.
+Trạng thái xử lý.
+Thời gian gửi gần nhất.
+Thời gian phản hồi gần nhất.
+Thao tác: Xem chi tiết, Phản hồi, Gán người xử lý, Đóng cuộc chat.
+Thông tin hiển thị trong chi tiết chat
+Mã cuộc trò chuyện.
+Thông tin người dùng.
+Số điện thoại.
+Mã bệnh nhân HIS nếu có.
+Chủ đề hỗ trợ.
+Lịch sử tin nhắn.
+Tệp đính kèm/hình ảnh nếu có.
+Phiếu đặt khám liên quan nếu có.
+Nhân sự phụ trách.
+Trạng thái xử lý.
+Ghi chú nội bộ.
+Lịch sử thao tác.
+Chức năng tìm kiếm/lọc
+Ô tìm kiếm theo họ tên, số điện thoại, mã bệnh nhân HIS hoặc nội dung tin nhắn.
+Bộ lọc trạng thái cuộc chat.
+Bộ lọc chủ đề hỗ trợ.
+Bộ lọc thời gian gửi.
+Nút Tìm kiếm.
+Nút Xóa bộ lọc.
+Nút Xem chi tiết.
+Nút Phản hồi.
+Nút Gán người xử lý.
+Nút Đóng cuộc chat.
+Flow xử lý
+Phân quyền
+Phân quyền
+STT
+Vai trò
+Chức năng
+1
+Admin 
+Có toàn quyền hệ thống
+- Đồng bộ phiếu khám thủ công,chỉnh sửa MABN, Bác sĩ, Phòng khám
+- Khai báo chuyên khoa, phòng khám, bác sĩ, giá dịch vụ
+-Hoàn hủy phiếu khám, BC đối soát
+2
+Kế toán
+-Hoàn hủy phiếu khám, trả tiền Bệnh nhân, Báo cáo đối soát ngân hàng, His
+3
+CSKH
+Lên lịch nhắc  hẹn tái khám, mẫu tin nhắn nhắc hẹn, Quản lý khảo sát đánh giá hài lòng BS, lấy báo cáo đánh giá
+Chat tư vấn, trả lời câu hỏi thắc mắc của Khách hàng
+4
+Marketing
+Lên các chương trình khuyến mãi, quảng cáo, bán dịch vụ gói khám
+5
+Tiếp tân
+Lập và chỉnh sửa lịch khám, lịch nghỉ phép của BS
+6
+User thường
+Xem lịch khám của BS
