@@ -35,6 +35,10 @@ export default function DoctorsPage() {
     onSuccess: () => toast.success("Tạo bác sĩ thành công"),
     onError: (err) => toast.error(err.message || "Tạo bác sĩ thất bại"),
   });
+  const updateMutation = doctorsHooks.useUpdate({
+    onSuccess: () => toast.success("Cập nhật bác sĩ thành công"),
+    onError: (err) => toast.error(err.message || "Cập nhật bác sĩ thất bại"),
+  });
   const deleteMutation = doctorsHooks.useDelete({
     onSuccess: () => toast.success("Xóa bác sĩ thành công"),
     onError: (err) => toast.error(err.message || "Xóa bác sĩ thất bại"),
@@ -50,9 +54,7 @@ export default function DoctorsPage() {
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}
       onCreate={(form) => createMutation.mutate(form as Partial<HisDoctor>)}
-      onUpdate={() => {
-        // PUT doctors/:id không có trong HIS API doc
-      }}
+      onUpdate={(id, form) => updateMutation.mutate({ id, data: form as Partial<HisDoctor> })}
       onDelete={(id) => deleteMutation.mutate(id)}
       getSearchText={(item) =>
         [item.doctorid, item.doctorname, item.description ?? ""].join(" ")
@@ -95,7 +97,7 @@ export default function DoctorsPage() {
                 label="Mô tả"
                 value={form.description}
                 onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                placeholder="VD: NHÂN VIÊN"
+                placeholder="VD: Bác sĩ khoa Tim mạch"
               />
             </div>
           </FieldSection>

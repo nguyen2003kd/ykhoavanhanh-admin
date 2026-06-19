@@ -2,44 +2,62 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  type UseQueryResult,
   type UseMutationOptions,
+  type UseQueryResult,
 } from "@tanstack/react-query";
-import { apiGet, apiPost, apiDelete } from "@/lib/axios";
-// ─── HIS Doctor Type (khớp schema API trả về) ───────────────────────────
+import { api, apiGet, apiPost, apiPut, apiDelete } from "@/lib/axios";
+import { createApi } from "./createApi";
+
+// ─── HIS Doctor Type (khớp api.md) ────────────────────────────────────────
 
 export interface HisDoctor {
-  id: string;         // alias của doctorid (để khớp HospitalCrudPage constraint)
+  id: string;
   doctorid: string;
   doctorname: string;
   description: string | null;
   updatetime: string;
 }
 
-// ─── Query Keys ───────────────────────────────────────────────────────────
+export interface DoctorImportResult {
+  row: number;
+  doctor_id: string;
+  doctor_name: string;
+  status: "success" | "error";
+  error?: string;
+}
 
-const baseKey = "doctors";
+export interface DoctorImportReport {
+  total: number;
+  success: number;
+  error: number;
+  results: DoctorImportResult[];
+}
 
-export const doctorsKeys = {
-  all: [baseKey] as const,
-  list: (params?: { ip?: string; idbv?: string }) =>
-    [baseKey, "list", params] as const,
-  detail: (id: string) => [baseKey, "detail", id] as const,
-};
+export interface DoctorListParams {
+  ip?: string;
+  idbv?: string;
+}
 
-// ─── Service Functions ──────────────────────────────────────────────────────
+// ─── CRUD factory ─────────────────────────────────────────────────────────
+
+const { service: baseService, hooks: baseHooks, keys } = createApi<HisDoctor>("doctors");
+
+// ─── Custom service methods ─────────────────────────────────────────────────
 
 export const doctorsService = {
-  /** Lấy danh sách bác sĩ từ HIS (không phân trang) */
-  getList: async (params?: { ip?: string; idbv?: string }): Promise<HisDoctor[]> => {
+  ...baseService,
+
+  getList: async (params?: DoctorListParams): Promise<HisDoctor[]> => {
     const res = await apiGet<HisDoctor[]>("/doctors", { params });
     if (res.data.status === "success" && res.data.responseData) {
-      return res.data.responseData.map((item) => ({ ...item, id: item.doctorid }));
+      return res.data.responseData.map((item) => ({
+        ...item,
+        id: item.doctorid,
+      }));
     }
     throw new Error(res.data.message || "Không thể lấy danh sách bác sĩ");
   },
 
-  /** Lấy chi tiết một bác sĩ */
   getById: async (id: string): Promise<HisDoctor> => {
     const res = await apiGet<HisDoctor>(`/doctors/${id}`);
     if (res.data.status === "success" && res.data.responseData) {
@@ -49,9 +67,12 @@ export const doctorsService = {
     throw new Error(res.data.message || "Không thể lấy thông tin bác sĩ");
   },
 
-  /** Tạo bác sĩ mới (forward sang HIS) */
   create: async (data: Partial<HisDoctor>): Promise<HisDoctor> => {
-    const res = await apiPost<HisDoctor>("/doctors", data as Record<string, unknown>);
+    const res = await apiPost<HisDoctor>("/doctors", {
+      doctor_id: data.doctorid,
+      doctor_name: data.doctorname,
+      description: data.description,
+    });
     if (res.data.status === "success" && res.data.responseData) {
       const item = res.data.responseData;
       return { ...item, id: item.doctorid };
@@ -59,24 +80,64 @@ export const doctorsService = {
     throw new Error(res.data.message || "Tạo bác sĩ thất bại");
   },
 
-  /** Xóa bác sĩ */
+  update: async (id: string, data: Partial<HisDoctor>): Promise<HisDoctor> => {
+    const res = await apiPut<HisDoctor>(`/doctors/${id}`, {
+      doctor_id: id,
+      doctor_name: data.doctorname,
+      description: data.description,
+    });
+    if (res.data.status === "success" && res.data.responseData) {
+      const item = res.data.responseData;
+      return { ...item, id: item.doctorid };
+    }
+    throw new Error(res.data.message || "Cập nhật bác sĩ thất bại");
+  },
+
   remove: async (id: string): Promise<void> => {
     const res = await apiDelete(`/doctors/${id}`);
     if (res.data.status === "fail") {
       throw new Error(res.data.message || "Xóa bác sĩ thất bại");
     }
   },
+
+  downloadTemplate: async (): Promise<Blob> => {
+    const res = await api.get<Blob>("/doctors/template", { responseType: "blob" });
+    return res.data;
+  },
+
+  exportList: async (params?: DoctorListParams): Promise<Blob> => {
+    const res = await api.get<Blob>("/doctors/export", { params, responseType: "blob" });
+    return res.data;
+  },
+
+  importDoctors: async (file: File): Promise<DoctorImportReport> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await apiPost<DoctorImportReport>("/doctors/import", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    if (res.data.status === "success" && res.data.responseData) {
+      return res.data.responseData;
+    }
+    throw new Error(res.data.message || "Import bác sĩ thất bại");
+  },
 };
 
-// ─── TanStack Query Hooks ───────────────────────────────────────────────────
+// ─── Query Keys ───────────────────────────────────────────────────────────
+
+export const doctorsKeys = keys;
+
+// ─── Hooks ────────────────────────────────────────────────────────────────
 
 export const doctorsHooks = {
+  ...baseHooks,
+
   useList: (
-    params?: { ip?: string; idbv?: string },
+    params?: DoctorListParams,
     options?: { enabled?: boolean; staleTime?: number }
   ): UseQueryResult<HisDoctor[], Error> => {
     return useQuery<HisDoctor[], Error>({
-      queryKey: doctorsKeys.list(params),
+      queryKey: doctorsKeys.list(params as unknown as Record<string, unknown>),
       queryFn: () => doctorsService.getList(params),
       staleTime: 1000 * 60 * 2,
       enabled: options?.enabled ?? true,
@@ -110,12 +171,39 @@ export const doctorsHooks = {
     });
   },
 
+  useUpdate: (
+    options?: UseMutationOptions<HisDoctor, Error, { id: string; data: Partial<HisDoctor> }>
+  ) => {
+    const qc = useQueryClient();
+    return useMutation<HisDoctor, Error, { id: string; data: Partial<HisDoctor> }>({
+      mutationFn: ({ id, data }) => doctorsService.update(id, data),
+      onSuccess: (_, { id }) => {
+        qc.invalidateQueries({ queryKey: doctorsKeys.all });
+        qc.invalidateQueries({ queryKey: doctorsKeys.detail(id) });
+      },
+      ...options,
+    });
+  },
+
   useDelete: (
     options?: UseMutationOptions<void, Error, string>
   ) => {
     const qc = useQueryClient();
     return useMutation<void, Error, string>({
       mutationFn: (id) => doctorsService.remove(id),
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: doctorsKeys.all });
+      },
+      ...options,
+    });
+  },
+
+  useImport: (
+    options?: UseMutationOptions<DoctorImportReport, Error, File>
+  ) => {
+    const qc = useQueryClient();
+    return useMutation<DoctorImportReport, Error, File>({
+      mutationFn: (file) => doctorsService.importDoctors(file),
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: doctorsKeys.all });
       },
