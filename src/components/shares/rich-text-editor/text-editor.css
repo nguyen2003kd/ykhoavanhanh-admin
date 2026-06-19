@@ -1,0 +1,33 @@
+.rte-editor-content {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.rte-editor-content ::selection {
+  background-color: #d0d7de !important;
+  color: inherit;
+}
+
+/* TextViewer (client) — remove borders/outlines/padding */
+.text-editor .reactjs-tiptap-editor {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.text-editor .reactjs-tiptap-editor .richtext-outline,
+.text-editor .reactjs-tiptap-editor .richtext-outline-1,
+.text-editor .reactjs-tiptap-editor .richtext-ring-0,
+.text-editor .reactjs-tiptap-editor .richtext-shadow,
+.text-editor .reactjs-tiptap-editor .richtext-shadow-sm {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.text-editor .reactjs-tiptap-editor .ProseMirror {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+}

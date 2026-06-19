@@ -1,0 +1,104 @@
+/* Disable selection styling from the editor */
+.ProseMirror ::selection {
+  background-color: transparent !important;
+}
+
+/* Override any highlight marks */
+.ProseMirror mark[data-type="highlight"] {
+  background-color: transparent !important;
+}
+
+/* Ensure browser default selection is visible */
+.ProseMirror {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Remove outline/border from images (normal, hover, focus, selected) */
+.ProseMirror img,
+.ProseMirror img:hover,
+.ProseMirror img:focus,
+.ProseMirror img[data-selected],
+.ProseMirror img.ProseMirror-selectednode,
+.ProseMirror .ProseMirror-selectednode img {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Extra guard: ProseMirror selected node wrapper */
+.ProseMirror .ProseMirror-selectednode {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Target image wrapper classes from the editor (provided HTML) */
+.ProseMirror .image-view__body,
+.ProseMirror .image-view__body:hover,
+.ProseMirror .image-view__body:focus,
+.ProseMirror .image-view__body--focused,
+.ProseMirror .image-view__body--focused:hover,
+.ProseMirror .image-view__body--focused:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ProseMirror .image-view__body img,
+.ProseMirror .image-view__body img:hover,
+.ProseMirror .image-view__body img:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Hide any wrapper styling on the outer span node view */
+.ProseMirror .image-view,
+.ProseMirror span.image-view,
+.ProseMirror [data-node-view-wrapper].image-view,
+.ProseMirror [data-node-view-wrapper][class*="image-view"],
+.ProseMirror [data-node-view-wrapper] {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Cover outer react renderer node wrapper */
+.ProseMirror .react-renderer.node-image,
+.ProseMirror .react-renderer.node-image *,
+.ProseMirror span:has(>.react-renderer.node-image) {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* TextViewer (client) — remove borders/outlines/padding */
+.text-viewer .reactjs-tiptap-editor {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.text-viewer .reactjs-tiptap-editor .richtext-outline,
+.text-viewer .reactjs-tiptap-editor .richtext-outline-1,
+.text-viewer .reactjs-tiptap-editor .richtext-ring-0,
+.text-viewer .reactjs-tiptap-editor .richtext-shadow,
+.text-viewer .reactjs-tiptap-editor .richtext-shadow-sm {
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.text-viewer .reactjs-tiptap-editor .ProseMirror {
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+}

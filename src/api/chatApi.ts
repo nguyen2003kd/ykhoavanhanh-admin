@@ -1,8 +1,4 @@
-/**
- * Chat CSKH API
- * - Khi IS_MOCK = true: trả về mock data cục bộ
- * - Khi backend có API thật: set IS_MOCK = false và xóa phần mock
- */
+
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost, apiPut } from "@/lib/axios";
@@ -21,6 +17,24 @@ import {
   MOCK_MESSAGES,
   MOCK_LOGS,
 } from "@/lib/mock-chat";
+
+// ─── Query Keys ─────────────────────────────────────────────────────────────────
+
+const conversationBase = ["chats", "conversations"] as const;
+
+export const conversationKeys = {
+  all: conversationBase,
+  list: (params?: ConversationListParams) =>
+    [...conversationBase, "list", params] as const,
+  detail: (id: string) =>
+    [...conversationBase, "detail", id] as const,
+  messages: (conversationId: string) =>
+    [...conversationBase, conversationId, "messages"] as const,
+  logs: (conversationId: string) =>
+    [...conversationBase, conversationId, "logs"] as const,
+  notes: (conversationId: string) =>
+    [...conversationBase, conversationId, "notes"] as const,
+};
 
 // ─── Mock Flag ────────────────────────────────────────────────────────────────
 
@@ -282,7 +296,7 @@ async function addInternalNote(
 
 export function useConversations(params?: ConversationListParams) {
   return useQuery({
-    queryKey: ["chats", "conversations", "list", params] as const,
+    queryKey: conversationKeys.list(params),
     queryFn: () => fetchConversations(params),
     staleTime: 1000 * 30,
     refetchInterval: IS_MOCK ? false : 1000 * 60,
@@ -291,7 +305,7 @@ export function useConversations(params?: ConversationListParams) {
 
 export function useConversation(id: string | null | undefined) {
   return useQuery({
-    queryKey: ["chats", "conversations", "detail", id] as const,
+    queryKey: conversationKeys.detail(id ?? ""),
     queryFn: () => fetchConversationById(id!),
     enabled: Boolean(id),
     staleTime: 1000 * 30,
@@ -300,7 +314,7 @@ export function useConversation(id: string | null | undefined) {
 
 export function useMessages(conversationId: string | null | undefined) {
   return useQuery({
-    queryKey: ["chats", "conversations", conversationId, "messages"] as const,
+    queryKey: conversationKeys.messages(conversationId ?? ""),
     queryFn: () => fetchMessages(conversationId!),
     enabled: Boolean(conversationId),
     staleTime: 1000 * 15,
@@ -310,7 +324,7 @@ export function useMessages(conversationId: string | null | undefined) {
 
 export function useConversationLogs(conversationId: string | null | undefined) {
   return useQuery({
-    queryKey: ["chats", "conversations", conversationId, "logs"] as const,
+    queryKey: conversationKeys.logs(conversationId ?? ""),
     queryFn: () => fetchConversationLogs(conversationId!),
     enabled: Boolean(conversationId),
     staleTime: 1000 * 60 * 5,
@@ -331,12 +345,8 @@ export function useSendMessage(options?: {
       payload: SendMessagePayload;
     }) => sendMessage(conversationId, payload),
     onSuccess: (_, { conversationId }) => {
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", conversationId, "messages"],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", "list"],
-      });
+      qc.invalidateQueries({ queryKey: conversationKeys.messages(conversationId) });
+      qc.invalidateQueries({ queryKey: conversationKeys.list(undefined) });
     },
     onError: (error) => options?.onError?.(error as Error),
     ...options,
@@ -357,15 +367,9 @@ export function useAssignConversation(options?: {
       payload: AssignConversationPayload;
     }) => assignConversation(conversationId, payload),
     onSuccess: (_, { conversationId }) => {
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", "list"],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", "detail", conversationId],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", conversationId, "logs"],
-      });
+      qc.invalidateQueries({ queryKey: conversationKeys.list(undefined) });
+      qc.invalidateQueries({ queryKey: conversationKeys.detail(conversationId) });
+      qc.invalidateQueries({ queryKey: conversationKeys.logs(conversationId) });
     },
     onError: (error) => options?.onError?.(error as Error),
     ...options,
@@ -386,15 +390,9 @@ export function useUpdateConversationStatus(options?: {
       payload: UpdateStatusPayload;
     }) => updateConversationStatus(conversationId, payload),
     onSuccess: (_, { conversationId }) => {
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", "list"],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", "detail", conversationId],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", conversationId, "logs"],
-      });
+      qc.invalidateQueries({ queryKey: conversationKeys.list(undefined) });
+      qc.invalidateQueries({ queryKey: conversationKeys.detail(conversationId) });
+      qc.invalidateQueries({ queryKey: conversationKeys.logs(conversationId) });
     },
     onError: (error) => options?.onError?.(error as Error),
     ...options,
@@ -415,12 +413,8 @@ export function useAddInternalNote(options?: {
       content: string;
     }) => addInternalNote(conversationId, content),
     onSuccess: (_, { conversationId }) => {
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", conversationId, "logs"],
-      });
-      qc.invalidateQueries({
-        queryKey: ["chats", "conversations", conversationId, "notes"],
-      });
+      qc.invalidateQueries({ queryKey: conversationKeys.logs(conversationId) });
+      qc.invalidateQueries({ queryKey: conversationKeys.notes(conversationId) });
     },
     onError: (error) => options?.onError?.(error as Error),
     ...options,

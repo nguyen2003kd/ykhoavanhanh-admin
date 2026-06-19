@@ -30,6 +30,16 @@ export interface Post {
   created_by: string | null;
   updated_at: string;
   updated_by: string | null;
+  status?: "DRAFT" | "PUBLISHED" | "HIDDEN" | "ARCHIVED";
+  published_at?: string | null;
+  thumbnail_path?: string | null;
+  slug?: string | null;
+  category_id?: string | null;
+  category?: unknown;
+  post_media?: unknown[];
+  is_featured?: boolean;
+  view_count?: number;
+  deleted_at?: string | null;
 }
 
 export interface AdminSpecialty extends AuditFields {
