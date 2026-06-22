@@ -20,8 +20,8 @@ import {
   Star,
   Save,
   X,
-  Loader2,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils";
 
 function slugify(text: string): string {
@@ -197,7 +197,7 @@ export default function NewNewsPage() {
               size="sm"
               className="gap-2 shadow-sm active:scale-[0.98] transition-transform"
             >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
               Tạo tin tức
             </Button>
           </div>
@@ -293,7 +293,7 @@ export default function NewNewsPage() {
                 </div>
                 {isEditorUploading && (
                   <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <Spinner size="sm" />
                     <span>Đang upload ảnh...</span>
                   </div>
                 )}
@@ -417,7 +417,7 @@ export default function NewNewsPage() {
                     disabled={isSaving}
                     className="w-full gap-2 shadow-sm active:scale-[0.98] transition-transform"
                   >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSaving ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
                     {isUploading ? "Đang upload ảnh..." : createMutation.isPending ? "Đang lưu..." : "Tạo tin tức"}
                   </Button>
                   <Button

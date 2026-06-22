@@ -4,7 +4,7 @@ export const mockNotifications: AdminNotification[] = [
   {
     id: "notif001",
     title: "Nhắc nhở lịch hẹn ngày mai",
-    body: "Bạn có lịch hẹn vào lúc 08:00 ngày mai tại bệnh viện Y Khoa Vạn Hạnh. Vui lòng đến đúng giờ.",
+    body: "Bạn có lịch hẹn vào lúc 08:00 ngày mai tại bệnh viện Bệnh Viện Vạn Hạnh. Vui lòng đến đúng giờ.",
     type: "appointment",
     channels: ["app", "zalo"],
     targetAudience: "specific",

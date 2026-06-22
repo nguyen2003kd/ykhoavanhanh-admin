@@ -48,9 +48,9 @@ export const mockArticles: Article[] = [
 export const mockNews: NewsItem[] = [
   {
     id: "n001",
-    title: "Bệnh viện Y Khoa Vạn Hạnh khai trương cơ sở 2 tại Quận 7",
+    title: "Bệnh viện Bệnh Viện Vạn Hạnh khai trương cơ sở 2 tại Quận 7",
     slug: "khai-truong-co-so-2-quan-7",
-    excerpt: "Sáng ngày 1 tháng 7 năm 2024, bệnh viện Y Khoa Vạn Hạnh chính thức khai trương cơ sở 2 tại Quận 7.",
+    excerpt: "Sáng ngày 1 tháng 7 năm 2024, bệnh viện Bệnh Viện Vạn Hạnh chính thức khai trương cơ sở 2 tại Quận 7.",
     content: "<p>Chi tiết sự kiện khai trương...</p>",
     coverImageUrl: "/images/news/n001.jpg",
     authorId: "admin001",
@@ -86,7 +86,7 @@ export const mockVideos: VideoItem[] = [
   {
     id: "vid001",
     title: "Hướng dẫn đặt lịch khám trực tuyến qua ứng dụng",
-    description: "Video hướng dẫn từng bước đặt lịch khám qua ứng dụng Y Khoa Vạn Hạnh.",
+    description: "Video hướng dẫn từng bước đặt lịch khám qua ứng dụng Bệnh Viện Vạn Hạnh.",
     thumbnailUrl: "/images/videos/vid001-thumb.jpg",
     videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     platform: "youtube",

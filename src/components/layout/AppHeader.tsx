@@ -103,7 +103,7 @@ function getPageInfo(pathname: string): { title: string; section: string | null 
   const match = sorted.find(
     (key) => pathname === key || (key !== "/" && pathname.startsWith(key + "/")),
   );
-  if (!match) return { title: "Y Khoa Vạn Hạnh", section: null };
+  if (!match) return { title: "Bệnh Viện Vạn Hạnh", section: null };
   return {
     title: moduleTitleMap[match],
     section: moduleSectionMap[match] ?? null,
@@ -473,7 +473,7 @@ export function AppHeader() {
           {/* Hospital logo */}
           {/* <Link
             href="/"
-            aria-label="Y Khoa Vạn Hạnh — Trang chủ"
+            aria-label="Bệnh Viện Vạn Hạnh — Trang chủ"
             className="flex shrink-0 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-600 shadow-sm">
@@ -488,7 +488,7 @@ export function AppHeader() {
             </div>
             <div className="hidden xl:block">
               <p className="text-[13px] font-bold leading-tight text-gray-900 tracking-tight">
-                Y Khoa Vạn Hạnh
+                Bệnh Viện Vạn Hạnh
               </p>
               <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400">
                 Hospital System

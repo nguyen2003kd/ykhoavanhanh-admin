@@ -16,7 +16,7 @@ export function LoginFormView() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-600 text-white text-2xl font-bold mb-4 shadow-card">
             VH
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Y Khoa Vạn Hạnh</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Bệnh Viện Vạn Hạnh</h1>
           <p className="text-sm text-gray-500 mt-1">Cổng quản trị nội bộ</p>
         </div>
 

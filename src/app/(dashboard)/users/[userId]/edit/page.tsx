@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Toggle } from "@/components/ui/Toggle";
 import { useUserById, useUpdateUser } from "@/api/userApi";
+import { LoadingSection } from "@/components/ui/Spinner";
 import { AdminRole } from "@/types/user";
 
 const roleOptions: { value: AdminRole; label: string }[] = [
@@ -50,11 +51,7 @@ export default function EditUserPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-gray-500">Đang tải...</p>
-      </div>
-    );
+    return <LoadingSection text="Đang tải thông tin người dùng..." />;
   }
 
   if (!apiUser) {

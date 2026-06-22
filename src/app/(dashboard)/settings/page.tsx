@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    hospitalName: "Y Khoa Vạn Hạnh",
+    hospitalName: "Bệnh Viện Vạn Hạnh",
     supportEmail: "support@vanhanh.vn",
     supportPhone: "028 3832 1234",
     defaultTimezone: "Asia/Ho_Chi_Minh",

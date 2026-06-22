@@ -21,9 +21,9 @@ import {
   X,
   CircleCheck,
   Clock,
-  Loader2,
   AlertCircle,
 } from "lucide-react";
+import { LoadingSection, Spinner } from "@/components/ui/Spinner";
 import { ThumbnailUpload } from "@/components/hospital-admin/ThumbnailUpload";
 import { cn } from "@/lib/utils";
 
@@ -134,17 +134,7 @@ export default function EditNewsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-slate-50/50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <div className="text-center space-y-1">
-            <p className="text-sm font-medium text-slate-700">Đang tải dữ liệu</p>
-            <p className="text-xs text-slate-400">Vui lòng chờ trong giây lát...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSection text="Đang tải dữ liệu bài viết..." />;
   }
 
   if (!post) {
@@ -207,11 +197,7 @@ export default function EditNewsPage() {
               size="sm"
               className="gap-2 shadow-sm active:scale-[0.98] transition-transform"
             >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
+              {isSaving ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
               Lưu thay đổi
             </Button>
           </div>
@@ -307,7 +293,7 @@ export default function EditNewsPage() {
                 </div>
                 {isEditorUploading && (
                   <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <Spinner size="sm" />
                     <span>Đang upload ảnh...</span>
                   </div>
                 )}
@@ -432,11 +418,7 @@ export default function EditNewsPage() {
                     disabled={isSaving}
                     className="w-full gap-2 shadow-sm active:scale-[0.98] transition-transform"
                   >
-                    {isSaving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
+                    {isSaving ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
                     {isUploading ? "Đang upload ảnh..." : patchMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
                   </Button>
                   <Button
