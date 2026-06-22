@@ -29,7 +29,7 @@ function mapItemToForm(item: HisRoom): RoomForm {
 }
 
 export default function ClinicsPage() {
-  const { data: rooms } = roomsHooks.useList();
+  const { data: rooms, isLoading } = roomsHooks.useList();
 
   return (
     <HospitalCrudPage
@@ -37,6 +37,7 @@ export default function ClinicsPage() {
       description="Danh sách phòng khám đồng bộ từ HIS."
       itemName="phòng khám"
       compact
+      isLoading={isLoading}
       items={rooms ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}

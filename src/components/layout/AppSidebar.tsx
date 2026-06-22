@@ -74,7 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: "content", label: "Nội dung", icon: BookOpen,
     children: [
-      { name: "Bài viết sức khỏe", href: "/content/articles" },
+      // { name: "Bài viết sức khỏe", href: "/content/articles" },
       { name: "Tin tức",           href: "/content/news" },
       { name: "Danh mục bài viết", href: "/content/categories" },
       { name: "Video",             href: "/content/videos" },

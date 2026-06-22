@@ -115,10 +115,17 @@ export function createApi<TEntity>(
       options?: UseMutationOptions<TEntity, Error, Partial<TEntity>>
     ) => {
       const qc = useQueryClient();
+      const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
       return useMutation<TEntity, Error, Partial<TEntity>>({
         mutationFn: (data) => service.create(data),
-        onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
-        ...options,
+        onSuccess: (data, variables, context) => {
+          qc.invalidateQueries({ queryKey: keys.all });
+          (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+        },
+        onError: (error, variables, context) => {
+          (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+        },
+        ...rest,
       });
     },
 
@@ -126,13 +133,18 @@ export function createApi<TEntity>(
       options?: UseMutationOptions<TEntity, Error, { id: string; data: Partial<TEntity> }>
     ) => {
       const qc = useQueryClient();
+      const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
       return useMutation<TEntity, Error, { id: string; data: Partial<TEntity> }>({
         mutationFn: ({ id, data }) => service.update(id, data),
-        onSuccess: (_, { id }) => {
+        onSuccess: (data, variables, context) => {
           qc.invalidateQueries({ queryKey: keys.all });
-          qc.invalidateQueries({ queryKey: keys.detail(id) });
+          qc.invalidateQueries({ queryKey: keys.detail(variables.id) });
+          (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
         },
-        ...options,
+        onError: (error, variables, context) => {
+          (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+        },
+        ...rest,
       });
     },
 
@@ -140,13 +152,18 @@ export function createApi<TEntity>(
       options?: UseMutationOptions<TEntity, Error, { id: string; data: Partial<TEntity> }>
     ) => {
       const qc = useQueryClient();
+      const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
       return useMutation<TEntity, Error, { id: string; data: Partial<TEntity> }>({
         mutationFn: ({ id, data }) => service.patch(id, data),
-        onSuccess: (_, { id }) => {
+        onSuccess: (data, variables, context) => {
           qc.invalidateQueries({ queryKey: keys.all });
-          qc.invalidateQueries({ queryKey: keys.detail(id) });
+          qc.invalidateQueries({ queryKey: keys.detail(variables.id) });
+          (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
         },
-        ...options,
+        onError: (error, variables, context) => {
+          (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+        },
+        ...rest,
       });
     },
 
@@ -154,10 +171,17 @@ export function createApi<TEntity>(
       options?: UseMutationOptions<void, Error, string>
     ) => {
       const qc = useQueryClient();
+      const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
       return useMutation<void, Error, string>({
         mutationFn: (id) => service.remove(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
-        ...options,
+        onSuccess: (data, variables, context) => {
+          qc.invalidateQueries({ queryKey: keys.all });
+          (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+        },
+        onError: (error, variables, context) => {
+          (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+        },
+        ...rest,
       });
     },
   };

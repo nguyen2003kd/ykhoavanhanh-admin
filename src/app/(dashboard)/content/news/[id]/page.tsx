@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { postsHooks } from "@/api/postsApi";
+import { postsHooks, postsMediaService, postsService } from "@/api/postsApi";
 import { postCategoriesHooks } from "@/api/postCategoriesApi";
-import { filesService } from "@/api/filesApi";
 import { TextEditor } from "@/components/shares/rich-text-editor";
 import { Select } from "@/components/ui/Select";
 import type { ApiFile } from "@/components/shares/rich-text-editor/types/types";
@@ -64,15 +63,7 @@ export default function EditNewsPage() {
   async function handleEditorUpload(file: File): Promise<(ApiFile & { url: string }) | null> {
     setIsEditorUploading(true);
     try {
-      const res = await filesService.upload(file);
-      return {
-        _id: "",
-        path: res.original,
-        original: res.original,
-        mime: res.contentType,
-        compress_info: {},
-        url: res.original,
-      };
+      return await postsService.uploadEditorFileForPost(id, file);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload ảnh thất bại");
       return null;
@@ -116,8 +107,8 @@ export default function EditNewsPage() {
     if (pendingThumbnail) {
       setIsUploading(true);
       try {
-        const res = await filesService.upload(pendingThumbnail);
-        thumbnailPath = res.original;
+        const media = await postsMediaService.upload(id, pendingThumbnail, { media_type: "THUMBNAIL" });
+        thumbnailPath = media.url ?? media.file_path;
         setPendingThumbnail(null);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Upload ảnh thất bại");

@@ -107,12 +107,17 @@ export const notificationsHooks = {
     options?: UseMutationOptions<number, Error, string | undefined>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<number, Error, string | undefined>({
       mutationFn: (filters) => notificationsService.markAsReadAll(filters),
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: notificationsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -120,13 +125,18 @@ export const notificationsHooks = {
     options?: UseMutationOptions<Notification, Error, string>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<Notification, Error, string>({
       mutationFn: (id) => notificationsService.markAsReadById(id),
-      onSuccess: (_, id) => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: notificationsKeys.all });
-        qc.invalidateQueries({ queryKey: notificationsKeys.detail(id) });
+        qc.invalidateQueries({ queryKey: notificationsKeys.detail(variables) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 };

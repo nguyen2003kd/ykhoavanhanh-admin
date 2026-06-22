@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Edit, Eye, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Edit, Eye, Loader2, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -41,6 +41,8 @@ type HospitalCrudPageProps<TItem extends { id: string }, TForm> = {
   summary?: React.ReactNode;
   compact?: boolean;
   showActions?: boolean;
+  isLoading?: boolean;
+  isMutating?: boolean;
   pagination?: {
     currentPage: number;
     totalCount: number;
@@ -68,6 +70,8 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
   summary,
   compact = false,
   showActions = true,
+  isLoading = false,
+  isMutating = false,
   pagination,
 }: HospitalCrudPageProps<TItem, TForm>) {
   const [search, setSearch] = useState("");
@@ -75,6 +79,15 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
   const [editingItem, setEditingItem] = useState<TItem | null>(null);
   const [draft, setDraft] = useState<TForm>(createInitialForm);
   const [deleteTarget, setDeleteTarget] = useState<TItem | null>(null);
+  const prevMutating = useRef(false);
+
+  // Đóng modal khi mutation vừa hoàn thành
+  useEffect(() => {
+    if (prevMutating.current && !isMutating) {
+      setIsFormOpen(false);
+    }
+    prevMutating.current = isMutating;
+  }, [isMutating]);
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -100,7 +113,6 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
     } else {
       onCreate(draft);
     }
-    setIsFormOpen(false);
   };
 
   return (
@@ -183,7 +195,26 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {pagedItems.map((item, index) => (
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i} className="odd:bg-white even:bg-slate-50/40">
+                          <TableCell><div className="h-5 w-8 animate-pulse rounded-full bg-slate-200" /></TableCell>
+                          {columns.map((col) => (
+                            <TableCell key={col.title}>
+                              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
+                            </TableCell>
+                          ))}
+                          {showActions && (
+                            <TableCell>
+                              <div className="flex justify-end gap-2">
+                                <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-200" />
+                                <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-200" />
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))
+                    ) : pagedItems.map((item, index) => (
                       <TableRow
                         key={item.id}
                         className="odd:bg-white even:bg-slate-50/40 hover:bg-sky-50/60"
@@ -239,11 +270,15 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
         size={formSize}
         footer={
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+            <Button variant="outline" onClick={() => setIsFormOpen(false)} disabled={isMutating}>
               Hủy
             </Button>
-            <Button variant="primary" onClick={handleSave}>
-              {editingItem ? "Lưu thay đổi" : "Tạo mới"}
+            <Button variant="primary" onClick={handleSave} disabled={isMutating} className="min-w-[100px]">
+              {isMutating ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{editingItem ? "Đang lưu..." : "Đang tạo..."}</>
+              ) : (
+                editingItem ? "Lưu thay đổi" : "Tạo mới"
+              )}
             </Button>
           </div>
         }
