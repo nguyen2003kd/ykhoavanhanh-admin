@@ -234,10 +234,17 @@ export const postsHooks = {
     options?: UseMutationOptions<Post, Error, CreatePostPayload>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<Post, Error, CreatePostPayload>({
       mutationFn: (data) => postsService.create(data),
-      onSuccess: () => qc.invalidateQueries({ queryKey: postsKeys.all }),
-      ...options,
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: postsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -245,13 +252,18 @@ export const postsHooks = {
     options?: UseMutationOptions<Post, Error, { id: string; data: UpdatePostPayload }>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<Post, Error, { id: string; data: UpdatePostPayload }>({
       mutationFn: ({ id, data }) => postsService.update(id, data),
-      onSuccess: (_, { id }) => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: postsKeys.all });
-        qc.invalidateQueries({ queryKey: postsKeys.detail(id) });
+        qc.invalidateQueries({ queryKey: postsKeys.detail(variables.id) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -259,13 +271,18 @@ export const postsHooks = {
     options?: UseMutationOptions<Post, Error, { id: string; data: UpdatePostPayload }>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<Post, Error, { id: string; data: UpdatePostPayload }>({
       mutationFn: ({ id, data }) => postsService.patch(id, data),
-      onSuccess: (_, { id }) => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: postsKeys.all });
-        qc.invalidateQueries({ queryKey: postsKeys.detail(id) });
+        qc.invalidateQueries({ queryKey: postsKeys.detail(variables.id) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -273,10 +290,17 @@ export const postsHooks = {
     options?: UseMutationOptions<void, Error, string>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<void, Error, string>({
       mutationFn: (id) => postsService.remove(id),
-      onSuccess: () => qc.invalidateQueries({ queryKey: postsKeys.all }),
-      ...options,
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: postsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -285,12 +309,17 @@ export const postsHooks = {
     options?: UseMutationOptions<PostMedia, Error, { file: File; media_type?: PostMedia["media_type"]; alt_text?: string }>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<PostMedia, Error, { file: File; media_type?: PostMedia["media_type"]; alt_text?: string }>({
-      mutationFn: ({ file, ...rest }) => postsMediaService.upload(postId, file, rest),
-      onSuccess: () => {
+      mutationFn: ({ file, ...payload }) => postsMediaService.upload(postId, file, payload),
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: postsKeys.detail(postId) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -299,12 +328,17 @@ export const postsHooks = {
     options?: UseMutationOptions<void, Error, string>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<void, Error, string>({
       mutationFn: (mediaId) => postsMediaService.remove(postId, mediaId),
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: postsKeys.detail(postId) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 };

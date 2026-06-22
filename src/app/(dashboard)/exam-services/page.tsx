@@ -36,7 +36,7 @@ function mapItemToForm(item: HisService): ServiceForm {
 }
 
 export default function ExamServicesPage() {
-  const { data: services } = hisServicesHooks.useList();
+  const { data: services, isLoading } = hisServicesHooks.useList();
 
   return (
     <HospitalCrudPage
@@ -44,6 +44,7 @@ export default function ExamServicesPage() {
       description="Danh sách dịch vụ đồng bộ từ HIS."
       itemName="dịch vụ khám"
       compact
+      isLoading={isLoading}
       items={services ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}

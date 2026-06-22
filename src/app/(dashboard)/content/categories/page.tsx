@@ -9,12 +9,13 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Loader2,
   Search,
   X,
   Check,
   FolderOpen,
 } from "lucide-react";
+import { LoadingSection, Spinner } from "@/components/ui/Spinner";
+import { ConfirmDialog } from "@/components/shares/dialog-confirm";
 
 const PAGE_SIZE = 10;
 
@@ -157,9 +158,19 @@ export default function CategoriesPage() {
     });
   }
 
-  function handleDelete(id: string) {
-    if (confirm("Bạn có chắc muốn xóa danh mục này?")) {
-      deleteMutation.mutate(id);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  function openConfirmDelete(id: string) {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  }
+
+  function handleConfirmDelete() {
+    if (pendingDeleteId) {
+      deleteMutation.mutate(pendingDeleteId);
+      setPendingDeleteId(null);
+      setConfirmOpen(false);
     }
   }
 
@@ -244,11 +255,7 @@ export default function CategoriesPage() {
 
       {/* ── Table ──────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] overflow-hidden">
-        {isFetching && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          </div>
-        )}
+        {isFetching && <LoadingSection />}
 
         {!isFetching && filteredRows.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -368,7 +375,7 @@ export default function CategoriesPage() {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(cat.id)}
+                          onClick={() => openConfirmDelete(cat.id)}
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-red-500 hover:bg-red-50 transition-colors"
                           title="Xóa"
                           disabled={deleteMutation.isPending}
@@ -571,7 +578,7 @@ export default function CategoriesPage() {
                   className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
                   {isMutating && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Spinner size="sm" />
                   )}
                   {editingId ? "Lưu thay đổi" : "Tạo danh mục"}
                 </button>
@@ -587,6 +594,17 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        variant="delete"
+        title="Xóa danh mục"
+        description="Bạn có chắc muốn xóa danh mục này? Hành động này không thể hoàn tác."
+        confirmLabel="Xóa"
+        isLoading={deleteMutation.isPending}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

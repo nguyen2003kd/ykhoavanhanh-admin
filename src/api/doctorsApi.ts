@@ -162,12 +162,17 @@ export const doctorsHooks = {
     options?: UseMutationOptions<HisDoctor, Error, Partial<HisDoctor>>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<HisDoctor, Error, Partial<HisDoctor>>({
       mutationFn: (data) => doctorsService.create(data),
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: doctorsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -175,13 +180,18 @@ export const doctorsHooks = {
     options?: UseMutationOptions<HisDoctor, Error, { id: string; data: Partial<HisDoctor> }>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<HisDoctor, Error, { id: string; data: Partial<HisDoctor> }>({
       mutationFn: ({ id, data }) => doctorsService.update(id, data),
-      onSuccess: (_, { id }) => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: doctorsKeys.all });
-        qc.invalidateQueries({ queryKey: doctorsKeys.detail(id) });
+        qc.invalidateQueries({ queryKey: doctorsKeys.detail(variables.id) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -189,12 +199,17 @@ export const doctorsHooks = {
     options?: UseMutationOptions<void, Error, string>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<void, Error, string>({
       mutationFn: (id) => doctorsService.remove(id),
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: doctorsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -202,12 +217,17 @@ export const doctorsHooks = {
     options?: UseMutationOptions<DoctorImportReport, Error, File>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<DoctorImportReport, Error, File>({
       mutationFn: (file) => doctorsService.importDoctors(file),
-      onSuccess: () => {
+      onSuccess: (data, variables, context) => {
         qc.invalidateQueries({ queryKey: doctorsKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
       },
-      ...options,
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 };

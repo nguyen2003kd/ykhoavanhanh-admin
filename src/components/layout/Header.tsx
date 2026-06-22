@@ -32,7 +32,7 @@ const moduleTitleMap: Record<string, string> = {
   "/membership/points": "Quản lý điểm",
   "/membership/gifts": "Quà tặng",
   "/membership/vouchers": "Voucher",
-  "/content/articles": "Bài viết sức khỏe",
+  // "/content/articles": "Bài viết sức khỏe",
   "/content/news": "Tin tức",
   "/content/videos": "Video / Livestream",
   "/promotions": "Khuyến mãi",

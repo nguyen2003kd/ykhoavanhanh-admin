@@ -14,7 +14,6 @@ import {
   Trash2,
   Star,
   Eye,
-  Loader2,
   Search,
   X,
   FileText,
@@ -22,6 +21,7 @@ import {
   Globe,
   Archive,
 } from "lucide-react";
+import { LoadingSection } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
@@ -193,11 +193,7 @@ export default function NewsPage() {
 
       {/* ── Table Card ─────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] overflow-hidden">
-        {isFetching && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          </div>
-        )}
+        {isFetching && <LoadingSection />}
 
         {!isFetching && rows.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">

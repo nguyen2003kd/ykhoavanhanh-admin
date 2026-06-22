@@ -13,9 +13,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { authService } from "@/api/authApi";
+import { notificationsHooks, type Notification as ApiNotification } from "@/api/notificationsApi";
 import { useCurrentUser } from "@/store/authStore";
 import { AdminRole, AdminUser } from "@/types/user";
 import {
@@ -28,7 +29,10 @@ import {
   Settings,
   ShieldAlert,
   User,
+  MailOpen,
+  Mail,
 } from "lucide-react";
+import { LoadingSection } from "@/components/ui/Spinner";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -158,17 +162,122 @@ function GlobalSearch() {
 // ── Notification bell ────────────────────────────────────────────────────────
 
 function NotificationBell() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { data, isFetching } = notificationsHooks.useList({ currentPage: 1, pageSize: 5 });
+  const rows = data?.rows ?? [];
+  const unreadCount = rows.filter((r) => !r.has_user_read).length;
+
+  const markReadMutation = notificationsHooks.useMarkAsReadById();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleClick = (notif: ApiNotification) => {
+    setOpen(false);
+    if (!notif.has_user_read) {
+      markReadMutation.mutate(notif.id);
+    }
+    router.push(`/notifications/${notif.id}`);
+  };
+
   return (
-    <button
-      aria-label="Thông báo (3 chưa đọc)"
-      className="group relative flex size-10 items-center justify-center rounded-xl border border-transparent text-gray-500 transition-all duration-150 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-    >
-      <Bell className="size-[18px]" />
-      <span
-        className="absolute right-2 top-2 flex size-2 items-center justify-center rounded-full bg-error ring-2 ring-white"
-        aria-hidden
-      />
-    </button>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`Thông báo (${unreadCount} chưa đọc)`}
+        className="group relative flex size-10 items-center justify-center rounded-xl border border-transparent text-gray-500 transition-all duration-150 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+      >
+        <Bell className="size-[18px]" />
+        {unreadCount > 0 && (
+          <span
+            className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-white ring-2 ring-white"
+            aria-hidden
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-xl shadow-black/[0.08] ring-1 ring-black/[0.04]"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <p className="text-sm font-semibold text-gray-900">Thông báo</p>
+            {unreadCount > 0 && (
+              <span className="text-xs text-primary font-medium">{unreadCount} chưa đọc</span>
+            )}
+          </div>
+
+          <div className="max-h-80 overflow-y-auto">
+            {isFetching && (
+              <div className="py-4">
+                <LoadingSection text="" />
+              </div>
+            )}
+
+            {!isFetching && rows.length === 0 && (
+              <div className="flex flex-col items-center py-8 text-center">
+                <Bell className="w-8 h-8 text-slate-300 mb-2" />
+                <p className="text-sm text-slate-500">Không có thông báo nào</p>
+              </div>
+            )}
+
+            {!isFetching &&
+              rows.map((notif: ApiNotification) => (
+                <button
+                  key={notif.id}
+                  onClick={() => handleClick(notif)}
+                  className={cn(
+                    "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50",
+                    !notif.has_user_read && "bg-sky-50/30"
+                  )}
+                >
+                  <div className="mt-1 shrink-0">
+                    {notif.has_user_read ? (
+                      <MailOpen className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <Mail className="w-4 h-4 text-primary" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={cn("text-sm truncate", notif.has_user_read ? "text-slate-600" : "font-medium text-slate-800")}>
+                      {notif.title}
+                    </p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{notif.content}</p>
+                    <p className="text-[11px] text-slate-400 mt-1">{notif.sent_time ? formatDateTime(notif.sent_time) : formatDateTime(notif.created_at)}</p>
+                  </div>
+                  {!notif.has_user_read && (
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                  )}
+                </button>
+              ))}
+          </div>
+
+          <div className="border-t border-gray-100 px-4 py-2">
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:text-primary-700 transition-colors"
+            >
+              Xem tất cả thông báo
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

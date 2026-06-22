@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { postsHooks } from "@/api/postsApi";
+import { postsHooks, postsMediaService, postsService } from "@/api/postsApi";
 import { postCategoriesHooks } from "@/api/postCategoriesApi";
-import { filesService } from "@/api/filesApi";
 import { Select } from "@/components/ui/Select";
 import { ThumbnailUpload } from "@/components/hospital-admin/ThumbnailUpload";
 import { TextEditor } from "@/components/shares/rich-text-editor";
@@ -76,6 +75,10 @@ export default function NewNewsPage() {
   const [pendingThumbnail, setPendingThumbnail] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isEditorUploading, setIsEditorUploading] = useState(false);
+  // ID của post DRAFT được tạo trước để phục vụ upload media
+  const [draftPostId, setDraftPostId] = useState<string | null>(null);
+
+  const patchMutation = postsHooks.usePatch();
 
   const createMutation = postsHooks.useCreate({
     onSuccess: () => {
@@ -85,18 +88,21 @@ export default function NewNewsPage() {
     onError: (err) => toast.error(err.message || "Tạo tin tức thất bại"),
   });
 
+  async function getOrCreateDraftId(): Promise<string> {
+    if (draftPostId) return draftPostId;
+    const draft = await postsService.create({
+      name: form.name.trim() || "Bài viết mới",
+      status: "DRAFT",
+    });
+    setDraftPostId(draft.id);
+    return draft.id;
+  }
+
   async function handleEditorUpload(file: File): Promise<(ApiFile & { url: string }) | null> {
     setIsEditorUploading(true);
     try {
-      const res = await filesService.upload(file);
-      return {
-        _id: "",
-        path: res.original,
-        original: res.original,
-        mime: res.contentType,
-        compress_info: {},
-        url: res.original,
-      };
+      const postId = await getOrCreateDraftId();
+      return await postsService.uploadEditorFileForPost(postId, file);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload ảnh thất bại");
       return null;
@@ -118,8 +124,9 @@ export default function NewNewsPage() {
     if (pendingThumbnail) {
       setIsUploading(true);
       try {
-        const res = await filesService.upload(pendingThumbnail);
-        thumbnailPath = res.original;
+        const postId = await getOrCreateDraftId();
+        const media = await postsMediaService.upload(postId, pendingThumbnail, { media_type: "THUMBNAIL" });
+        thumbnailPath = media.url ?? media.file_path;
         setPendingThumbnail(null);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Upload ảnh thất bại");
@@ -129,17 +136,33 @@ export default function NewNewsPage() {
       setIsUploading(false);
     }
 
-    createMutation.mutate({
+    const payload = {
       ...form,
       thumbnail_path: thumbnailPath,
       slug: form.slug.trim() || slugify(form.name),
       category_id: form.category_id || undefined,
-    });
+    };
+
+    if (draftPostId) {
+      // Patch post DRAFT đã tạo thay vì tạo mới
+      patchMutation.mutate(
+        { id: draftPostId, data: payload },
+        {
+          onSuccess: () => {
+            toast.success("Tạo tin tức thành công");
+            router.push("/content/news");
+          },
+          onError: (err) => toast.error(err.message || "Tạo tin tức thất bại"),
+        }
+      );
+    } else {
+      createMutation.mutate(payload);
+    }
   }
 
   const currentStatus = STATUS_CONFIG[form.status] ?? STATUS_CONFIG.DRAFT;
   const StatusIcon = currentStatus.icon;
-  const isSaving = createMutation.isPending || isUploading || isEditorUploading;
+  const isSaving = createMutation.isPending || patchMutation.isPending || isUploading || isEditorUploading;
 
   return (
     <div className="min-h-[100dvh] bg-slate-50/50">

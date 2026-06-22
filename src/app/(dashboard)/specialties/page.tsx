@@ -43,7 +43,7 @@ export default function SpecialtiesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const { data } = specialtiesHooks.useList({
+  const { data, isLoading } = specialtiesHooks.useList({
     page: currentPage,
     pageSize,
     sortField: "created_at",
@@ -63,12 +63,16 @@ export default function SpecialtiesPage() {
     onError: (err) => toast.error(err.message || "Xóa chuyên khoa thất bại"),
   });
 
+  const isMutating = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
   return (
     <HospitalCrudPage
       title="Quản lý chuyên khoa"
       description="Quản lý danh mục chuyên khoa dùng để mở lịch khám, gắn phòng hướng dẫn và đồng bộ ID nội bộ sang hệ thống khám bệnh."
       itemName="chuyên khoa"
       compact
+      isLoading={isLoading}
+      isMutating={isMutating}
       items={data?.rows ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}

@@ -80,10 +80,17 @@ export const chatDataHooks = {
     options?: UseMutationOptions<ChatDataItem, Error, CreateChatDataPayload>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<ChatDataItem, Error, CreateChatDataPayload>({
       mutationFn: (data) => chatDataService.create(data),
-      onSuccess: () => qc.invalidateQueries({ queryKey: chatDataKeys.all }),
-      ...options,
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: chatDataKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 
@@ -91,10 +98,17 @@ export const chatDataHooks = {
     options?: UseMutationOptions<unknown, Error, string>
   ) => {
     const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
     return useMutation<unknown, Error, string>({
       mutationFn: (id) => chatDataService.remove(id),
-      onSuccess: () => qc.invalidateQueries({ queryKey: chatDataKeys.all }),
-      ...options,
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: chatDataKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 };

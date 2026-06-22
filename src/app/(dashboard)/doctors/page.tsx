@@ -29,7 +29,7 @@ function mapItemToForm(item: HisDoctor): DoctorForm {
 }
 
 export default function DoctorsPage() {
-  const { data: doctors } = doctorsHooks.useList();
+  const { data: doctors, isLoading } = doctorsHooks.useList();
 
   const createMutation = doctorsHooks.useCreate({
     onSuccess: () => toast.success("Tạo bác sĩ thành công"),
@@ -44,12 +44,16 @@ export default function DoctorsPage() {
     onError: (err) => toast.error(err.message || "Xóa bác sĩ thất bại"),
   });
 
+  const isMutating = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+
   return (
     <HospitalCrudPage
       title="Quản lý bác sĩ"
       description="Danh sách bác sĩ đồng bộ từ HIS."
       itemName="bác sĩ"
       compact
+      isLoading={isLoading}
+      isMutating={isMutating}
       items={doctors ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}
