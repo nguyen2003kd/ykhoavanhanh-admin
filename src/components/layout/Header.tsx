@@ -47,7 +47,7 @@ const moduleTitleMap: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   const sorted = Object.keys(moduleTitleMap).sort((a, b) => b.length - a.length);
   const match = sorted.find((key) => pathname === key || (key !== "/" && pathname.startsWith(key + "/")));
-  return match ? moduleTitleMap[match] : "Y Khoa Vạn Hạnh";
+  return match ? moduleTitleMap[match] : "Bệnh Viện Vạn Hạnh";
 }
 
 interface HeaderProps {

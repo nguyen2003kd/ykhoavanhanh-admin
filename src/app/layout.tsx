@@ -9,8 +9,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 // export const metadata: Metadata = {
-//   title: "Y Khoa Vạn Hạnh - Admin Portal",
-//   description: "Hệ thống quản lý bệnh viện Y Khoa Vạn Hạnh",
+//   title: "Bệnh Viện Vạn Hạnh - Admin Portal",
+//   description: "Hệ thống quản lý bệnh viện Bệnh Viện Vạn Hạnh",
 //   icons: {
 //     icon: "/logo/vh-icon.svg",
 //     apple: "/logo/vh-icon.svg",

@@ -61,7 +61,7 @@ export default function DashboardLayout({
           </div>
           <h2 className="text-xl font-bold text-white">Yêu cầu màn hình lớn hơn</h2>
           <p className="mt-2 text-sm leading-relaxed text-white/70">
-            Hệ thống quản lý Y Khoa Vạn Hạnh yêu cầu màn hình máy tính hoặc laptop để sử dụng.
+            Hệ thống quản lý Bệnh Viện Vạn Hạnh yêu cầu màn hình máy tính hoặc laptop để sử dụng.
           </p>
         </div>
       </div>

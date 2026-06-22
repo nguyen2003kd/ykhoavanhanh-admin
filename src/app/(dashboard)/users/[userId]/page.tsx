@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { useUserById } from "@/api/userApi";
+import { LoadingSection } from "@/components/ui/Spinner";
 import type { AdminRole } from "@/types/user";
 import { formatDate } from "@/lib/utils";
 
@@ -28,11 +29,7 @@ export default function UserDetailPage() {
   const { data: user, isLoading, error } = useUserById(userId);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
-    );
+    return <LoadingSection text="Đang tải thông tin người dùng..." />;
   }
 
   if (error || !user) {

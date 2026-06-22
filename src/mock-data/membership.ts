@@ -23,7 +23,7 @@ export const mockPointTransactions: PointTransaction[] = [
 ];
 
 export const mockGifts: Gift[] = [
-  { id: "g001", name: "Khăn bông cao cấp", description: "Khăn bông cotton 100% thương hiệu Y Khoa Vạn Hạnh, kích thước 60x120cm.", pointsRequired: 500, type: "product", stock: 50, isActive: true, validFrom: "2024-01-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", createdAt: "2024-01-01T00:00:00Z" },
+  { id: "g001", name: "Khăn bông cao cấp", description: "Khăn bông cotton 100% thương hiệu Bệnh Viện Vạn Hạnh, kích thước 60x120cm.", pointsRequired: 500, type: "product", stock: 50, isActive: true, validFrom: "2024-01-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", createdAt: "2024-01-01T00:00:00Z" },
   { id: "g002", name: "Bình giữ nhiệt", description: "Bình giữ nhiệt 500ml in logo bệnh viện, giữ nóng 12h, giữ lạnh 24h.", pointsRequired: 1000, type: "product", stock: 30, isActive: true, validFrom: "2024-01-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", createdAt: "2024-01-01T00:00:00Z" },
   { id: "g003", name: "Gói kiểm tra sức khỏe cơ bản", description: "Gói khám sức khỏe cơ bản gồm xét nghiệm máu, nước tiểu và X-quang ngực.", pointsRequired: 2000, type: "package", stock: 20, isActive: true, validFrom: "2024-02-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", createdAt: "2024-02-01T00:00:00Z" },
   { id: "g004", name: "Voucher giảm 50.000đ", description: "Voucher giảm 50.000đ cho lần khám tiếp theo, không áp dụng cho phẫu thuật.", pointsRequired: 800, type: "voucher", stock: 100, isActive: true, validFrom: "2024-01-01T00:00:00Z", validTo: "2024-12-31T23:59:59Z", createdAt: "2024-01-01T00:00:00Z" },

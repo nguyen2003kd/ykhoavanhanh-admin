@@ -67,7 +67,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Bảng điều khiển</h1>
         <p className="mt-1 text-muted-foreground text-sm">
-          Tổng quan hoạt động hệ thống Y Khoa Vạn Hạnh
+          Tổng quan hoạt động hệ thống Bệnh Viện Vạn Hạnh
         </p>
       </div>
 

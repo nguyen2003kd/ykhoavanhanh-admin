@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Edit, Eye, Loader2, Plus, Trash2 } from "lucide-react";
+import { Edit, Eye, Plus, Trash2 } from "lucide-react";
+import { Spinner, LoadingSection } from "@/components/ui/Spinner";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -196,24 +197,11 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i} className="odd:bg-white even:bg-slate-50/40">
-                          <TableCell><div className="h-5 w-8 animate-pulse rounded-full bg-slate-200" /></TableCell>
-                          {columns.map((col) => (
-                            <TableCell key={col.title}>
-                              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
-                            </TableCell>
-                          ))}
-                          {showActions && (
-                            <TableCell>
-                              <div className="flex justify-end gap-2">
-                                <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-200" />
-                                <div className="h-8 w-8 animate-pulse rounded-xl bg-slate-200" />
-                              </div>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))
+                      <TableRow>
+                        <TableCell colSpan={1 + columns.length + (showActions ? 1 : 0)} className="py-12">
+                          <LoadingSection text="Đang tải dữ liệu..." />
+                        </TableCell>
+                      </TableRow>
                     ) : pagedItems.map((item, index) => (
                       <TableRow
                         key={item.id}
@@ -275,7 +263,7 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
             </Button>
             <Button variant="primary" onClick={handleSave} disabled={isMutating} className="min-w-[100px]">
               {isMutating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{editingItem ? "Đang lưu..." : "Đang tạo..."}</>
+                <><Spinner size="sm" className="mr-2" />{editingItem ? "Đang lưu..." : "Đang tạo..."}</>
               ) : (
                 editingItem ? "Lưu thay đổi" : "Tạo mới"
               )}

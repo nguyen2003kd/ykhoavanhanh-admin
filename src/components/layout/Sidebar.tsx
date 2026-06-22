@@ -165,7 +165,7 @@ export function Sidebar({ isOpen }: { isOpen: boolean }) {
         <div className={cn("flex items-center justify-center", isOpen ? "w-40" : "w-8")}>
           <Image
             src="/logo/logo-vanhanh.svg"
-            alt="Y Khoa Vạn Hạnh"
+            alt="Bệnh Viện Vạn Hạnh"
             width={isOpen ? 160 : 32}
             height={isOpen ? 40 : 32}
             className="h-auto max-w-full"
