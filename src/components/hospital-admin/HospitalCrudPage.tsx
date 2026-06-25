@@ -44,6 +44,7 @@ type HospitalCrudPageProps<TItem extends { id: string }, TForm> = {
   showActions?: boolean;
   isLoading?: boolean;
   isMutating?: boolean;
+  headerActions?: React.ReactNode;
   pagination?: {
     currentPage: number;
     totalCount: number;
@@ -73,6 +74,7 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
   showActions = true,
   isLoading = false,
   isMutating = false,
+  headerActions,
   pagination,
 }: HospitalCrudPageProps<TItem, TForm>) {
   const [search, setSearch] = useState("");
@@ -145,10 +147,13 @@ export function HospitalCrudPage<TItem extends { id: string }, TForm>({
                   className="h-12 rounded-2xl border-gray-200 bg-white px-4 text-[15px] shadow-sm"
                 />
               </div>
-              <Button variant="primary" onClick={openCreate} className="h-12 rounded-2xl px-5 text-[15px] shadow-sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Thêm {itemName}
-              </Button>
+              <div className="flex items-center gap-3">
+                {headerActions}
+                <Button variant="primary" onClick={openCreate} className="h-12 rounded-2xl px-5 text-[15px] shadow-sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Thêm {itemName}
+                </Button>
+              </div>
             </div>
           ) : (
             <>

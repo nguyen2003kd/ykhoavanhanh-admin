@@ -1,36 +1,68 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
-import { mockPatients } from "@/mock-data/patients";
-import type { Gender, BloodType, PatientStatus } from "../../types";
+import { Spinner } from "@/components/ui/Spinner";
+import { LoadingSection } from "@/components/ui/Spinner";
+import { useGetPatientById, useUpdatePatient } from "@/api/patientApi";
+import { toast } from "@/components/ui/Toast";
+import type { CreatePatientPayload } from "@/types/patient";
 
 export default function EditPatientPage({ params }: { params: Promise<{ patientId: string }> }) {
   const { patientId } = use(params);
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { data: patient, isLoading } = useGetPatientById(patientId);
 
-  const patient = mockPatients.find((p) => p.id === patientId);
+  const updateMutation = useUpdatePatient({
+    onSuccess: () => {
+      toast.success("Cập nhật bệnh nhân thành công");
+      router.push(`/patients/${patientId}`);
+    },
+    onError: (err) => toast.error(err.message || "Cập nhật bệnh nhân thất bại"),
+  });
 
   const [form, setForm] = useState({
-    fullName: patient?.fullName ?? "",
-    phone: patient?.phone ?? "",
-    email: patient?.email ?? "",
-    dateOfBirth: patient?.dateOfBirth ?? "",
-    gender: patient?.gender ?? "male",
-    address: patient?.address ?? "",
-    bloodType: patient?.bloodType ?? "",
-    allergies: patient?.allergies?.join(", ") ?? "",
-    medicalHistory: patient?.medicalHistory ?? "",
-    emergencyContactName: patient?.emergencyContact?.name ?? "",
-    emergencyContactPhone: patient?.emergencyContact?.phone ?? "",
-    emergencyContactRelationship: patient?.emergencyContact?.relationship ?? "",
-    status: patient?.status ?? "active",
+    patientfirstname: "",
+    patientlastname: "",
+    patientbirthday: "",
+    patientsex: "",
+    patientphonenumber: "",
+    identifynumber: "",
+    insurancenumber: "",
+    addressdetail: "",
+    addressstreet: "",
+    addressward: "",
+    addresscity: "",
+    addressprovince: "",
   });
+
+  // Sync form when patient data loads
+  useEffect(() => {
+    if (patient) {
+      setForm({
+        patientfirstname: patient.patientfirstname ?? "",
+        patientlastname: patient.patientlastname ?? "",
+        patientbirthday: patient.patientbirthday ?? "",
+        patientsex: patient.patientsex ?? "",
+        patientphonenumber: patient.patientphonenumber ?? "",
+        identifynumber: patient.identifynumber ?? "",
+        insurancenumber: patient.insurancenumber ?? "",
+        addressdetail: patient.addressdetail ?? "",
+        addressstreet: patient.addressstreet ?? "",
+        addressward: patient.addressward ?? "",
+        addresscity: patient.addresscity ?? "",
+        addressprovince: patient.addressprovince ?? "",
+      });
+    }
+  }, [patient]);
+
+  if (isLoading) {
+    return <LoadingSection text="Đang tải thông tin bệnh nhân..." />;
+  }
 
   if (!patient) {
     return (
@@ -41,12 +73,26 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
     );
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    router.push(`/patients/${patientId}`);
+    const payload: Partial<CreatePatientPayload> = {
+      patientid: patientId,
+      patientfirstname: form.patientfirstname,
+      patientlastname: form.patientlastname,
+      patientbirthday: form.patientbirthday || undefined,
+      patientsex: form.patientsex || undefined,
+      patientphonenumber: form.patientphonenumber || undefined,
+      addressdetail: form.addressdetail || undefined,
+      addressstreet: form.addressstreet || undefined,
+      addressward: form.addressward || undefined,
+      addresscity: form.addresscity || undefined,
+      addressprovince: form.addressprovince || undefined,
+    };
+    updateMutation.mutate({ patientId, payload });
   }
+
+  const loading = updateMutation.isPending;
+  const fullName = [patient.patientfirstname, patient.patientlastname].filter(Boolean).join(" ");
 
   return (
     <div className="space-y-6">
@@ -54,7 +100,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
         <Button variant="ghost" onClick={() => router.back()}>← Quay lại</Button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa bệnh nhân</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{patient.code} – {patient.fullName}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{patient.patientid} – {fullName}</p>
         </div>
       </div>
 
@@ -64,82 +110,34 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
           <Card>
             <CardHeader><CardTitle>Thông tin cá nhân</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Input label="Họ và tên *" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-              </div>
-              <Input label="Số điện thoại *" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <Input label="Ngày sinh *" type="date" required value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} />
+              <Input label="Họ, chữ lót *" required value={form.patientfirstname} onChange={(e) => setForm({ ...form, patientfirstname: e.target.value })} />
+              <Input label="Tên *" required value={form.patientlastname} onChange={(e) => setForm({ ...form, patientlastname: e.target.value })} />
+              <Input label="Ngày sinh" type="date" value={form.patientbirthday} onChange={(e) => setForm({ ...form, patientbirthday: e.target.value })} />
               <Select
                 label="Giới tính"
-                value={form.gender}
-                onChange={(e) => setForm({ ...form, gender: e.target.value as Gender })}
+                value={form.patientsex}
+                onValueChange={(val) => setForm({ ...form, patientsex: val })}
                 options={[
-                  { value: "male", label: "Nam" },
-                  { value: "female", label: "Nữ" },
-                  { value: "other", label: "Khác" },
+                  { value: "", label: "-- Chọn --" },
+                  { value: "nam", label: "Nam" },
+                  { value: "nữ", label: "Nữ" },
                 ]}
               />
-              <div className="col-span-2">
-                <Input label="Địa chỉ" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-              </div>
-              <Select
-                label="Nhóm máu"
-                value={form.bloodType}
-                onChange={(e) => setForm({ ...form, bloodType: e.target.value as BloodType })}
-                options={[
-                  { value: "", label: "Chưa biết" },
-                  ...["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => ({ value: bt, label: bt })),
-                ]}
-              />
-              <Select
-                label="Trạng thái"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value as PatientStatus })}
-                options={[
-                  { value: "active", label: "Đang hoạt động" },
-                  { value: "inactive", label: "Không hoạt động" },
-                  { value: "pending", label: "Chờ xác minh" },
-                ]}
-              />
+              <Input label="Số điện thoại" value={form.patientphonenumber} onChange={(e) => setForm({ ...form, patientphonenumber: e.target.value })} />
+              <Input label="Số CCCD" value={form.identifynumber} onChange={(e) => setForm({ ...form, identifynumber: e.target.value })} />
+              <Input label="Mã BHYT" value={form.insurancenumber} onChange={(e) => setForm({ ...form, insurancenumber: e.target.value })} />
             </CardContent>
           </Card>
 
-          {/* Medical info */}
+          {/* Address */}
           <Card>
-            <CardHeader><CardTitle>Thông tin y tế</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Dị ứng (cách nhau bởi dấu phẩy)</label>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Penicillin, Aspirin..."
-                  value={form.allergies}
-                  onChange={(e) => setForm({ ...form, allergies: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tiền sử bệnh</label>
-                <textarea
-                  rows={4}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  value={form.medicalHistory}
-                  onChange={(e) => setForm({ ...form, medicalHistory: e.target.value })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Emergency contact */}
-          <Card>
-            <CardHeader><CardTitle>Người liên hệ khẩn cấp</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Địa chỉ</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
-              <Input label="Họ tên" value={form.emergencyContactName} onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })} />
-              <Input label="Số điện thoại" value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })} />
-              <div className="col-span-2">
-                <Input label="Quan hệ" value={form.emergencyContactRelationship} onChange={(e) => setForm({ ...form, emergencyContactRelationship: e.target.value })} placeholder="Vợ, Chồng, Con..." />
-              </div>
+              <Input label="Số nhà" value={form.addressdetail} onChange={(e) => setForm({ ...form, addressdetail: e.target.value })} />
+              <Input label="Đường/Thôn" value={form.addressstreet} onChange={(e) => setForm({ ...form, addressstreet: e.target.value })} />
+              <Input label="Mã Phường/Xã" value={form.addressward} onChange={(e) => setForm({ ...form, addressward: e.target.value })} />
+              <Input label="Mã Quận/Huyện" value={form.addresscity} onChange={(e) => setForm({ ...form, addresscity: e.target.value })} />
+              <Input label="Mã Tỉnh/Thành" value={form.addressprovince} onChange={(e) => setForm({ ...form, addressprovince: e.target.value })} />
             </CardContent>
           </Card>
         </div>
@@ -150,7 +148,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
             <CardContent className="space-y-3">
               <p className="text-sm text-gray-500">Kiểm tra lại thông tin trước khi lưu.</p>
               <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-                {loading ? "Đang lưu..." : "Lưu thay đổi"}
+                {loading ? <><Spinner size="sm" className="mr-2" />Đang lưu...</> : "Lưu thay đổi"}
               </Button>
               <Button type="button" variant="ghost" className="w-full" onClick={() => router.push(`/patients/${patientId}`)}>
                 Hủy

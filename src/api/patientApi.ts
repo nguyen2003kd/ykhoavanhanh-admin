@@ -1,10 +1,11 @@
 /**
  * Patient API - Patient Management
+ * Proxy tới HIS external API, đồng bộ vào his_patients nội bộ.
  */
 
-import { apiGet, apiPost } from "@/lib/axios";
+import { apiGet, apiPost, apiPut } from "@/lib/axios";
 import type { Patient, SearchPatientParams, CreatePatientPayload } from "@/types/patient";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,46 @@ async function createPatient(args: { payload: CreatePatientPayload; options?: Hi
   throw new Error(res.data.message || "Tạo bệnh nhân thất bại");
 }
 
+async function updatePatient(args: {
+  patientId: string;
+  payload: Partial<CreatePatientPayload>;
+  options?: HisApiParams;
+}): Promise<Patient> {
+  const { patientId, payload, options = {} } = args;
+  const res = await apiPut<Patient>(`/patient/${patientId}`, payload, {
+    params: {
+      ip: options.ip ?? "",
+      idbv: options.idbv ?? "",
+    },
+  });
+  if (res.data.status === "success" && res.data.responseData) {
+    return res.data.responseData;
+  }
+  throw new Error(res.data.message || "Cập nhật hồ sơ bệnh nhân thất bại");
+}
+
+export interface MergePatientPayload {
+  patientid_keep: string;
+  patientid_merge: string;
+}
+
+async function mergePatients(args: {
+  payload: MergePatientPayload;
+  options?: HisApiParams;
+}): Promise<unknown> {
+  const { payload, options = {} } = args;
+  const res = await apiPost<unknown>("/patient/merge", payload, {
+    params: {
+      ip: options.ip ?? "",
+      idbv: options.idbv ?? "",
+    },
+  });
+  if (res.data.status === "success" && res.data.responseData) {
+    return res.data.responseData;
+  }
+  throw new Error(res.data.message || "Gộp bệnh nhân thất bại");
+}
+
 // ─── Hooks ─────────────────────────────────────────────────────────────────
 
 export function useSearchPatients(
@@ -101,9 +142,44 @@ export function useCreatePatient(options?: {
   onSuccess?: (data: Patient) => void;
   onError?: (error: Error) => void;
 }) {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: createPatient,
-    onSuccess: (data) => options?.onSuccess?.(data),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: patientKeys.all });
+      options?.onSuccess?.(data);
+    },
+    onError: (error) => options?.onError?.(error),
+  });
+}
+
+export function useUpdatePatient(options?: {
+  onSuccess?: (data: Patient) => void;
+  onError?: (error: Error) => void;
+}) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: updatePatient,
+    onSuccess: (data, variables) => {
+      qc.invalidateQueries({ queryKey: patientKeys.all });
+      qc.invalidateQueries({ queryKey: patientKeys.detail(variables.patientId) });
+      options?.onSuccess?.(data);
+    },
+    onError: (error) => options?.onError?.(error),
+  });
+}
+
+export function useMergePatients(options?: {
+  onSuccess?: (data: unknown) => void;
+  onError?: (error: Error) => void;
+}) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: mergePatients,
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: patientKeys.all });
+      options?.onSuccess?.(data);
+    },
     onError: (error) => options?.onError?.(error),
   });
 }
