@@ -1,13 +1,21 @@
+/**
+ * HIS Services API — Dịch vụ HIS
+ * Resource: /his-services (proxy tới HIS external API)
+ */
+
 import {
   useQuery,
+  useMutation,
+  useQueryClient,
   type UseQueryResult,
+  type UseMutationOptions,
 } from "@tanstack/react-query";
-import { apiGet } from "@/lib/axios";
+import { apiGet, apiPost, apiPut, apiDelete, api } from "@/lib/axios";
 
-// ─── HIS Service Type (khớp schema API trả về) ───────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────
 
 export interface HisService {
-  id: string;           // alias của serviceid
+  id: string; // alias của serviceid
   serviceid: string;
   servicetype: string;
   servicename: string;
@@ -18,34 +26,94 @@ export interface HisService {
   updatetime: string;
 }
 
-// ─── Query Keys ───────────────────────────────────────────────────────────
+export interface HisServiceParams {
+  ip?: string;
+  idbv?: string;
+}
+
+export type CreateHisServicePayload = {
+  service_id: string;
+  service_name: string;
+  service_type?: string;
+  price?: number;
+  description?: string;
+  [key: string]: unknown;
+};
+
+export type UpdateHisServicePayload = Partial<CreateHisServicePayload>;
+
+// ─── Query Keys ────────────────────────────────────────────────────────────
 
 const baseKey = "his-services";
 
 export const hisServicesKeys = {
   all: [baseKey] as const,
-  list: (params?: { ip?: string; idbv?: string }) =>
-    [baseKey, "list", params] as const,
+  list: (params?: HisServiceParams) => [baseKey, "list", params] as const,
+  detail: (id: string) => [baseKey, "detail", id] as const,
 };
 
-// ─── Service Functions ──────────────────────────────────────────────────────
+// ─── Service Functions ─────────────────────────────────────────────────────
 
 export const hisServicesService = {
   /** Lấy danh sách dịch vụ từ HIS */
-  getList: async (params?: { ip?: string; idbv?: string }): Promise<HisService[]> => {
+  getList: async (params?: HisServiceParams): Promise<HisService[]> => {
     const res = await apiGet<HisService[]>("/his-services", { params });
     if (res.data.status === "success" && res.data.responseData) {
       return res.data.responseData.map((item) => ({ ...item, id: item.serviceid }));
     }
     throw new Error(res.data.message || "Không thể lấy danh sách dịch vụ");
   },
+
+  /** Lấy chi tiết một dịch vụ theo ID */
+  getById: async (id: string, params?: HisServiceParams): Promise<HisService> => {
+    const res = await apiGet<HisService>(`/his-services/${id}`, { params });
+    if (res.data.status === "success" && res.data.responseData) {
+      return { ...res.data.responseData, id: res.data.responseData.serviceid };
+    }
+    throw new Error(res.data.message || "Không thể lấy thông tin dịch vụ");
+  },
+
+  /** Tạo mới dịch vụ trên HIS */
+  create: async (data: CreateHisServicePayload): Promise<HisService> => {
+    const res = await apiPost<HisService>("/his-services", data);
+    if (res.data.status === "success" && res.data.responseData) {
+      return { ...res.data.responseData, id: res.data.responseData.serviceid };
+    }
+    throw new Error(res.data.message || "Tạo dịch vụ thất bại");
+  },
+
+  /** Cập nhật dịch vụ theo ID */
+  update: async (id: string, data: UpdateHisServicePayload): Promise<HisService> => {
+    const res = await apiPut<HisService>(`/his-services/${id}`, data);
+    if (res.data.status === "success" && res.data.responseData) {
+      return { ...res.data.responseData, id: res.data.responseData.serviceid };
+    }
+    throw new Error(res.data.message || "Cập nhật dịch vụ thất bại");
+  },
+
+  /** Xóa dịch vụ theo ID */
+  remove: async (id: string): Promise<void> => {
+    const res = await apiDelete(`/his-services/${id}`);
+    if (res.data.status === "fail") {
+      throw new Error(res.data.message || "Xóa dịch vụ thất bại");
+    }
+  },
+
+  /** Xuất danh sách dịch vụ ra file Excel */
+  export: async (params?: HisServiceParams): Promise<Blob> => {
+    const res = await api.get<Blob>("/his-services/export", {
+      params,
+      responseType: "blob",
+    });
+    return res.data;
+  },
 };
 
-// ─── TanStack Query Hooks ───────────────────────────────────────────────────
+// ─── TanStack Query Hooks ──────────────────────────────────────────────────
 
 export const hisServicesHooks = {
   useList: (
-    params?: { ip?: string; idbv?: string },
+    params?: HisServiceParams,
     options?: { enabled?: boolean; staleTime?: number }
   ): UseQueryResult<HisService[], Error> => {
     return useQuery<HisService[], Error>({
@@ -54,6 +122,75 @@ export const hisServicesHooks = {
       staleTime: 1000 * 60 * 2,
       enabled: options?.enabled ?? true,
       ...options,
+    });
+  },
+
+  useDetail: (
+    id: string | null | undefined,
+    params?: HisServiceParams,
+    options?: { enabled?: boolean; staleTime?: number }
+  ): UseQueryResult<HisService, Error> => {
+    return useQuery<HisService, Error>({
+      queryKey: hisServicesKeys.detail(id ?? ""),
+      queryFn: () => hisServicesService.getById(id!, params),
+      enabled: Boolean(id),
+      staleTime: 1000 * 60 * 5,
+      ...options,
+    });
+  },
+
+  useCreate: (
+    options?: UseMutationOptions<HisService, Error, CreateHisServicePayload>
+  ) => {
+    const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
+    return useMutation<HisService, Error, CreateHisServicePayload>({
+      mutationFn: (data) => hisServicesService.create(data),
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: hisServicesKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
+    });
+  },
+
+  useUpdate: (
+    options?: UseMutationOptions<HisService, Error, { id: string; data: UpdateHisServicePayload }>
+  ) => {
+    const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
+    return useMutation<HisService, Error, { id: string; data: UpdateHisServicePayload }>({
+      mutationFn: ({ id, data }) => hisServicesService.update(id, data),
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: hisServicesKeys.all });
+        qc.invalidateQueries({ queryKey: hisServicesKeys.detail(variables.id) });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
+    });
+  },
+
+  useDelete: (
+    options?: UseMutationOptions<void, Error, string>
+  ) => {
+    const qc = useQueryClient();
+    const { onSuccess: userOnSuccess, onError: userOnError, ...rest } = options ?? {};
+    return useMutation<void, Error, string>({
+      mutationFn: (id) => hisServicesService.remove(id),
+      onSuccess: (data, variables, context) => {
+        qc.invalidateQueries({ queryKey: hisServicesKeys.all });
+        (userOnSuccess as unknown as undefined | ((d: typeof data, v: typeof variables, c: typeof context) => unknown))?.(data, variables, context);
+      },
+      onError: (error, variables, context) => {
+        (userOnError as unknown as undefined | ((e: typeof error, v: typeof variables, c: typeof context) => unknown))?.(error, variables, context);
+      },
+      ...rest,
     });
   },
 };

@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
+import { Download } from "lucide-react";
 import { FieldSection, HospitalCrudPage } from "@/components/hospital-admin/HospitalCrudPage";
 import { Input } from "@/components/ui/Input";
-import { hisServicesHooks, type HisService } from "@/api/hisServicesApi";
+import { Button } from "@/components/ui/Button";
+import { hisServicesHooks, hisServicesService, type HisService, type CreateHisServicePayload } from "@/api/hisServicesApi";
 import { toast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/utils";
 
@@ -35,8 +38,57 @@ function mapItemToForm(item: HisService): ServiceForm {
   };
 }
 
+function formToPayload(form: ServiceForm): CreateHisServicePayload {
+  return {
+    service_id: form.serviceid,
+    service_name: form.servicename,
+    service_type: form.servicetype,
+    price: Number(form.price) || 0,
+    insurancetype: form.insurancetype,
+    description: form.description,
+  };
+}
+
 export default function ExamServicesPage() {
   const { data: services, isLoading } = hisServicesHooks.useList();
+
+  const createMutation = hisServicesHooks.useCreate({
+    onSuccess: () => toast.success("Tạo dịch vụ thành công"),
+    onError: (err) => toast.error(err.message || "Tạo dịch vụ thất bại"),
+  });
+
+  const updateMutation = hisServicesHooks.useUpdate({
+    onSuccess: () => toast.success("Cập nhật dịch vụ thành công"),
+    onError: (err) => toast.error(err.message || "Cập nhật dịch vụ thất bại"),
+  });
+
+  const deleteMutation = hisServicesHooks.useDelete({
+    onSuccess: () => toast.success("Xóa dịch vụ thành công"),
+    onError: (err) => toast.error(err.message || "Xóa dịch vụ thất bại"),
+  });
+
+  const isMutating = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function handleExportExcel() {
+    setIsExporting(true);
+    try {
+      const blob = await hisServicesService.export();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `dich-vu-his-${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Xuất file Excel thành công");
+    } catch (err) {
+      toast.error((err as Error).message || "Xuất file Excel thất bại");
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   return (
     <HospitalCrudPage
@@ -45,18 +97,24 @@ export default function ExamServicesPage() {
       itemName="dịch vụ khám"
       compact
       isLoading={isLoading}
+      isMutating={isMutating}
+      headerActions={
+        <Button
+          variant="outline"
+          className="h-12 rounded-2xl px-5 text-[15px] shadow-sm"
+          onClick={handleExportExcel}
+          disabled={isExporting}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {isExporting ? "Đang xuất..." : "Xuất Excel"}
+        </Button>
+      }
       items={services ?? []}
       createInitialForm={createInitialForm}
       mapItemToForm={mapItemToForm}
-      onCreate={() => {
-        toast.info("Chưa hỗ trợ tạo dịch vụ từ HIS API");
-      }}
-      onUpdate={() => {
-        toast.info("Chưa hỗ trợ cập nhật dịch vụ từ HIS API");
-      }}
-      onDelete={() => {
-        toast.info("Chưa hỗ trợ xóa dịch vụ từ HIS API");
-      }}
+      onCreate={(form) => createMutation.mutate(formToPayload(form))}
+      onUpdate={(id, form) => updateMutation.mutate({ id, data: formToPayload(form) })}
+      onDelete={(id) => deleteMutation.mutate(id)}
       getSearchText={(item) =>
         [item.serviceid, item.servicename, item.servicetype, item.insurancetype, item.description ?? ""].join(" ")
       }

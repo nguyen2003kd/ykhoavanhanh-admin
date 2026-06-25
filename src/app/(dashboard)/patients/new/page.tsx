@@ -6,34 +6,63 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { useToast } from "@/components/ui/ToastProvider";
+import { Spinner } from "@/components/ui/Spinner";
+import { useCreatePatient } from "@/api/patientApi";
+import { toast } from "@/components/ui/Toast";
+import type { CreatePatientPayload } from "@/types/patient";
 
 export default function NewPatientPage() {
   const router = useRouter();
-  const toast = useToast();
-  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    fullName: "", dateOfBirth: "", gender: "", phone: "",
-    email: "", address: "", bloodType: "",
-    allergies: "", medicalHistory: "",
-    emergencyName: "", emergencyPhone: "", emergencyRelationship: "",
+    patientfirstname: "",
+    patientlastname: "",
+    patientbirthday: "",
+    patientsex: "",
+    patientphonenumber: "",
+    identifynumber: "",
+    insurancenumber: "",
+    addressdetail: "",
+    addressstreet: "",
+    addressward: "",
+    addresscity: "",
+    addressprovince: "",
+  });
+
+  const createMutation = useCreatePatient({
+    onSuccess: (data) => {
+      toast.success(`Đã thêm bệnh nhân thành công! Mã BN: ${data.patientid}`);
+      router.push("/patients");
+    },
+    onError: (err) => toast.error(err.message || "Tạo bệnh nhân thất bại"),
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.fullName || !form.phone || !form.dateOfBirth || !form.gender) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
+    if (!form.patientfirstname || !form.patientlastname) {
+      toast.error("Vui lòng nhập họ và tên bệnh nhân.");
       return;
     }
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    toast.success("Đã thêm bệnh nhân thành công!");
-    router.push("/patients");
-  };
+    const payload: CreatePatientPayload = {
+      patientid: "",
+      patientfirstname: form.patientfirstname,
+      patientlastname: form.patientlastname,
+      patientbirthday: form.patientbirthday || undefined,
+      patientsex: form.patientsex || undefined,
+      patientphonenumber: form.patientphonenumber || undefined,
+      addressdetail: form.addressdetail || undefined,
+      addressstreet: form.addressstreet || undefined,
+      addressward: form.addressward || undefined,
+      addresscity: form.addresscity || undefined,
+      addressprovince: form.addressprovince || undefined,
+    };
+    createMutation.mutate({ payload });
+  }
+
+  const loading = createMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -41,7 +70,7 @@ export default function NewPatientPage() {
         <Button variant="ghost" onClick={() => router.back()}>← Quay lại</Button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Thêm bệnh nhân mới</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Tạo hồ sơ bệnh nhân mới trong hệ thống</p>
+          <p className="text-sm text-gray-500 mt-0.5">Tạo hồ sơ bệnh nhân mới trên HIS</p>
         </div>
       </div>
 
@@ -51,55 +80,34 @@ export default function NewPatientPage() {
             <CardHeader><CardTitle>Thông tin cá nhân</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Input label="Họ và tên *" name="fullName" value={form.fullName} onChange={handleChange} placeholder="Nguyễn Thị Lan" required />
-                </div>
-                <Input label="Ngày sinh *" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={handleChange} required />
+                <Input label="Họ, chữ lót *" name="patientfirstname" value={form.patientfirstname} onChange={handleChange} placeholder="Nguyễn Thị" required />
+                <Input label="Tên *" name="patientlastname" value={form.patientlastname} onChange={handleChange} placeholder="Lan" required />
+                <Input label="Ngày sinh" name="patientbirthday" type="date" value={form.patientbirthday} onChange={handleChange} placeholder="yyyy/mm/dd" />
                 <Select
-                  label="Giới tính *"
-                  value={form.gender}
-                  onValueChange={(val) => setForm((prev) => ({ ...prev, gender: val }))}
-                  required
+                  label="Giới tính"
+                  value={form.patientsex}
+                  onValueChange={(val) => setForm((prev) => ({ ...prev, patientsex: val }))}
                   options={[
-                    { value: "male", label: "Nam" },
-                    { value: "female", label: "Nữ" },
-                    { value: "other", label: "Khác" },
-                  ]}
-                  placeholder="-- Chọn --"
-                />
-                <Input label="Số điện thoại *" name="phone" value={form.phone} onChange={handleChange} placeholder="09xxxxxxxx" required />
-                <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="email@example.com" />
-                <div className="col-span-2">
-                  <Input label="Địa chỉ" name="address" value={form.address} onChange={handleChange} placeholder="Số nhà, đường, quận, thành phố" />
-                </div>
-                <Select
-                  label="Nhóm máu"
-                  value={form.bloodType}
-                  onValueChange={(val) => setForm((prev) => ({ ...prev, bloodType: val }))}
-                  options={[
-                    { value: "", label: "-- Chưa xác định --" },
-                    ...["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(b => ({ value: b, label: b }))
+                    { value: "", label: "-- Chọn --" },
+                    { value: "nam", label: "Nam" },
+                    { value: "nữ", label: "Nữ" },
                   ]}
                 />
-                <Input label="Dị ứng" name="allergies" value={form.allergies} onChange={handleChange} placeholder="Penicillin, Aspirin... (ngăn cách bằng dấu phẩy)" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tiền sử bệnh</label>
-                <textarea
-                  name="medicalHistory" rows={3} value={form.medicalHistory} onChange={handleChange}
-                  placeholder="Mô tả các bệnh lý, phẫu thuật, thuốc đang dùng..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                />
+                <Input label="Số điện thoại" name="patientphonenumber" value={form.patientphonenumber} onChange={handleChange} placeholder="09xxxxxxxx" />
+                <Input label="Số CCCD" name="identifynumber" value={form.identifynumber} onChange={handleChange} placeholder="Số căn cước công dân" />
+                <Input label="Mã BHYT" name="insurancenumber" value={form.insurancenumber} onChange={handleChange} placeholder="Số bảo hiểm y tế" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Liên hệ khẩn cấp</CardTitle></CardHeader>
-            <CardContent className="grid grid-cols-3 gap-4">
-              <Input label="Tên người liên hệ" name="emergencyName" value={form.emergencyName} onChange={handleChange} placeholder="Nguyễn Văn A" />
-              <Input label="Số điện thoại" name="emergencyPhone" value={form.emergencyPhone} onChange={handleChange} placeholder="09xxxxxxxx" />
-              <Input label="Quan hệ" name="emergencyRelationship" value={form.emergencyRelationship} onChange={handleChange} placeholder="Vợ / Chồng / Con..." />
+            <CardHeader><CardTitle>Địa chỉ</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Input label="Số nhà" name="addressdetail" value={form.addressdetail} onChange={handleChange} placeholder="12A" />
+              <Input label="Đường/Thôn" name="addressstreet" value={form.addressstreet} onChange={handleChange} placeholder="Nguyễn Văn Cừ" />
+              <Input label="Mã Phường/Xã" name="addressward" value={form.addressward} onChange={handleChange} placeholder="VD: 00001" />
+              <Input label="Mã Quận/Huyện" name="addresscity" value={form.addresscity} onChange={handleChange} placeholder="VD: 760" />
+              <Input label="Mã Tỉnh/Thành" name="addressprovince" value={form.addressprovince} onChange={handleChange} placeholder="VD: 79" />
             </CardContent>
           </Card>
         </div>
@@ -108,9 +116,9 @@ export default function NewPatientPage() {
           <Card className="sticky top-6">
             <CardHeader><CardTitle>Lưu hồ sơ</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-gray-500">Kiểm tra lại thông tin trước khi lưu. Sau khi tạo, mã bệnh nhân sẽ được tạo tự động.</p>
+              <p className="text-sm text-gray-500">Kiểm tra lại thông tin trước khi lưu. Sau khi tạo, mã bệnh nhân sẽ được HIS tự động cấp.</p>
               <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-                {loading ? "Đang lưu..." : "Đăng ký bệnh nhân"}
+                {loading ? <><Spinner size="sm" className="mr-2" />Đang lưu...</> : "Đăng ký bệnh nhân"}
               </Button>
               <Button type="button" variant="ghost" className="w-full" onClick={() => router.back()}>Hủy</Button>
             </CardContent>
