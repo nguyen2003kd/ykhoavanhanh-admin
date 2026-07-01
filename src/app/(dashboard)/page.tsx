@@ -1,6 +1,8 @@
 "use client";
 
 import { Card } from "@/components/ui/Card";
+import { LoadingSpinner } from "@/components/ui/Spinner";
+import { useDashboardStats, useTicketRatios } from "@/api/dashboardApi";
 import {
   FiUsers,
   FiCalendar,
@@ -8,71 +10,109 @@ import {
   FiTrendingUp,
   FiActivity,
   FiAward,
+  FiDollarSign,
+  FiXCircle,
 } from "react-icons/fi";
 
-const kpiCards = [
-  {
-    title: "Tổng bệnh nhân",
-    value: "2,847",
-    change: "+12%",
-    changeType: "up" as const,
-    icon: FiUsers,
-    color: "bg-primary-600",
-  },
-  {
-    title: "Lịch hẹn hôm nay",
-    value: "134",
-    change: "+5%",
-    changeType: "up" as const,
-    icon: FiCalendar,
-    color: "bg-primary-500",
-  },
-  {
-    title: "Đánh giá trung bình",
-    value: "4.8 ★",
-    change: "+0.2",
-    changeType: "up" as const,
-    icon: FiStar,
-    color: "bg-accent-500",
-  },
-  {
-    title: "Tỷ lệ xác nhận",
-    value: "94.2%",
-    change: "+1.3%",
-    changeType: "up" as const,
-    icon: FiTrendingUp,
-    color: "bg-success",
-  },
-  {
-    title: "Thành viên tích cực",
-    value: "1,203",
-    change: "+8%",
-    changeType: "up" as const,
-    icon: FiAward,
-    color: "bg-accent-600",
-  },
-  {
-    title: "Lịch hẹn tháng này",
-    value: "3,512",
-    change: "+18%",
-    changeType: "up" as const,
-    icon: FiActivity,
-    color: "bg-secondary-500",
-  },
-];
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("vi-VN").format(value);
+}
 
 export default function DashboardPage() {
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: ratios, isLoading: ratiosLoading } = useTicketRatios();
+
+  // Calculate confirmation ratio from paid tickets
+  const confirmationRatio = stats && stats.totalTickets > 0
+    ? ((stats.paidTickets / stats.totalTickets) * 100).toFixed(1)
+    : "0";
+
+  const kpiCards = [
+    {
+      title: "Tong doanh thu",
+      value: stats ? formatCurrency(stats.totalRevenue) : "—",
+      icon: FiDollarSign,
+      color: "bg-success",
+    },
+    {
+      title: "Tong phieu kham",
+      value: stats ? formatNumber(stats.totalTickets) : "—",
+      icon: FiCalendar,
+      color: "bg-primary-600",
+    },
+    {
+      title: "Phieu da thanh toan",
+      value: stats ? formatNumber(stats.paidTickets) : "—",
+      icon: FiActivity,
+      color: "bg-primary-500",
+    },
+    {
+      title: "Phieu da huy",
+      value: stats ? formatNumber(stats.cancelledTickets) : "—",
+      icon: FiXCircle,
+      color: "bg-error",
+    },
+    {
+      title: "Tong bac si",
+      value: stats ? formatNumber(stats.totalDoctors) : "—",
+      icon: FiUsers,
+      color: "bg-accent-600",
+    },
+    {
+      title: "Tong noi dung",
+      value: stats ? formatNumber(stats.totalContents) : "—",
+      icon: FiAward,
+      color: "bg-secondary-500",
+    },
+    {
+      title: "Danh gia trung binh",
+      value: stats ? `${stats.avgRating.toFixed(1)} ★` : "—",
+      icon: FiStar,
+      color: "bg-accent-500",
+    },
+    {
+      title: "Ty le xac nhan",
+      value: `${confirmationRatio}%`,
+      icon: FiTrendingUp,
+      color: "bg-success",
+    },
+  ];
+
+  if (statsLoading || ratiosLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Bang dieu khien</h1>
+          <p className="mt-1 text-muted-foreground text-sm">
+            Tong quan hoat dong he thong Benh Vien Van Hanh
+          </p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <LoadingSpinner text="Dang tai thong ke..." />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Bảng điều khiển</h1>
+        <h1 className="text-2xl font-bold text-foreground">Bang dieu khien</h1>
         <p className="mt-1 text-muted-foreground text-sm">
-          Tổng quan hoạt động hệ thống Bệnh Viện Vạn Hạnh
+          Tong quan hoat dong he thong Benh Vien Van Hanh
         </p>
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {kpiCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -83,33 +123,31 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-muted-foreground">{card.title}</p>
                 <p className="text-2xl font-bold text-foreground">{card.value}</p>
-                <p className="text-xs text-success font-medium">{card.change} so với tháng trước</p>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Recent appointments placeholder */}
+      {/* Ticket Ratios */}
       <Card className="p-5">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Lịch hẹn gần đây</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Ty le trang thai phieu kham</h2>
         <div className="space-y-3">
-          {[
-            { patient: "Nguyễn Văn An", doctor: "BS. Trần Thị Bình", time: "08:00", status: "Đã xác nhận", statusColor: "bg-success-light text-success" },
-            { patient: "Lê Thị Cúc", doctor: "BS. Phạm Văn Dũng", time: "09:30", status: "Chờ xác nhận", statusColor: "bg-warning-light text-warning" },
-            { patient: "Hoàng Minh Đức", doctor: "BS. Nguyễn Thị Em", time: "10:00", status: "Đã khám", statusColor: "bg-primary-100 text-primary-600" },
-            { patient: "Võ Thị Phương", doctor: "BS. Lê Văn Giang", time: "11:00", status: "Đã hủy", statusColor: "bg-error-light text-error" },
-          ].map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-              <div>
-                <p className="font-medium text-foreground text-sm">{item.patient}</p>
-                <p className="text-xs text-muted-foreground">{item.doctor} — {item.time}</p>
+          {ratios && ratios.length > 0 ? (
+            ratios.map((ratio) => (
+              <div key={ratio.ticketStatus} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <div>
+                  <p className="font-medium text-foreground text-sm">{ratio.ticketStatus}</p>
+                  <p className="text-xs text-muted-foreground">{ratio.totalCount} phieu</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-600">
+                  {ratio.ratioPercent}%
+                </span>
               </div>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${item.statusColor}`}>
-                {item.status}
-              </span>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-muted-foreground text-sm">Khong co du lieu</p>
+          )}
         </div>
       </Card>
     </div>

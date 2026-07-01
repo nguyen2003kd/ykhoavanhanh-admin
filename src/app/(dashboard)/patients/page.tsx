@@ -15,28 +15,30 @@ import { Plus, Search } from "lucide-react";
 const PAGE_SIZE = 10;
 
 function getFullName(p: Patient): string {
-  return [p.patientfirstname, p.patientlastname].filter(Boolean).join(" ") || "—";
+  return p.patient_full_name || "—";
 }
 
 function getGender(p: Patient): string {
-  if (!p.patientsex) return "—";
-  return p.patientsex.toLowerCase() === "nam" ? "Nam" : p.patientsex.toLowerCase() === "nữ" || p.patientsex.toLowerCase() === "nu" ? "Nữ" : p.patientsex;
+  if (!p.sex) return "—";
+  return p.sex.toLowerCase() === "nam" ? "Nam" : p.sex.toLowerCase() === "nữ" || p.sex.toLowerCase() === "nu" ? "Nữ" : p.sex;
 }
 
 function getBirthday(p: Patient): string {
-  return p.patientbirthday || p.patientbirthyear || "—";
+  return p.birthday || p.birth_year || "—";
 }
 
 export default function PatientsPage() {
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [searchValue, setSearchValue] = useState("");
   const [searchParams, setSearchParams] = useState<{ patientcode?: string; patientphonenumber?: string }>({});
 
-  const { data: patients, isLoading } = useSearchPatients(searchParams);
+  const { data: patientsData, isLoading } = useSearchPatients(searchParams);
 
-  const filtered = patients ?? [];
-  const total = filtered.length;
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // API trả về { count, rows, totalPages, currentPage }
+  const patients = patientsData?.rows ?? [];
+  const total = patientsData?.count ?? 0;
+  const totalPages = patientsData?.totalPages ?? 1;
+  const currentPage = patientsData?.currentPage ?? 1;
 
   function handleSearch() {
     const trimmed = searchValue.trim();
@@ -58,12 +60,19 @@ export default function PatientsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Bệnh nhân</h1>
           <p className="text-sm text-muted-foreground mt-1">Danh sách tất cả bệnh nhân trong hệ thống</p>
         </div>
-        <Link href="/patients/new">
-          <Button variant="primary">
-            <Plus data-icon="inline-start" />
-            Thêm bệnh nhân
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/patients/merge">
+            <Button variant="outline">
+              Gộp bệnh nhân
+            </Button>
+          </Link>
+          <Link href="/patients/new">
+            <Button variant="primary">
+              <Plus data-icon="inline-start" />
+              Thêm bệnh nhân
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -99,24 +108,24 @@ export default function PatientsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.length === 0 ? (
+                {patients.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-12 text-gray-500">
-                      Không tìm thấy bệnh nhân nào.
+                      Khong tim thay benh nao.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paged.map((p) => (
-                    <TableRow key={p.patientid}>
-                      <TableCell className="font-mono text-primary-600">{p.patientid}</TableCell>
+                  patients.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-mono text-primary-600">{p.his_patient_id}</TableCell>
                       <TableCell className="font-medium">{getFullName(p)}</TableCell>
                       <TableCell className="text-muted-foreground">{getBirthday(p)}</TableCell>
                       <TableCell className="text-muted-foreground">{getGender(p)}</TableCell>
-                      <TableCell className="text-muted-foreground">{p.patientphonenumber ?? "—"}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{p.addressfull ?? "—"}</TableCell>
-                      <TableCell>{p.insurancenumber ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">{p.phone_number ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{p.address_full ?? "—"}</TableCell>
+                      <TableCell>{p.insurance_number ?? "—"}</TableCell>
                       <TableCell>
-                        <Link href={`/patients/${p.patientid}`}>
+                        <Link href={`/patients/${p.his_patient_id}`}>
                           <Button variant="ghost" size="sm">Xem</Button>
                         </Link>
                       </TableCell>
@@ -127,8 +136,8 @@ export default function PatientsPage() {
             </Table>
             <div className="p-4">
               <TablePagination
-                currentPage={page}
-                totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE))}
+                currentPage={currentPage}
+                totalPages={totalPages}
                 onPageChange={setPage}
                 totalItems={total}
                 pageSize={PAGE_SIZE}

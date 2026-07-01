@@ -33,7 +33,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ n
     if (notif && !notif.has_user_read) {
       markReadMutation.mutate(notif.id);
     }
-  }, [notif]);
+  }, [notif, markReadMutation]);
 
   if (isFetching) {
     return <LoadingSection text="Đang tải thông báo…" />;

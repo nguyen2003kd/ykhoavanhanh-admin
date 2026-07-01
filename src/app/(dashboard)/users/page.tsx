@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -205,10 +205,10 @@ export default function UsersPage() {
               {totalItems > 0 && ` • ${totalItems} người dùng`}
             </p>
           </div>
-          <Button variant="primary" onClick={handleCreateUser}>
+          {/* <Button variant="primary" onClick={handleCreateUser}>
             <Plus data-icon="inline-start" className="size-4" />
             Thêm người dùng
-          </Button>
+          </Button> */}
         </div>
 
         {/* Table Card */}
@@ -229,12 +229,12 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Người dùng</TableHead>
+                    <TableHead>Nguoi dung</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Vai trò</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead>Ngày tạo</TableHead>
-                    <TableHead className="w-[120px]">Thao tác</TableHead>
+                    <TableHead>Quyen</TableHead>
+                    <TableHead>Trang thai</TableHead>
+                    <TableHead>Ngay tao</TableHead>
+                    <TableHead className="w-[120px]">Thao tac</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -254,11 +254,13 @@ export default function UsersPage() {
                         {user.email || "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="info">{user.is_admin ? "Admin" : "Người dùng"}</Badge>
+                        <Badge variant={user.is_admin ? "info" : "default"}>
+                          {user.is_admin ? "Admin" : "Nguoi dung"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant={user.is_active ? "success" : "default"}>
-                          {user.is_active ? "Hoạt động" : "Tạm khóa"}
+                          {user.is_active ? "Hoat dong" : "Tam khoa"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">

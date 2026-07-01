@@ -44,18 +44,18 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
   useEffect(() => {
     if (patient) {
       setForm({
-        patientfirstname: patient.patientfirstname ?? "",
-        patientlastname: patient.patientlastname ?? "",
-        patientbirthday: patient.patientbirthday ?? "",
-        patientsex: patient.patientsex ?? "",
-        patientphonenumber: patient.patientphonenumber ?? "",
-        identifynumber: patient.identifynumber ?? "",
-        insurancenumber: patient.insurancenumber ?? "",
-        addressdetail: patient.addressdetail ?? "",
-        addressstreet: patient.addressstreet ?? "",
-        addressward: patient.addressward ?? "",
-        addresscity: patient.addresscity ?? "",
-        addressprovince: patient.addressprovince ?? "",
+        patientfirstname: patient.patient_first_name ?? "",
+        patientlastname: patient.patient_last_name ?? "",
+        patientbirthday: patient.birthday ?? "",
+        patientsex: patient.sex ?? "",
+        patientphonenumber: patient.phone_number ?? "",
+        identifynumber: patient.identity_number ?? "",
+        insurancenumber: patient.insurance_number ?? "",
+        addressdetail: patient.address_detail ?? "",
+        addressstreet: patient.address_street ?? "",
+        addressward: patient.ward_code ?? "",
+        addresscity: patient.district_code ?? "",
+        addressprovince: patient.province_code ?? "",
       });
     }
   }, [patient]);
@@ -92,7 +92,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
   }
 
   const loading = updateMutation.isPending;
-  const fullName = [patient.patientfirstname, patient.patientlastname].filter(Boolean).join(" ");
+  const fullName = [patient.patient_first_name, patient.patient_last_name].filter(Boolean).join(" ");
 
   return (
     <div className="space-y-6">
@@ -100,7 +100,7 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
         <Button variant="ghost" onClick={() => router.back()}>← Quay lại</Button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa bệnh nhân</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{patient.patientid} – {fullName}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{patient.his_patient_id ?? patient.id} – {fullName}</p>
         </div>
       </div>
 
@@ -115,10 +115,9 @@ export default function EditPatientPage({ params }: { params: Promise<{ patientI
               <Input label="Ngày sinh" type="date" value={form.patientbirthday} onChange={(e) => setForm({ ...form, patientbirthday: e.target.value })} />
               <Select
                 label="Giới tính"
-                value={form.patientsex}
+                value={form.patientsex || "nam"}
                 onValueChange={(val) => setForm({ ...form, patientsex: val })}
                 options={[
-                  { value: "", label: "-- Chọn --" },
                   { value: "nam", label: "Nam" },
                   { value: "nữ", label: "Nữ" },
                 ]}

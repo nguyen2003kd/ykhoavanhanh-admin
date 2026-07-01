@@ -14,6 +14,13 @@ export interface HisApiParams {
   idbv?: string;
 }
 
+export interface PaginatedPatients {
+  count: number;
+  rows: Patient[];
+  totalPages: number;
+  currentPage: number;
+}
+
 export const patientKeys = {
   all: ["patients"] as const,
   lists: () => [...patientKeys.all, "list"] as const,
@@ -26,16 +33,16 @@ export const patientKeys = {
 
 // ─── Service Functions ─────────────────────────────────────────────────────
 
-async function searchPatients(params: SearchPatientParams): Promise<Patient[]> {
-  const res = await apiGet<Patient[]>("/patient", { params });
+async function searchPatients(params: SearchPatientParams): Promise<PaginatedPatients> {
+  const res = await apiGet<PaginatedPatients>("/patient", { params });
   if (res.data.status === "success" && res.data.responseData) {
     return res.data.responseData;
   }
   throw new Error(res.data.message || "Không thể tìm kiếm bệnh nhân");
 }
 
-async function getAllPatients(): Promise<Patient[]> {
-  const res = await apiGet<Patient[]>("/patients");
+async function getAllPatients(): Promise<PaginatedPatients> {
+  const res = await apiGet<PaginatedPatients>("/patients");
   if (res.data.status === "success" && res.data.responseData) {
     return res.data.responseData;
   }

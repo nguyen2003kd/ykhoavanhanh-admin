@@ -1,58 +1,65 @@
 export interface Patient {
-    patientid: string;
-    patientfirstname: string | null;
-    patientlastname: string | null;
-    patientnational: string | null;
-    patientbirthday: string | null;
-    patientbirthyear: string | null;
-    patientsex: string | null;
-    patientethnic: string | null;
-    patientphonenumber: string | null;
-    addressdetail: string | null;
-    addressstreet: string | null;
-    addressward: string | null;
-    addresscity: string | null;
-    addressprovince: string | null;
-    addresscountry: string | null;
-    professionid: string | null;
-    updatetime: string | null;
-    identifynumber: string | null;
-    insurancenumber: string | null;
-    insuranceexpireddate: string | null;
-    idcardcode: string | null;
-    patientethnicnname: string | null;
-    addresswardname: string | null;
-    addresscityname: string | null;
-    addressprovincename: string | null;
-    addresscountryname: string | null;
-    professionname: string | null;
-    addressfull: string | null;
-    error: string | null;
-  }
-  
-  export interface SearchPatientParams {
-    ip?: string;
-    idbv?: string;
-    patientcode?: string;
-    patientphonenumber?: string;
-  }
-  
-  export interface CreatePatientPayload {
-    patientid: string;
-    patientfirstname: string;
-    patientlastname: string;
-    patientnational?: string;
-    patientbirthday?: string;
-    patientbirthyear?: string;
-    patientsex?: string;
-    patientethnic?: string;
-    patientphonenumber?: string;
-    addressdetail?: string;
-    addressstreet?: string;
-    addressward?: string;
-    addresscity?: string;
-    addressprovince?: string;
-    addresscountry?: string;
-    professionid?: string;
-  }
-  
+  id: string;
+  facility_id: string | null;
+  his_patient_id: string | null;
+  patient_first_name: string | null;
+  patient_last_name: string | null;
+  patient_full_name: string | null;
+  national_code: string | null;
+  birthday: string | null;
+  birth_year: string | null;
+  sex: string | null;
+  ethnic_code: string | null;
+  phone_number: string | null;
+  address_detail: string | null;
+  address_street: string | null;
+  ward_code: string | null;
+  district_code: string | null;
+  province_code: string | null;
+  country_code: string | null;
+  profession_id: string | null;
+  identity_number: string | null;
+  insurance_number: string | null;
+  insurance_expired_date_text: string | null;
+  id_card_code: string | null;
+  ethnic_name: string | null;
+  ward_name: string | null;
+  district_name: string | null;
+  province_name: string | null;
+  country_name: string | null;
+  profession_name: string | null;
+  address_full: string | null;
+  his_updated_at: string | null;
+  raw_data: Record<string, unknown> | null;
+  synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SearchPatientParams {
+  ip?: string;
+  idbv?: string;
+  patientcode?: string;
+  patientphonenumber?: string;
+}
+
+export interface CreatePatientPayload {
+  patientid: string;
+  patientfirstname: string;
+  patientlastname: string;
+  patientnational?: string;
+  patientbirthday?: string;
+  patientbirthyear?: string;
+  patientsex?: string;
+  patientethnic?: string;
+  patientphonenumber?: string;
+  identifynumber?: string;
+  insurancenumber?: string;
+  addressdetail?: string;
+  addressstreet?: string;
+  addressward?: string;
+  addresscity?: string;
+  addressprovince?: string;
+  addresscountry?: string;
+  professionid?: string;
+}

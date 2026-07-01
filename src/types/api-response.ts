@@ -51,6 +51,7 @@ export interface User {
   phone?: string;
   full_name?: string;
   email?: string;
+  cccd?: string;
   avatar?: string;
   is_active?: boolean;
   is_admin?: boolean;

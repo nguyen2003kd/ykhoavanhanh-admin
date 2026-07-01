@@ -43,7 +43,7 @@ export default function NotificationsPage() {
   }, [page, filterCategory]);
 
   const { data, isFetching } = notificationsHooks.useList(params);
-  const rows = data?.rows ?? [];
+  const rows = useMemo(() => data?.rows ?? [], [data]);
   const total = data?.count ?? 0;
   const totalPages = data?.totalPages ?? 1;
 

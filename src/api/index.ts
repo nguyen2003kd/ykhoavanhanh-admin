@@ -5,3 +5,6 @@ export * from "./postsApi";
 export * from "./doctorsApi";
 export * from "./postCategoriesApi";
 export * from "./notificationsApi";
+export * from "./rolesApi";
+export * from "./userRolesApi";
+export * from "./internalAccountsApi";
