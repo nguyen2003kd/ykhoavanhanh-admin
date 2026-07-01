@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/Toast";
 import { useRolesList } from "@/api/rolesApi";
 import { useCreateInternalAccount } from "@/api/internalAccountsApi";
 
-export default function NewUserPage() {
+export default function NewInternalAccountPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     fullName: "",
@@ -21,17 +21,15 @@ export default function NewUserPage() {
     role_id: "",
   });
 
-  // Fetch roles list
   const { data: rolesData, isLoading: rolesLoading } = useRolesList({ pageSize: 100 });
 
-  // Create account mutation
   const createMutation = useCreateInternalAccount({
     onSuccess: () => {
-      toast.success("Tạo tài khoản thành công!");
-      router.push("/users");
+      toast.success("Tao tai khoan thanh cong!");
+      router.push("/internal-accounts");
     },
     onError: (error) => {
-      toast.error(error.message || "Tạo tài khoản thất bại");
+      toast.error(error.message || "Tao tai khoan that bai");
     },
   });
 
@@ -39,7 +37,7 @@ export default function NewUserPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!form.role_id) {
-        toast.error("Vui lòng chọn vai trò");
+        toast.error("Vui long chon vai tro");
         return;
       }
       createMutation.mutate({
@@ -63,12 +61,12 @@ export default function NewUserPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" onClick={() => router.back()}>
-          ← Quay lại
+          ← Quay lai
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Thêm người dùng</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Them tai khoan noi bo</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Tạo tài khoản nội bộ mới
+            Tao tai khoan nhan Vien moi
           </p>
         </div>
       </div>
@@ -77,51 +75,53 @@ export default function NewUserPage() {
         <div className="col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin tài khoản</CardTitle>
+              <CardTitle>Thong tin tai khoan</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <Input
-                  label="Họ và tên *"
+                  label="Ho va ten *"
                   required
                   value={form.fullName}
                   onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 />
               </div>
               <Input
-                label="CCCD"
+                label="Email *"
+                type="email"
+                required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
               <Input
-                label="Số điện thoại"
+                label="So dien thoai"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
               />
               <div className="col-span-2">
                 {rolesLoading ? (
                   <div className="py-2">
-                    <Spinner size="sm" /> Đang tải vai trò...
+                    <Spinner size="sm" /> Dang tai vai tro...
                   </div>
                 ) : (
                   <Select
-                    label="Vai trò *"
+                    label="Vai tro *"
                     value={form.role_id}
                     onChange={(e) => setForm({ ...form, role_id: e.target.value })}
                     options={roleOptions}
-                    placeholder="Chọn vai trò"
+                    placeholder="Chon vai tro"
                   />
                 )}
               </div>
               <div className="col-span-2">
                 <Input
-                  label="Mật khẩu tạm thời *"
+                  label="Mat khau tam thoi *"
                   type="password"
                   required
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  hint="Toi thieu 6 ky tu"
                 />
-                <p className="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
               </div>
             </CardContent>
           </Card>
@@ -129,12 +129,11 @@ export default function NewUserPage() {
         <div>
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle>Tạo tài khoản</CardTitle>
+              <CardTitle>Tao tai khoan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-gray-500">
-                Người dùng sẽ nhận email và được yêu cầu đổi mật khẩu khi
-                đăng nhập lần đầu.
+                Tai khoan se duoc tao voi quyen admin. Nguoi dung se dang nhap bang email va mat khau.
               </p>
               <Button
                 type="submit"
@@ -142,7 +141,7 @@ export default function NewUserPage() {
                 className="w-full"
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "Đang tạo..." : "Thêm người dùng"}
+                {createMutation.isPending ? "Dang tao..." : "Tao tai khoan"}
               </Button>
               <Button
                 type="button"
@@ -150,7 +149,7 @@ export default function NewUserPage() {
                 className="w-full"
                 onClick={() => router.back()}
               >
-                Hủy
+                Huy
               </Button>
             </CardContent>
           </Card>

@@ -26,9 +26,9 @@ import {
   Clock,
   LogOut,
   Search,
-  Settings,
+  // Settings,
   ShieldAlert,
-  User,
+  // User,
   MailOpen,
   Mail,
 } from "lucide-react";
@@ -394,7 +394,7 @@ function UserMenu({ user }: { user: AdminUser }) {
 
           {/* menu items */}
           <div className="border-t border-gray-100 py-1.5">
-            <button
+            {/* <button
               role="menuitem"
               className="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
@@ -409,7 +409,7 @@ function UserMenu({ user }: { user: AdminUser }) {
             >
               <Settings className="size-4 text-gray-400" />
               Cài đặt hệ thống
-            </Link>
+            </Link> */}
           </div>
 
           <div className="border-t border-gray-100 py-1.5">

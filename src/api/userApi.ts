@@ -18,6 +18,8 @@ export interface ApiUser {
   updated_by?: string | null;
   full_name?: string | null;
   phone?: string | null;
+  email?: string | null;
+  cccd?: string | null;
   is_admin?: boolean;
   avatar?: string | null;
   is_active?: boolean;
@@ -26,7 +28,6 @@ export interface ApiUser {
   zalo_id_by_oa?: string | null;
   address?: string | null;
   birthday?: string | null;
-  email?: string | null;
   role?: string | null;
 }
 
@@ -38,6 +39,7 @@ export function mapApiUserToUser(apiUser: ApiUser): User {
     full_name: apiUser.full_name ?? undefined,
     phone: apiUser.phone ?? undefined,
     email: apiUser.email ?? undefined,
+    cccd: apiUser.cccd ?? undefined,
     avatar: apiUser.avatar ?? undefined,
     is_active: apiUser.is_active ?? false,
     is_admin: apiUser.is_admin ?? false,

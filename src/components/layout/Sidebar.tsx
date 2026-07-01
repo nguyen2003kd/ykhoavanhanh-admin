@@ -92,6 +92,7 @@ const navigation: NavItem[] = [
   { name: "Thông báo", href: "/notifications", icon: FiBell },
   { name: "Báo cáo", href: "/reports", icon: FiBarChart2 },
   { name: "Người dùng", href: "/users", icon: FiUser },
+  { name: "Tài khoản nội bộ", href: "/internal-accounts", icon: FiUser },
   { name: "Cài đặt", href: "/settings", icon: FiSettings },
 ];
 
