@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/utils";
-import { ArrowLeft, MailOpen, Mail, CheckCheck } from "lucide-react";
+import { ArrowLeft, MailOpen, Mail, CheckCheck, Pencil, Trash2 } from "lucide-react";
+import { useDeleteConfirmation } from "@/components/ui/useDeleteConfirmation";
 import { LoadingSection, Spinner } from "@/components/ui/Spinner";
 
 const CATEGORY_LABELS: Record<NotificationCategory, string> = {
@@ -59,9 +60,18 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ n
           <h1 className="text-2xl font-bold text-gray-900">{notif.title}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Chi tiết thông báo</p>
         </div>
-        <Badge variant={notif.has_user_read ? "default" : "info"}>
-          {notif.has_user_read ? "Đã đọc" : "Chưa đọc"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/notifications/${notif.id}/edit`)}
+          >
+            <Pencil className="h-4 w-4 mr-2" /> Chỉnh sửa
+          </Button>
+          <DeleteButton notifId={notif.id} onDeleted={() => router.push("/notifications")} />
+          <Badge variant={notif.has_user_read ? "default" : "info"}>
+            {notif.has_user_read ? "Đã đọc" : "Chưa đọc"}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -153,5 +163,24 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ n
         </div>
       </div>
     </div>
+  );
+}
+
+function DeleteButton({ notifId, onDeleted }: { notifId: string; onDeleted: () => void }) {
+  const deleteMutation = notificationsHooks.useDelete();
+  const { open, ConfirmDialog } = useDeleteConfirmation({
+    title: "Xác nhận xóa",
+    description: "Bạn có chắc muốn xóa thông báo này? Hành động này không thể hoàn tác.",
+    onConfirm: () => deleteMutation.mutate(notifId, { onSuccess: onDeleted }),
+  });
+
+  return (
+    <>
+      <Button variant="destructive" onClick={open} disabled={deleteMutation.isPending}>
+        <Trash2 className="h-4 w-4 mr-2" />
+        {deleteMutation.isPending ? "Đang xóa…" : "Xóa"}
+      </Button>
+      {ConfirmDialog}
+    </>
   );
 }

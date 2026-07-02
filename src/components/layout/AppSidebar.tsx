@@ -6,8 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  Award,
-  BarChart2,
   Bell,
   BookOpen,
   Calendar,
@@ -19,18 +17,21 @@ import {
   LayoutGrid,
   MessageSquare,
   Settings,
-  Star,
   Stethoscope,
   Tag,
   Users,
   Wrench,
 } from "lucide-react";
+import { usePermission } from "@/hooks/usePermission";
+import type { Permission, RoleType } from "@/types/permissions";
 
-// ── Navigation schema (mirrors NavRail) ────────────────────────────────────
+// ── Navigation schema ─────────────────────────────────────────────────────────
 
 interface NavChild {
   name: string;
   href: string;
+  permission?: Permission;
+  roles?: RoleType[];
 }
 
 interface NavGroup {
@@ -39,55 +40,119 @@ interface NavGroup {
   icon: React.ElementType;
   href?: string;
   children?: NavChild[];
+  permission?: Permission;
+  roles?: RoleType[];
 }
 
 const NAV_GROUPS: NavGroup[] = [
-  { id: "dashboard",    label: "Tổng quan",   icon: Home,        href: "/" },
+  // Tổng quan - Ai cũng thấy
+  {
+    id: "dashboard", label: "Tổng quan", icon: Home,
+    children: [
+      { name: "Dashboard", href: "/" },
+      { name: "Báo cáo", href: "/reports" },
+    ],
+  },
+
+  // Bệnh nhân - Ai cũng thấy
   {
     id: "patients", label: "Bệnh nhân", icon: Users,
     children: [
       { name: "Danh sách bệnh nhân", href: "/patients" },
-      { name: "Hồ sơ bệnh án",       href: "/medical-records" },
+      { name: "Hồ sơ bệnh án", href: "/medical-records" },
     ],
   },
-  { id: "appointments", label: "Lịch khám",   icon: Calendar,    href: "/appointments" },
-  { id: "operations",   label: "Vận hành",    icon: Wrench,      href: "/operations" },
+
+  // Tiếp tân (RECEPTIONIST) - Lập & chỉnh sửa lịch khám, lịch nghỉ phép BS
   {
-    id: "clinical", label: "Lâm sàng", icon: Stethoscope,
+    id: "receptionist", label: "Tiếp tân", icon: Calendar,
+    roles: ["receptionist", "admin"],
     children: [
-      { name: "Chuyên khoa",   href: "/specialties" },
-      { name: "Khu vực khám",  href: "/exam-areas" },
-      { name: "Phòng khám",    href: "/clinics" },
-      { name: "Bác sĩ",        href: "/doctors" },
-      { name: "Dịch vụ khám",  href: "/exam-services" },
+      { name: "Lịch khám", href: "/appointments" },
+      // TODO: { name: "Lịch nghỉ phép BS", href: "/doctor-leaves" },
+    ],
+  },
+
+  // CSKH (customer_service=true) - Nhắc hẹn, mẫu tin nhắn, khảo sát, chat, hỏi đáp
+  {
+    id: "cskh", label: "CSKH", icon: MessageSquare,
+    roles: ["cskh", "admin"],
+    children: [
+      { name: "Chat tư vấn", href: "/chats" },
+      { name: "Đánh giá", href: "/reviews" },
+      // TODO: { name: "Nhắc hẹn tái khám", href: "/cskh/reminders" },
+      // TODO: { name: "Mẫu tin nhắn", href: "/cskh/templates" },
+      // TODO: { name: "Khảo sát đánh giá", href: "/cskh/surveys" },
+      // TODO: { name: "Báo cáo đánh giá", href: "/cskh/reports" },
+      // TODO: { name: "Hỏi đáp", href: "/cskh/questions" },
+    ],
+  },
+
+  // Marketing (marketing=true) - Chương trình KM, quảng cáo, gói khám
+  {
+    id: "marketing", label: "Marketing", icon: Tag,
+    roles: ["marketing", "admin"],
+    children: [
+      { name: "Chương trình KM", href: "/promotions" },
+      // TODO: { name: "Quảng cáo", href: "/marketing/ads" },
+      // TODO: { name: "Gói khám", href: "/marketing/packages" },
+    ],
+  },
+
+  // Kế toán (accountant=true) - Thanh toán, đối soát
+  {
+    id: "accountant", label: "Kế toán", icon: CreditCard,
+    roles: ["accountant", "admin"],
+    children: [
+      { name: "Thanh toán", href: "/payments" },
+      // TODO: { name: "Đối soát ngân hàng", href: "/reconciliation/bank" },
+      // TODO: { name: "Đối soát HIS", href: "/reconciliation/his" },
+    ],
+  },
+
+  // Admin - Đồng bộ phiếu khám, khai báo, hoàn hủy, BC đối soát
+  {
+    id: "admin-clinical", label: "Lâm sàng", icon: Stethoscope,
+    permission: "admin.declare_specialty",
+    children: [
+      { name: "Khu vực khám", href: "/exam-areas", permission: "admin.manage_exam_room" },
+      { name: "Phòng khám", href: "/clinics", permission: "admin.manage_exam_room" },
     ],
   },
   {
-    id: "membership", label: "Membership", icon: Award,
+    id: "admin-specialties", label: "Chuyên khoa", icon: Stethoscope,
+    permission: "admin.declare_specialty",
     children: [
-      { name: "Thành viên",   href: "/membership" },
-      { name: "Điểm thưởng",  href: "/membership/points" },
-      { name: "Quà tặng",     href: "/membership/gifts" },
-      { name: "Voucher",      href: "/membership/vouchers" },
+      { name: "Chuyên khoa", href: "/specialties", permission: "admin.declare_specialty" },
+      { name: "Bác sĩ", href: "/doctors", permission: "admin.manage_doctor" },
+      { name: "Dịch vụ khám", href: "/exam-services", permission: "admin.declare_service_price" },
     ],
   },
+  { id: "admin-operations", label: "Vận hành", icon: Wrench, href: "/operations", permission: "admin.all" },
+
+  // Tài khoản nội bộ - Admin only
+  {
+    id: "internal-accounts", label: "Tài khoản nội bộ", icon: LayoutGrid,
+    permission: "user.manage",
+    children: [
+      { name: "Người dùng", href: "/internal-accounts", permission: "user.manage" },
+    ],
+  },
+
+  // Nội dung - Ai cũng thấy
   {
     id: "content", label: "Nội dung", icon: BookOpen,
     children: [
-      // { name: "Bài viết sức khỏe", href: "/content/articles" },
-      { name: "Tin tức",           href: "/content/news" },
+      { name: "Tin tức", href: "/content/news" },
       { name: "Danh mục bài viết", href: "/content/categories" },
-      { name: "Video",             href: "/content/videos" },
     ],
   },
-  { id: "promotions",    label: "Khuyến mãi",  icon: Tag,         href: "/promotions" },
-  { id: "payments",      label: "Thanh toán",  icon: CreditCard,  href: "/payments" },
-  { id: "reviews",       label: "Đánh giá",    icon: Star,        href: "/reviews" },
-  { id: "notifications", label: "Thông báo",   icon: Bell,          href: "/notifications" },
-  { id: "chats",        label: "CSKH",          icon: MessageSquare,  href: "/chats" },
-  { id: "reports",      label: "Báo cáo",      icon: BarChart2,     href: "/reports" },
-  { id: "users",         label: "Người dùng",  icon: LayoutGrid,  href: "/users" },
-  { id: "settings",      label: "Cài đặt",     icon: Settings,    href: "/settings" },
+
+  // Thông báo - Ai cũng thấy
+  { id: "notifications", label: "Thông báo", icon: Bell, href: "/notifications" },
+
+  // Cài đặt - Ai cũng thấy
+  { id: "settings", label: "Cài đặt", icon: Settings, href: "/settings" },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -108,21 +173,30 @@ function isGroupActive(pathname: string, group: NavGroup): boolean {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { hasPermission, hasRole } = usePermission();
   const [collapsed, setCollapsed] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  // Auto-expand whichever group is currently active
-  useEffect(() => {
-    const activeGroup = NAV_GROUPS.find((g) => isGroupActive(pathname, g));
-    if (activeGroup?.children) {
-      setExpandedIds((prev) => {
-        const next = new Set(prev);
-        next.add(activeGroup.id);
-        return next;
-      });
+  // Check access function
+  const checkAccess = (group: NavGroup | NavChild): boolean => {
+    if (hasPermission("admin.all")) return true;
+    if (group.permission) return hasPermission(group.permission);
+    if (group.roles && group.roles.length > 0) {
+      return group.roles.some((role) => hasRole(role));
     }
-  }, [pathname]);
+    return true;
+  };
 
+  // Filter visible groups
+  const visibleGroups = NAV_GROUPS.filter((group) => checkAccess(group));
+
+  // Filter children
+  const getVisibleChildren = (children?: NavChild[]) => {
+    if (!children) return [];
+    return children.filter((child) => checkAccess(child));
+  };
+
+  // Toggle group expand/collapse
   const toggleGroup = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -131,6 +205,16 @@ export function AppSidebar() {
       return next;
     });
   };
+
+  // Initial expand - run once on mount
+  useEffect(() => {
+    // Find active group and expand it
+    const activeGroup = NAV_GROUPS.find((g) => isGroupActive(pathname, g));
+    if (activeGroup?.children) {
+      setExpandedIds(new Set([activeGroup.id]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <aside
@@ -181,10 +265,16 @@ export function AppSidebar() {
         className="flex-1 overflow-y-auto px-3 py-2 space-y-1 scrollbar-none"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {NAV_GROUPS.map((group) => {
+        {visibleGroups.map((group) => {
           const Icon = group.icon;
           const active = isGroupActive(pathname, group);
           const isExpanded = expandedIds.has(group.id);
+          const visibleChildren = getVisibleChildren(group.children);
+
+          // Neu co children nhung khong co child nao visible → an group luon
+          if (group.children && visibleChildren.length === 0) {
+            return null;
+          }
 
           if (group.children) {
             return (
@@ -221,7 +311,7 @@ export function AppSidebar() {
 
                 {!collapsed && isExpanded && (
                   <div className="ml-7 mt-0.5 space-y-0.5">
-                    {group.children.map((child) => {
+                    {visibleChildren.map((child) => {
                       const childActive = pathname === child.href;
                       return (
                         <Link
@@ -246,8 +336,8 @@ export function AppSidebar() {
 
           return (
             <Link
-              key={group.href}
-              href={group.href!}
+              key={group.id}
+              href={group.href || "/"}
               title={collapsed ? group.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",

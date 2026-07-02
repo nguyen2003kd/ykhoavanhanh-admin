@@ -46,6 +46,24 @@ export interface ZaloLoginPayload {
   zalo_id_by_oa?: string;
 }
 
+export interface UserRole {
+  id: string;
+  user_id: string;
+  role_id: string;
+  created_at: string;
+  updated_at: string;
+  role: {
+    id: string;
+    role_name: string;
+    description: string | null;
+    receptionist: boolean;
+    membership: boolean;
+    marketing: boolean;
+    accountant: boolean;
+    customer_service: boolean;
+  };
+}
+
 export interface User {
   id: string;
   phone?: string;
@@ -57,6 +75,7 @@ export interface User {
   is_admin?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  user_roles?: UserRole[];
 }
 export interface usePut{
 

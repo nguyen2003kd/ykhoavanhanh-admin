@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { notificationsHooks, type NotificationCategory, type NotificationSubCategory } from "@/api/notificationsApi";
@@ -8,8 +8,8 @@ import { useUsersList } from "@/api/userApi";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Spinner } from "@/components/ui/Spinner";
-import { ArrowLeft, Send } from "lucide-react";
+import { Spinner, LoadingSection } from "@/components/ui/Spinner";
+import { ArrowLeft, Save } from "lucide-react";
 
 const CATEGORIES: { value: NotificationCategory; label: string }[] = [
   { value: "APPOINTMENT", label: "Lịch hẹn" },
@@ -23,9 +23,20 @@ const SUB_CATEGORIES: { value: NotificationSubCategory; label: string }[] = [
   { value: "SYSTEM", label: "Hệ thống" },
 ];
 
-export default function NewNotificationPage() {
+function toDatetimeLocal(iso: string | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export default function EditNotificationPage({ params }: { params: Promise<{ notificationId: string }> }) {
+  const { notificationId } = use(params);
   const router = useRouter();
-  const createMutation = notificationsHooks.useCreate();
+
+  const { data: notif, isFetching } = notificationsHooks.useDetail(notificationId);
+  const updateMutation = notificationsHooks.useUpdate();
   const { data: usersData, isLoading: usersLoading } = useUsersList({ pageSize: 100 });
 
   const [form, setForm] = useState({
@@ -39,6 +50,20 @@ export default function NewNotificationPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (notif) {
+      setForm({
+        title: notif.title || "",
+        content: notif.content || "",
+        category: notif.category || "SYSTEM",
+        sub_category: notif.sub_category || "",
+        belongs_to_user_id: notif.belongs_to_user_id || "",
+        sent_time: toDatetimeLocal(notif.sent_time),
+        expired_at: toDatetimeLocal(notif.expired_at ?? undefined),
+      });
+    }
+  }, [notif]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -56,20 +81,28 @@ export default function NewNotificationPage() {
       title: form.title.trim(),
       content: form.content.trim(),
       category: form.category,
-      has_user_read: false,
-      has_noti_sent: false,
     };
 
     if (form.sub_category) payload.sub_category = form.sub_category;
-    if (form.belongs_to_user_id.trim()) payload.belongs_to_user_id = form.belongs_to_user_id.trim();
-    if (form.sent_time) payload.sent_time = new Date(form.sent_time).toISOString();
-    if (form.expired_at) payload.expired_at = new Date(form.expired_at).toISOString();
+    else payload.sub_category = null;
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        router.push("/notifications");
-      },
-    });
+    if (form.belongs_to_user_id.trim()) payload.belongs_to_user_id = form.belongs_to_user_id.trim();
+    else payload.belongs_to_user_id = null;
+
+    if (form.sent_time) payload.sent_time = new Date(form.sent_time).toISOString();
+    else payload.sent_time = null;
+
+    if (form.expired_at) payload.expired_at = new Date(form.expired_at).toISOString();
+    else payload.expired_at = null;
+
+    updateMutation.mutate(
+      { id: notificationId, data: payload },
+      {
+        onSuccess: () => {
+          router.push(`/notifications/${notificationId}`);
+        },
+      }
+    );
   };
 
   const updateField = (field: string, value: string) => {
@@ -77,17 +110,32 @@ export default function NewNotificationPage() {
     if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; });
   };
 
+  if (isFetching) {
+    return <LoadingSection text="Đang tải thông báo…" />;
+  }
+
+  if (!notif) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-gray-500 text-lg">Không tìm thấy thông báo.</p>
+        <Link href="/notifications">
+          <Button variant="outline" className="mt-4">Quay lại danh sách</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-4">
-        <Link href="/notifications">
+        <Link href={`/notifications/${notificationId}`}>
           <Button variant="ghost">
             <ArrowLeft className="h-4 w-4 mr-1" /> Quay lại
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tạo thông báo mới</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Soạn và gửi thông báo đến người dùng</p>
+          <h1 className="text-2xl font-bold text-gray-900">Chỉnh sửa thông báo</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Cập nhật nội dung thông báo</p>
         </div>
       </div>
 
@@ -186,17 +234,17 @@ export default function NewNotificationPage() {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <Button type="submit" variant="primary" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Spinner size="sm" className="mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                Tạo thông báo
+              <Button type="submit" variant="primary" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? <Spinner size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Lưu thay đổi
               </Button>
-              <Link href="/notifications">
+              <Link href={`/notifications/${notificationId}`}>
                 <Button variant="outline" type="button">Hủy</Button>
               </Link>
             </div>
 
-            {createMutation.isError && (
-              <p className="text-sm text-destructive">{createMutation.error?.message || "Tạo thông báo thất bại"}</p>
+            {updateMutation.isError && (
+              <p className="text-sm text-destructive">{updateMutation.error?.message || "Cập nhật thất bại"}</p>
             )}
           </form>
         </CardContent>

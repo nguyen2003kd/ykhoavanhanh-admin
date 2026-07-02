@@ -12,3 +12,6 @@ export type { Payment, PaymentStatus, PaymentMethod } from "./payment";
 export type { Promotion } from "./promotion";
 export type { DashboardKpi, AppointmentStat, DoctorPerformance, RevenueData } from "./report";
 export type { PaginatedResponse, PaginationParams, FilterParams, SortParams, ApiResponse, AuthTokenResponse, LoginPayload } from "./api";
+export type { Permission, RoleType, Role } from "./permissions";
+export { DEFAULT_ROLE_PERMISSIONS, ROLE_LABELS, PERMISSION_LABELS } from "./permissions";
+export type { RoleOption } from "./user";
