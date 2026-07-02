@@ -18,7 +18,6 @@ import {
   MessageSquare,
   Settings,
   Stethoscope,
-  Tag,
   Users,
   Wrench,
 } from "lucide-react";
@@ -89,15 +88,15 @@ const NAV_GROUPS: NavGroup[] = [
   },
 
   // Marketing (marketing=true) - Chương trình KM, quảng cáo, gói khám
-  {
-    id: "marketing", label: "Marketing", icon: Tag,
-    roles: ["marketing", "admin"],
-    children: [
-      { name: "Chương trình KM", href: "/promotions" },
-      // TODO: { name: "Quảng cáo", href: "/marketing/ads" },
-      // TODO: { name: "Gói khám", href: "/marketing/packages" },
-    ],
-  },
+  // {
+  //   id: "marketing", label: "Marketing", icon: Tag,
+  //   roles: ["marketing", "admin"],
+  //   children: [
+  //     { name: "Chương trình KM", href: "/promotions" },
+  //     // TODO: { name: "Quảng cáo", href: "/marketing/ads" },
+  //     // TODO: { name: "Gói khám", href: "/marketing/packages" },
+  //   ],
+  // },
 
   // Kế toán (accountant=true) - Thanh toán, đối soát
   {
