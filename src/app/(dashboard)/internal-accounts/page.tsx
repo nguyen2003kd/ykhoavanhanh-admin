@@ -14,7 +14,7 @@ import { useUsersList, useDeleteUser } from "@/api/userApi";
 import { useUserRolesList } from "@/api/userRolesApi";
 import type { User } from "@/types/api-response";
 import { formatDate } from "@/lib/utils";
-import { Plus, RefreshCw, Trash2, Eye, Shield } from "lucide-react";
+import { Plus, RefreshCw, Trash2, Eye, Shield, Pencil } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -220,6 +220,11 @@ export default function InternalAccountsPage() {
                           <Link href={`/internal-accounts/${user.id}`}>
                             <Button variant="ghost" size="icon-sm" title="Xem chi tiet">
                               <Eye data-icon="inline" className="size-4" />
+                            </Button>
+                          </Link>
+                          <Link href={`/internal-accounts/${user.id}/edit`}>
+                            <Button variant="ghost" size="icon-sm" title="Chinh sua">
+                              <Pencil data-icon="inline" className="size-4" />
                             </Button>
                           </Link>
                           <Button

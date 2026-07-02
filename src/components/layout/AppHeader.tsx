@@ -19,6 +19,7 @@ import { authService } from "@/api/authApi";
 import { notificationsHooks, type Notification as ApiNotification } from "@/api/notificationsApi";
 import { useCurrentUser } from "@/store/authStore";
 import { AdminRole, AdminUser } from "@/types/user";
+import { ROLE_LABELS, type RoleType } from "@/types/permissions";
 import {
   Bell,
   ChevronDown,
@@ -34,23 +35,59 @@ import {
 } from "lucide-react";
 import { LoadingSection } from "@/components/ui/Spinner";
 
+// ── Role display helper ──────────────────────────────────────────────────────
+
+function getUserDisplayRole(user: AdminUser): { label: string; color: string } {
+  // Super Admin (is_admin = true) → hiển thị Quản trị viên
+  if (user.is_admin === true) {
+    return { label: "Super Admin", color: "bg-violet-100 text-violet-700" };
+  }
+
+  // Lấy roles từ userRoles (đã map từ authApi)
+  const userRoles = user.userRoles || [];
+  const roleTypes: RoleType[] = [];
+
+  for (const ur of userRoles) {
+    if (ur.accountant) roleTypes.push("accountant");
+    if (ur.customerService) roleTypes.push("cskh");
+    if (ur.marketing) roleTypes.push("marketing");
+    if (ur.receptionist) roleTypes.push("receptionist");
+    // Kiểm tra ADMIN role (có đủ 4 flags)
+    if (ur.accountant && ur.customerService && ur.marketing && ur.receptionist) {
+      roleTypes.push("admin");
+    }
+  }
+
+  // Nếu có nhiều role, hiển thị tất cả
+  if (roleTypes.length > 0) {
+    const uniqueRoles = [...new Set(roleTypes)];
+    const label = uniqueRoles.map((r) => ROLE_LABELS[r]).join(", ");
+    return { label, color: "bg-primary-100 text-primary-700" };
+  }
+
+  // Fallback: dùng role cũ
+  const legacyLabels: Record<AdminRole, string> = {
+    super_admin: "Quản trị viên",
+    admin_content: "Biên tập nội dung",
+    admin_membership: "Quản lý Membership",
+    cskh: "CSKH",
+    doctor: "Bác sĩ",
+  };
+  const legacyColors: Record<AdminRole, string> = {
+    super_admin: "bg-violet-100 text-violet-700",
+    admin_content: "bg-sky-100 text-sky-700",
+    admin_membership: "bg-amber-100 text-amber-700",
+    cskh: "bg-teal-100 text-teal-700",
+    doctor: "bg-primary-100 text-primary-700",
+  };
+
+  return {
+    label: legacyLabels[user.role] || "Nhân viên",
+    color: legacyColors[user.role] || "bg-gray-100 text-gray-700",
+  };
+}
+
 // ── Constants ────────────────────────────────────────────────────────────────
-
-const roleLabels: Record<AdminRole, string> = {
-  super_admin: "Quản trị viên",
-  admin_content: "Biên tập nội dung",
-  admin_membership: "Quản lý Membership",
-  cskh: "CSKH",
-  doctor: "Bác sĩ",
-};
-
-const roleColors: Record<AdminRole, string> = {
-  super_admin: "bg-violet-100 text-violet-700",
-  admin_content: "bg-sky-100 text-sky-700",
-  admin_membership: "bg-amber-100 text-amber-700",
-  cskh: "bg-teal-100 text-teal-700",
-  doctor: "bg-primary-100 text-primary-700",
-};
 
 const moduleTitleMap: Record<string, string> = {
   "/": "Bảng điều khiển",
@@ -302,6 +339,9 @@ function UserMenu({ user }: { user: AdminUser }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Lấy role để hiển thị
+  const displayRole = getUserDisplayRole(user);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -343,7 +383,7 @@ function UserMenu({ user }: { user: AdminUser }) {
           <span className="max-w-[120px] truncate text-[13px] font-semibold text-gray-800">
             {user.fullName}
           </span>
-          <span className="text-[11px] text-gray-500">{roleLabels[user.role]}</span>
+          <span className="text-[11px] text-gray-500">{displayRole.label}</span>
         </div>
 
         <ChevronDown
@@ -372,10 +412,10 @@ function UserMenu({ user }: { user: AdminUser }) {
                 <span
                   className={cn(
                     "mt-1.5 inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium",
-                    roleColors[user.role],
+                    displayRole.color,
                   )}
                 >
-                  {roleLabels[user.role]}
+                  {displayRole.label}
                 </span>
               </div>
             </div>
@@ -446,7 +486,6 @@ function Breadcrumb({ section, title }: { section: string | null; title: string 
 export function AppHeader() {
   const pathname = usePathname();
   const currentUser = useCurrentUser();
-  console.log("currentUser", currentUser);
   const [scrolled, setScrolled] = useState(false);
 
   // shadow on scroll

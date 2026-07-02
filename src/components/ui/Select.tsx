@@ -202,7 +202,7 @@ export function Select({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options?.map((opt) => (
+          {options?.filter((opt) => opt.value && opt.value.trim() !== "").map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
           ))}
         </SelectContent>

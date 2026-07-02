@@ -20,8 +20,20 @@ function mapApiUserToAdminUser(apiUser: User): AdminUser {
     role: (apiUser.is_admin ? "super_admin" : "cskh") as AdminRole,
     avatar: apiUser.avatar,
     isActive: apiUser.is_active ?? true,
+    is_admin: apiUser.is_admin, // Quan trọng: map is_admin để phân quyền
     createdAt: apiUser.createdAt || new Date().toISOString(),
     updatedAt: apiUser.updatedAt || new Date().toISOString(),
+    userRoles: apiUser.user_roles?.map((ur) => ({
+      id: ur.id,
+      roleId: ur.role_id,
+      roleName: ur.role.role_name,
+      description: ur.role.description,
+      receptionist: ur.role.receptionist,
+      membership: ur.role.membership,
+      marketing: ur.role.marketing,
+      accountant: ur.role.accountant,
+      customerService: ur.role.customer_service,
+    })),
   };
 }
 

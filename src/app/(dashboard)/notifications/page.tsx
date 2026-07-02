@@ -15,7 +15,11 @@ import {
   ChevronRight,
   MailOpen,
   Mail,
+  Plus,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+import { useDeleteConfirmation } from "@/components/ui/useDeleteConfirmation";
 import { LoadingSection, Spinner } from "@/components/ui/Spinner";
 
 const PAGE_SIZE = 10;
@@ -70,6 +74,7 @@ export default function NotificationsPage() {
     },
   });
   const markOneMutation = notificationsHooks.useMarkAsReadById();
+  const deleteMutation = notificationsHooks.useDelete();
 
   const activeFilterCount =
     (filterCategory !== "ALL" ? 1 : 0) + (filterRead !== "ALL" ? 1 : 0);
@@ -82,18 +87,26 @@ export default function NotificationsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Thông báo</h1>
           <p className="text-sm text-gray-500 mt-1">Danh sách thông báo gửi đến người dùng</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => markAllMutation.mutate(undefined)}
-          disabled={markAllMutation.isPending || unreadCount === 0}
-        >
-          {markAllMutation.isPending ? (
-            <Spinner size="sm" className="mr-2" />
-          ) : (
-            <CheckCheck className="w-4 h-4 mr-2" />
-          )}
-          Đánh dấu tất cả đã đọc
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => markAllMutation.mutate(undefined)}
+            disabled={markAllMutation.isPending || unreadCount === 0}
+          >
+            {markAllMutation.isPending ? (
+              <Spinner size="sm" className="mr-2" />
+            ) : (
+              <CheckCheck className="w-4 h-4 mr-2" />
+            )}
+            Đánh dấu tất cả đã đọc
+          </Button>
+          <Link href="/notifications/new">
+            <Button variant="primary">
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo thông báo
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -252,25 +265,11 @@ export default function NotificationsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity justify-end">
-                        {!notif.has_user_read && (
-                          <button
-                            onClick={() => markOneMutation.mutate(notif.id)}
-                            disabled={markOneMutation.isPending && markOneMutation.variables === notif.id}
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition-colors"
-                            title="Đánh dấu đã đọc"
-                          >
-                            <CheckCheck className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        <Link
-                          href={`/notifications/${notif.id}`}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
+                      <RowActions
+                        notif={notif}
+                        markOneMutation={markOneMutation}
+                        onDelete={(id) => deleteMutation.mutate(id)}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -325,5 +324,62 @@ export default function NotificationsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ── RowActions sub-component ──────────────────────────────────────────────────
+
+function RowActions({
+  notif,
+  markOneMutation,
+  onDelete,
+}: {
+  notif: { id: string; has_user_read: boolean };
+  markOneMutation: ReturnType<typeof notificationsHooks.useMarkAsReadById>;
+  onDelete: (id: string) => void;
+}) {
+  const { open, ConfirmDialog } = useDeleteConfirmation({
+    title: "Xác nhận xóa",
+    description: "Bạn có chắc muốn xóa thông báo này? Hành động này không thể hoàn tác.",
+    onConfirm: () => onDelete(notif.id),
+  });
+
+  return (
+    <>
+      <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity justify-end">
+        {!notif.has_user_read && (
+          <button
+            onClick={() => markOneMutation.mutate(notif.id)}
+            disabled={markOneMutation.isPending && markOneMutation.variables === notif.id}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition-colors"
+            title="Đánh dấu đã đọc"
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+          </button>
+        )}
+        <Link
+          href={`/notifications/${notif.id}/edit`}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition-colors"
+          title="Chỉnh sửa"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+        </Link>
+        <button
+          onClick={open}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+          title="Xóa"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+        <Link
+          href={`/notifications/${notif.id}`}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-primary hover:bg-primary-50 transition-colors"
+          title="Xem chi tiết"
+        >
+          <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+      {ConfirmDialog}
+    </>
   );
 }

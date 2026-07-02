@@ -13,6 +13,8 @@ import { toast } from "@/components/ui/Toast";
 import { useUserById, useUpdateUser } from "@/api/userApi";
 import { useRolesList } from "@/api/rolesApi";
 import { useUserRolesList, useCreateUserRole, useDeleteUserRole } from "@/api/userRolesApi";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { ROLE_LABELS, type RoleType } from "@/types/permissions";
 
 export default function EditInternalAccountPage() {
   const params = useParams<{ userId: string }>();
@@ -78,13 +80,35 @@ export default function EditInternalAccountPage() {
   // Roles that are already assigned
   const assignedRoleIds = new Set(userRolesData?.rows.map((ur) => ur.role_id) || []);
 
-  // Available roles to add (not yet assigned)
+  // Available roles to add (not yet assigned) - chỉ hiển thị roles chưa gán và có id hợp lệ
   const availableRoles = rolesData?.rows
-    .filter((role) => !assignedRoleIds.has(role.id))
-    .map((role) => ({
-      value: role.id,
-      label: role.description || role.role_name,
-    })) || [];
+    .filter((role) => role.id && role.id.trim() !== "" && !assignedRoleIds.has(role.id))
+    .map((role) => {
+      // Xác định role_type từ các flag boolean - ưu tiên ADMIN
+      let roleType: RoleType = "admin";
+      const roleName = (role.role_name || "").toLowerCase();
+
+      // ADMIN có tất cả flags = true hoặc role_name chứa "admin"
+      if (
+        (role.accountant && role.customer_service && role.marketing && role.receptionist) ||
+        roleName.includes("admin")
+      ) {
+        roleType = "admin";
+      } else if (role.accountant) {
+        roleType = "accountant";
+      } else if (role.customer_service) {
+        roleType = "cskh";
+      } else if (role.marketing) {
+        roleType = "marketing";
+      } else if (role.receptionist) {
+        roleType = "receptionist";
+      }
+
+      return {
+        value: role.id,
+        label: `${role.description || role.role_name} (${ROLE_LABELS[roleType]})`,
+      };
+    }) || [];
 
   // Current user roles
   const currentRoles = userRolesData?.rows || [];
@@ -181,14 +205,16 @@ export default function EditInternalAccountPage() {
                     {currentRoles.map((ur) => (
                       <Badge key={ur.id} variant="info" className="flex items-center gap-2">
                         <span>{ur.role.description || ur.role.role_name}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeRoleMutation.mutate(ur.id)}
-                          disabled={removeRoleMutation.isPending}
-                          className="text-xs hover:text-destructive"
-                        >
-                          ✕
-                        </button>
+                        <PermissionGuard permission="user.assign_role">
+                          <button
+                            type="button"
+                            onClick={() => removeRoleMutation.mutate(ur.id)}
+                            disabled={removeRoleMutation.isPending}
+                            className="text-xs hover:text-destructive ml-1"
+                          >
+                            ✕
+                          </button>
+                        </PermissionGuard>
                       </Badge>
                     ))}
                   </div>
@@ -197,25 +223,27 @@ export default function EditInternalAccountPage() {
                 <p className="text-sm text-gray-500">Chua co vai tro nao.</p>
               )}
 
-              {/* Add new role */}
-              <div className="flex items-end gap-2 pt-2">
-                <div className="flex-1">
-                  <Select
-                    value={selectedRoleToAdd}
-                    onValueChange={setSelectedRoleToAdd}
-                    options={availableRoles}
-                    placeholder="Chon vai tro can them"
-                  />
+              {/* Add new role - chỉ admin mới thấy */}
+              <PermissionGuard permission="user.assign_role">
+                <div className="flex items-end gap-2 pt-2">
+                  <div className="flex-1">
+                    <Select
+                      value={selectedRoleToAdd}
+                      onValueChange={setSelectedRoleToAdd}
+                      options={availableRoles}
+                      placeholder={availableRoles.length > 0 ? "Chon vai tro can them" : "Tat ca vai tro da duoc gan"}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddRole}
+                    disabled={!selectedRoleToAdd || addRoleMutation.isPending || availableRoles.length === 0}
+                  >
+                    Them vai tro
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddRole}
-                  disabled={!selectedRoleToAdd || addRoleMutation.isPending}
-                >
-                  Them
-                </Button>
-              </div>
+              </PermissionGuard>
             </CardContent>
           </Card>
         </div>
