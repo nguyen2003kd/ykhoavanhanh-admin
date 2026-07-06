@@ -2,6 +2,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
   type UseMutationOptions,
   type UseQueryResult,
 } from "@tanstack/react-query";
@@ -93,6 +94,7 @@ export interface DoctorListParams {
   idbv?: string;
   page?: number;
   pageSize?: number;
+  doctorname?: string;
 }
 
 // ─── CRUD factory ─────────────────────────────────────────────────────────
@@ -141,9 +143,11 @@ export const doctorsService = {
 
   create: async (data: Partial<HisDoctor>): Promise<HisDoctor> => {
     const res = await apiPost<DoctorApiItem>("/doctors", {
+      facility_id: data.facility_id,
       doctor_id: data.doctorid,
       doctor_name: data.doctorname,
       description: data.description,
+      specialty_id: data.specialty_id,
     });
     if (res.data.status === "success" && res.data.responseData) {
       return normalizeDoctor(res.data.responseData);
@@ -156,6 +160,7 @@ export const doctorsService = {
       doctor_id: data.doctorid ?? id,
       doctor_name: data.doctorname,
       description: data.description,
+      specialty_id: data.specialty_id,
     });
     if (res.data.status === "success" && res.data.responseData) {
       return normalizeDoctor(res.data.responseData);
@@ -225,6 +230,22 @@ export const doctorsHooks = {
       staleTime: 1000 * 60 * 2,
       enabled: options?.enabled ?? true,
       ...options,
+    });
+  },
+
+  useInfiniteList: (
+    params?: DoctorListParams,
+    options?: { enabled?: boolean; pageSize?: number }
+  ) => {
+    const pageSize = options?.pageSize ?? 10;
+    return useInfiniteQuery({
+      queryKey: [...doctorsKeys.list(params as unknown as Record<string, unknown>), "infinite", pageSize],
+      queryFn: ({ pageParam }) => doctorsService.getPaginatedList({ ...params, page: pageParam, pageSize }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) =>
+        lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined,
+      staleTime: 1000 * 60 * 2,
+      enabled: options?.enabled ?? true,
     });
   },
 
