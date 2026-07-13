@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, GraduationCap, ImageIcon, Mail, Phone, Stethoscope, UserRound } from "lucide-react";
+import { ArrowLeft, GraduationCap, ImageIcon, Mail, Phone, Stethoscope, Trash2, UserRound } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
+import { TextEditor } from "@/components/shares/rich-text-editor";
 import { specialtiesHooks } from "@/api/specialtiesApi";
 import { filesHooks } from "@/api/filesApi";
 import { toast } from "@/components/ui/Toast";
@@ -57,6 +58,12 @@ function getImageSrc(path: string | null | undefined): string | null {
   return `${process.env.NEXT_PUBLIC_API_URL ?? ""}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+export function isValidPhoneNumber(value: string): boolean {
+  const phone = value.replace(/[\s.\-()]/g, "");
+  if (!phone) return true;
+  return /^(0\d{9,10}|84\d{9,10}|\+84\d{9,10})$/.test(phone);
+}
+
 export function mapDoctorToForm(doctor: HisDoctor): DoctorFormValues {
   return {
     doctorid: doctor.doctorid,
@@ -85,9 +92,11 @@ type Props = {
   initialForm: DoctorFormValues;
   isSubmitting: boolean;
   onSubmit: (form: DoctorFormValues) => void;
+  /** Bắt buộc nhập chuyên khoa, số điện thoại, giới tính (dùng khi thêm bác sĩ). */
+  requireContactFields?: boolean;
 };
 
-export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmitting, onSubmit }: Props) {
+export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmitting, onSubmit, requireContactFields = false }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<DoctorFormValues>(initialForm);
   const { data: specialtiesData } = specialtiesHooks.useList();
@@ -108,6 +117,7 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!form.doctorid.trim() || !form.doctorname.trim()) return;
+    if (requireContactFields && (!form.specialty_id || !form.phone.trim() || !form.gender)) return;
     onSubmit(form);
   }
 
@@ -139,9 +149,10 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-foreground">Chuyên khoa</label>
+              <label className="mb-1 block text-sm font-medium text-foreground">Chuyên khoa{requireContactFields && <span className="ml-1 text-red-500">*</span>}</label>
               <select
                 value={form.specialty_id}
+                required={requireContactFields}
                 onChange={(e) => setForm((p) => ({ ...p, specialty_id: e.target.value }))}
                 className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10"
               >
@@ -158,14 +169,14 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Input label="Số điện thoại" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="VD: 0909000000" />
+              <Input label={`Số điện thoại${requireContactFields ? " *" : ""}`} type="tel" required={requireContactFields} value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="VD: 0909000000" />
               <Input label="Email" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="doctor@example.com" />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">Giới tính</label>
-                <select value={form.gender} onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
+                <label className="mb-1 block text-sm font-medium text-foreground">Giới tính{requireContactFields && <span className="ml-1 text-red-500">*</span>}</label>
+                <select value={form.gender} required={requireContactFields} onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10">
                   <option value="">Chọn giới tính</option>
                   <option value="MALE">Nam</option>
                   <option value="FEMALE">Nữ</option>
@@ -177,36 +188,48 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
 
             <div>
               <label className="mb-1 block text-sm font-medium text-foreground">Ảnh đại diện</label>
-              <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center transition-colors hover:border-primary-300 hover:bg-primary-50/40">
-                <ImageIcon className="mb-2 h-6 w-6 text-slate-400" />
-                <span className="text-sm font-medium text-slate-700">
-                  {uploadMutation.isPending ? "Đang upload ảnh..." : "Chọn ảnh từ máy"}
-                </span>
-                <span className="mt-1 text-xs text-slate-400">Hỗ trợ PNG, JPG, WEBP. File sẽ được upload lên hệ thống.</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadMutation.isPending}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    if (!file.type.startsWith("image/")) {
-                      toast.error("Vui lòng chọn file ảnh");
-                      return;
-                    }
-                    uploadMutation.mutate(file);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              {form.avatar_url && (
-                <p className="mt-2 text-xs text-slate-400">Đường dẫn đã lưu: <span className="font-mono">{form.avatar_url}</span></p>
-              )}
-              {avatarSrc && (
-                <div className="relative mt-3 h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-slate-50">
-                  <Image src={avatarSrc} alt="avatar preview" fill sizes="112px" className="object-cover" unoptimized />
+              {form.avatar_url ? (
+                <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full border border-slate-200 bg-white">
+                    {avatarSrc && <Image src={avatarSrc} alt="avatar preview" fill sizes="96px" className="object-cover" unoptimized />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-700">Ảnh đại diện đã tải lên</p>
+                    <p className="mt-1 truncate text-xs text-slate-400" title={form.avatar_url}>{form.avatar_url}</p>
+                    <button
+                      type="button"
+                      disabled={uploadMutation.isPending}
+                      onClick={() => setForm((current) => ({ ...current, avatar_url: "" }))}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Xóa ảnh
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center transition-colors hover:border-primary-300 hover:bg-primary-50/40">
+                  <ImageIcon className="mb-2 h-6 w-6 text-slate-400" />
+                  <span className="text-sm font-medium text-slate-700">
+                    {uploadMutation.isPending ? "Đang upload ảnh..." : "Chọn ảnh từ máy"}
+                  </span>
+                  <span className="mt-1 text-xs text-slate-400">Hỗ trợ PNG, JPG, WEBP. File sẽ được upload lên hệ thống.</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadMutation.isPending}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (!file.type.startsWith("image/")) {
+                        toast.error("Vui lòng chọn file ảnh");
+                        return;
+                      }
+                      uploadMutation.mutate(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
               )}
             </div>
 
@@ -227,7 +250,17 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
             </div>
 
             <Input label="Ghi chú đặt khám" value={form.booking_note} onChange={(e) => setForm((p) => ({ ...p, booking_note: e.target.value }))} placeholder="VD: Chỉ nhận lịch buổi sáng" />
-            <Input label="Mô tả" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="VD: Bác sĩ khoa Tim mạch" />
+            <div>
+              <label className="mb-1 block text-sm font-medium text-foreground">Mô tả</label>
+              <div className="doctor-description-editor min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white focus-within:border-primary-500 focus-within:ring-4 focus-within:ring-primary-500/10">
+                <TextEditor
+                  key={`${form.doctorid}-${initialForm.description}`}
+                  content={form.description}
+                  onChangeContent={(content) => setForm((p) => ({ ...p, description: content }))}
+                  contentClassName="min-h-[180px] [overflow-wrap:anywhere]"
+                />
+              </div>
+            </div>
 
             <div className="flex items-center gap-3 pt-2">
               <button type="submit" disabled={isSubmitting || uploadMutation.isPending} className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
@@ -284,6 +317,15 @@ export function DoctorForm({ title, subtitle, submitLabel, initialForm, isSubmit
                 <div className="border-t border-slate-100 pt-3">
                   <p className="text-xs text-muted-foreground">Ghi chú đặt khám</p>
                   <p className="mt-1 text-sm text-slate-700">{form.booking_note.trim()}</p>
+                </div>
+              )}
+              {form.description.trim() && (
+                <div className="border-t border-slate-100 pt-3">
+                  <p className="text-xs text-muted-foreground">Mô tả</p>
+                  <div
+                    className="mt-1 text-sm text-slate-700 [overflow-wrap:anywhere]"
+                    dangerouslySetInnerHTML={{ __html: form.description }}
+                  />
                 </div>
               )}
             </div>
