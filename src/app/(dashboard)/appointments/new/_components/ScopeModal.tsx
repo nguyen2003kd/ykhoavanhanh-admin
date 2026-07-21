@@ -1,8 +1,8 @@
 import { Info } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { PaginatedCombobox } from "./PaginatedCombobox";
-import { scopeControlClass, type ScopeRow } from "../types";
-import type { NewScheduleController } from "../hooks/useNewScheduleForm";
+import { formatServiceOptionLabel, scopeControlClass, type ScopeRow } from "../types";
+import type { ScheduleEditorController } from "../hooks/useNewScheduleForm";
 
 /** Field dạng label-trái / input-phải cho modal phạm vi. */
 function ScopeField({
@@ -26,7 +26,7 @@ function ScopeField({
 }
 
 /** Modal thêm/sửa phạm vi khám. */
-export function ScopeModal({ ctrl }: { ctrl: NewScheduleController }) {
+export function ScopeModal({ ctrl }: { ctrl: ScheduleEditorController }) {
   const {
     scopeModalOpen,
     setScopeModalOpen,
@@ -43,7 +43,7 @@ export function ScopeModal({ ctrl }: { ctrl: NewScheduleController }) {
     specialtyName,
     areaName,
     roomName,
-    serviceName,
+    serviceOptionLabel,
     rememberLabel,
     onDraftServiceChange,
   } = ctrl;
@@ -136,8 +136,8 @@ export function ScopeModal({ ctrl }: { ctrl: NewScheduleController }) {
         <ScopeField label="Dịch vụ khám" required>
           <PaginatedCombobox
             value={scopeDraft.service_id}
-            selectedLabel={scopeDraft.service_id ? serviceName(scopeDraft.service_id) : undefined}
-            options={draftServiceOptions.map((s) => ({ value: s.id, label: s.servicename }))}
+            selectedLabel={scopeDraft.service_id ? serviceOptionLabel(scopeDraft.service_id) : undefined}
+            options={draftServiceOptions.map((s) => ({ value: s.id, label: formatServiceOptionLabel(s) }))}
             search={servicePicker.search}
             isLoading={servicePicker.isFetching}
             hasMore={servicePicker.hasMore}

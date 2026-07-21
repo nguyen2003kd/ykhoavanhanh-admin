@@ -6,18 +6,18 @@ import { LoadingSection } from "@/components/ui/Spinner";
 import { formatDate } from "@/lib/utils";
 import type { MedicalRecord } from "@/api/medicalRecordsApi";
 import { FiEye } from "react-icons/fi";
-import { MEDICAL_RECORD_PAGE_SIZE, PAYMENT_BADGE } from "../types";
-
 interface MedicalRecordTableProps {
   rows: MedicalRecord[];
   isLoading: boolean;
   page: number;
+  pageSize: number;
   totalPages: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
 }
 
-export function MedicalRecordTable({ rows, isLoading, page, totalPages, totalItems, onPageChange }: MedicalRecordTableProps) {
+export function MedicalRecordTable({ rows, isLoading, page, pageSize, totalPages, totalItems, onPageChange, onPageSizeChange }: MedicalRecordTableProps) {
   return (
     <Card className="overflow-hidden p-0">
       {isLoading ? (
@@ -34,16 +34,12 @@ export function MedicalRecordTable({ rows, isLoading, page, totalPages, totalIte
                   <th className="px-5 py-3.5">Chuyên khoa</th>
                   <th className="px-5 py-3.5">Ngày khám</th>
                   <th className="px-5 py-3.5">Chẩn đoán</th>
-                  <th className="px-5 py-3.5">Trạng thái</th>
+                  {/* <th className="px-5 py-3.5">Trạng thái</th> */}
                   <th className="px-5 py-3.5 text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((record) => {
-                  const badge = PAYMENT_BADGE[record.payment_status] ?? {
-                    label: record.payment_status || "—",
-                    className: "bg-surface-secondary text-muted-foreground",
-                  };
                   return (
                     <tr key={record.id} className="border-b border-border transition-colors last:border-0 hover:bg-surface-secondary/40">
                       <td className="px-5 py-4 font-medium text-primary-600">{record.record_code}</td>
@@ -64,11 +60,11 @@ export function MedicalRecordTable({ rows, isLoading, page, totalPages, totalIte
                       <td className="max-w-xs px-5 py-4 text-muted-foreground">
                         <p className="truncate">{record.diagnosis ?? "—"}</p>
                       </td>
-                      <td className="px-5 py-4">
+                      {/* <td className="px-5 py-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${badge.className}`}>
                           {badge.label}
                         </span>
-                      </td>
+                      </td> */}
                       <td className="px-5 py-4 text-center">
                         <Link href={`/medical-records/${record.id}`}>
                           <Button variant="outline" size="sm" className="gap-1.5 rounded-lg text-primary-600">
@@ -95,7 +91,8 @@ export function MedicalRecordTable({ rows, isLoading, page, totalPages, totalIte
               totalPages={totalPages}
               onPageChange={onPageChange}
               totalItems={totalItems}
-              pageSize={MEDICAL_RECORD_PAGE_SIZE}
+              pageSize={pageSize}
+              onPageSizeChange={onPageSizeChange}
             />
           </div>
         </>

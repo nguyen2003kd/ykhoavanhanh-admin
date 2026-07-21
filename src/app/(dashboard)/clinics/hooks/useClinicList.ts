@@ -9,6 +9,7 @@ import { CLINIC_PAGE_SIZE, getExamAreaName, hasAssignedServices } from "../types
 export function useClinicList() {
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(CLINIC_PAGE_SIZE);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
 
@@ -19,20 +20,25 @@ export function useClinicList() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  // Bộ lọc phía server theo tên phòng khám: filters=room_name@=<giá trị>
-  const serverFilters = debouncedSearch.trim() ? `room_name@=${debouncedSearch.trim()}` : undefined;
+  // Bộ lọc phía server: tên phòng + trạng thái — filters=room_name@=<giá trị>,status==<giá trị>
+  const serverFilters = useMemo(() => {
+    const parts: string[] = [];
+    if (debouncedSearch.trim()) parts.push(`room_name@=${debouncedSearch.trim()}`);
+    if (statusFilter !== "all") parts.push(`status==${statusFilter}`);
+    return parts.length > 0 ? parts.join(",") : undefined;
+  }, [debouncedSearch, statusFilter]);
 
   const { data: roomsData, isLoading } = roomsHooks.usePaginatedList({
     currentPage: page,
-    pageSize: CLINIC_PAGE_SIZE,
+    pageSize,
     filters: serverFilters,
   });
   const allRooms = useMemo(() => roomsData?.rows ?? [], [roomsData]);
 
-  // Về trang 1 khi từ khóa tìm kiếm (đã debounce) thay đổi.
+  // Về trang 1 khi từ khóa tìm kiếm (đã debounce), trạng thái hoặc số lượng mỗi trang thay đổi.
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, statusFilter, pageSize]);
 
   // Điền sẵn ô tìm kiếm khi điều hướng từ trang "Xem phòng khám".
   useEffect(() => {
@@ -48,7 +54,7 @@ export function useClinicList() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const statusMutation = roomsHooks.useUpdate({
     onSuccess: (data) => {
-      toast.success(data.is_delete ? "Đã tắt phòng khám" : "Đã bật phòng khám");
+      toast.success(data.status === "ACTIVE" ? "Đã bật phòng khám" : "Đã tắt phòng khám");
     },
     onError: (err) => toast.error(err.message || "Cập nhật trạng thái thất bại"),
     onSettled: () => setTogglingId(null),
@@ -56,8 +62,10 @@ export function useClinicList() {
 
   function toggleRoomStatus(room: HisRoom) {
     setTogglingId(room.id);
-    // is_delete không nằm trong UpdateRoomPayload nên cần cast để gửi kèm.
-    statusMutation.mutate({ id: room.id, data: { is_delete: !room.is_delete } as never });
+    statusMutation.mutate({
+      id: room.id,
+      data: { status: room.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" },
+    });
   }
 
   const examAreaOptions = useMemo(() => {
@@ -69,8 +77,7 @@ export function useClinicList() {
     return allRooms.filter((room) => {
       const areaName = getExamAreaName(room);
       const matchArea = areaFilter === "all" || areaName === areaFilter;
-      const matchStatus =
-        statusFilter === "all" || (statusFilter === "ACTIVE" ? !room.is_delete : room.is_delete);
+      const matchStatus = statusFilter === "all" || room.status === statusFilter;
       const matchHis =
         hisFilter === "all" ||
         (hisFilter === "has" ? hasAssignedServices(room) : !hasAssignedServices(room));
@@ -78,11 +85,11 @@ export function useClinicList() {
     });
   }, [allRooms, areaFilter, statusFilter, hisFilter]);
 
-  const totalPages = roomsData?.totalPages ?? Math.max(1, Math.ceil(filtered.length / CLINIC_PAGE_SIZE));
+  const totalPages = roomsData?.totalPages ?? Math.max(1, Math.ceil(filtered.length / pageSize));
 
   const totalRooms = roomsData?.count ?? allRooms.length;
   const stats = useMemo(() => {
-    const activeRooms = allRooms.filter((room) => !room.is_delete).length;
+    const activeRooms = allRooms.filter((room) => room.status === "ACTIVE").length;
     const withServiceCode = allRooms.filter(hasAssignedServices).length;
     const withoutDescription = allRooms.filter((room) => !room.description?.trim()).length;
     const pct = (value: number) => (totalRooms > 0 ? ((value / totalRooms) * 100).toFixed(2) : "0");
@@ -123,6 +130,8 @@ export function useClinicList() {
     isLoading,
     page,
     setPage,
+    pageSize,
+    setPageSize,
     totalPages,
     totalItems: roomsData?.count ?? filtered.length,
     // tìm kiếm + lọc

@@ -3,15 +3,17 @@ import { TablePagination } from "@/components/ui/TablePagination";
 import { LoadingSection } from "@/components/ui/Spinner";
 import { StatusSwitch } from "@/components/ui/StatusSwitch";
 import type { HisRoom } from "@/api/roomsApi";
-import { CLINIC_PAGE_SIZE, formatUpdatedAt, getExamAreaLabel } from "../types";
+import { formatUpdatedAt, getExamAreaLabel } from "../types";
 
 interface ClinicTableProps {
   rooms: HisRoom[];
   isLoading: boolean;
   page: number;
+  pageSize: number;
   totalPages: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (room: HisRoom) => void;
@@ -22,9 +24,11 @@ export function ClinicTable({
   rooms,
   isLoading,
   page,
+  pageSize,
   totalPages,
   totalItems,
   onPageChange,
+  onPageSizeChange,
   onEdit,
   onDelete,
   onToggleStatus,
@@ -41,7 +45,7 @@ export function ClinicTable({
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-3.5">STT</th>
-                  <th className="px-5 py-3.5">Mã phòng</th>
+                  <th className="px-5 py-3.5">ID nội bộ</th>
                   <th className="px-5 py-3.5">Tên phòng khám</th>
                   <th className="px-5 py-3.5">Loại phòng khám</th>
                   <th className="px-5 py-3.5">Khu khám bệnh</th>
@@ -62,14 +66,14 @@ export function ClinicTable({
                     <tr key={room.id} className="text-sm transition-colors hover:bg-slate-50/60">
                       <td className="px-5 py-4">
                         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
-                          {(page - 1) * CLINIC_PAGE_SIZE + index + 1}
+                          {(page - 1) * pageSize + index + 1}
                         </span>
                       </td>
                       <td className="px-5 py-4 font-mono font-semibold text-slate-800">{room.roomid}</td>
                       <td className="max-w-xs px-5 py-4 font-semibold text-slate-800">{room.roomname}</td>
                       <td className="px-5 py-4 text-slate-700">{room.clinic_type || "—"}</td>
                       <td className="max-w-xs px-5 py-4 text-slate-700">{getExamAreaLabel(room) || "—"}</td>
-                      <td className="px-5 py-4"><StatusSwitch checked={!room.is_delete} loading={togglingId === room.id} onChange={() => onToggleStatus(room)} /></td>
+                      <td className="px-5 py-4"><StatusSwitch checked={room.status === "ACTIVE"} loading={togglingId === room.id} onChange={() => onToggleStatus(room)} /></td>
                       <td className="px-5 py-4 text-slate-600">{formatUpdatedAt(room.updated_at || room.synced_at || room.updatetime)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-2">
@@ -102,7 +106,8 @@ export function ClinicTable({
               totalPages={totalPages}
               onPageChange={onPageChange}
               totalItems={totalItems}
-              pageSize={CLINIC_PAGE_SIZE}
+              pageSize={pageSize}
+              onPageSizeChange={onPageSizeChange}
             />
           </div>
         </>

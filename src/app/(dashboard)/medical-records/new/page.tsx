@@ -6,7 +6,6 @@ import { useNewMedicalRecordForm } from "./hooks/useNewMedicalRecordForm";
 import { PatientPicker } from "./_components/PatientPicker";
 import { ExamInfoSection } from "./_components/ExamInfoSection";
 import { MedicalContentSection } from "./_components/MedicalContentSection";
-import { CostSection } from "./_components/CostSection";
 import { RecordSummary } from "./_components/RecordSummary";
 
 export default function NewMedicalRecordPage() {
@@ -31,7 +30,7 @@ export default function NewMedicalRecordPage() {
           <PatientPicker ctrl={ctrl} />
           <ExamInfoSection ctrl={ctrl} />
           <MedicalContentSection ctrl={ctrl} />
-          <CostSection ctrl={ctrl} />
+          {/* <CostSection ctrl={ctrl} /> */}
         </div>
 
         <RecordSummary ctrl={ctrl} />
