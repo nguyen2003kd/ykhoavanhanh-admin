@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ClipboardList, MapPin, Plus, ShieldPlus, Stethoscope, Tag, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/Input";
@@ -17,7 +17,7 @@ import { formatCurrency } from "@/lib/utils";
 // của dịch vụ (vd "BHYT/VIP") suy ra từ chính các mức giá đã khai.
 export const INSURANCE_OPTIONS = [
   { value: "BHYT", label: "BHYT" },
-  { value: "KT", label: "Khám thường" },
+  { value: "DV", label: "Dịch vụ" },
   { value: "VIP", label: "Khám VIP" },
 ] as const;
 
@@ -26,7 +26,7 @@ const DEFAULT_PRICE_LEVEL_CODE = "VIP";
 
 // Mã cũ đã đổi tên nhưng dữ liệu cũ trong DB vẫn còn lưu mã trước đó — quy về mã hiện hành
 // để dịch vụ cũ vẫn hiển thị/sửa được bình thường.
-const LEGACY_CODE_ALIASES: Record<string, string> = { DV: "VIP" };
+const LEGACY_CODE_ALIASES: Record<string, string> = { KT: "DV" };
 
 function normalizeInsuranceCode(code: string): string {
   return LEGACY_CODE_ALIASES[code] ?? code;
@@ -44,7 +44,7 @@ function isKnownInsuranceCode(code: string): boolean {
 /** Một dòng mức giá trong form; `id` chỉ dùng làm key React. */
 export type PriceLevelInput = {
   id: string;
-  /** Mã loại bảo hiểm: BHYT | KT | VIP. */
+  /** Mã loại bảo hiểm: BHYT | DV | VIP. */
   code: string;
   price: string;
   status: "ACTIVE" | "INACTIVE";
@@ -191,16 +191,18 @@ export function ServiceForm({
   onSubmit,
 }: Props) {
   const router = useRouter();
+  // Chỉ lấy initialForm làm giá trị khởi tạo một lần (lazy init) — KHÔNG đồng bộ lại
+  // mỗi khi component cha re-render, vì initialForm là object mới mỗi lần render
+  // (mapServiceToForm/createInitialServiceForm tạo mới), nếu đồng bộ liên tục sẽ
+  // ghi đè mất dữ liệu người dùng đang sửa (vd giá vừa nhập bị reset về giá cũ).
+  // Khi cần load lại theo bản ghi khác, truyền `key` khác cho <ServiceForm /> để
+  // React remount thay vì dựa vào effect này.
   const [form, setForm] = useState<ServiceFormValues>(initialForm);
 
   const { data: specialtiesData } = specialtiesHooks.useList();
   const specialties = specialtiesData?.rows ?? [];
   const { data: examAreasData } = examAreasHooks.useList();
   const examAreas = examAreasData?.rows ?? [];
-
-  useEffect(() => {
-    setForm(initialForm);
-  }, [initialForm]);
 
   function updatePriceLevel(id: string, patch: Partial<PriceLevelInput>) {
     setForm((p) => ({
