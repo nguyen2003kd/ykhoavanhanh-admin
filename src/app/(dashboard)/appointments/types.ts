@@ -65,12 +65,48 @@ function formatIsoDate(value?: string): string {
   return year && month && day ? `${day}/${month}/${year}` : value;
 }
 
+const WEEKDAY_LABEL = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+
+function getWeekdayText(value?: string): string {
+  if (!value) return "";
+  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? "" : WEEKDAY_LABEL[date.getDay()];
+}
+
 export function getScheduleDateText(item: DoctorWorkSchedule): string {
   if (item.schedule_date) return formatIsoDate(item.schedule_date);
   const start = formatIsoDate(item.start_date);
   const end = formatIsoDate(item.end_date);
   if (!start && !end) return "—";
   return !end || start === end ? start || end : `${start || "—"} - ${end}`;
+}
+
+/**
+ * Trả về tên (các) thứ trong tuần áp dụng cho lịch khám.
+ * Nếu lịch có nhiều thứ (item.weekdays, vd lịch lặp theo tuần) thì liệt kê hết,
+ * ví dụ "Thứ 2, Thứ 3, Thứ 4". Nếu không có weekdays thì fallback về thứ của
+ * ngày khám đơn (schedule_date) hoặc ngày bắt đầu (start_date).
+ */
+export function getScheduleWeekdayText(item: DoctorWorkSchedule): string {
+  const weekdays = item.weekdays?.length
+    ? item.weekdays
+    : Array.from(
+        new Set(
+          (item.time_slots ?? [])
+            .map((slot) => slot.weekday)
+            .filter((value): value is number => value !== undefined)
+        )
+      );
+
+  if (weekdays.length > 0) {
+    return [...weekdays]
+      .sort((a, b) => a - b)
+      .map((day) => WEEKDAY_LABEL[day] ?? "")
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  return getWeekdayText(item.schedule_date || item.start_date);
 }
 
 export function getScheduleTimeText(item: DoctorWorkSchedule): string {
