@@ -1,0 +1,29 @@
+# ==========================================
+# Author:         Duong Nhat Khoa
+# Email:          nhatkhoa.working@gmail.com
+# Phone:          +84 828 505 090
+# -----------------------------------
+# Created:        2026-05-09
+# LastEditTime:   2026-05-11
+# Version:        1.0
+# Status:         Updated
+# ==========================================
+
+services:
+  app:
+    container_name: ${ENVIRONMENT_NAME}-${PROJECT_NAME}
+    image: ${APP_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ${ENV_FILE}
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "${PORT_APP}:3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: ${DOCKER_NETWORK}
